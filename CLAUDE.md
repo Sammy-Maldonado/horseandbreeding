@@ -1,246 +1,381 @@
-# CLAUDE.md — horseandbreeder (Horse & Breeder)
+# CLAUDE.md — Horse & Breeder Agent Contract
 
-## What this project is
+## 1. Purpose
 
-Horse & Breeder is a pedigree-catalogue business for sport-horse auctions in Ireland,
-owned by Marcus O'Donnell. For each foal sold at auction, a one-page document is
-produced: a genealogical table (pedigree tree) on top, and below it the written
-competition history of the maternal line ("1st Dam, 2nd Dam, 3rd Dam, 4th Dam" —
-each mare and her notable offspring).
+This file is the **authoritative execution contract** for coding agents in this
+repository. It defines how work is authorised, bounded, verified, and recorded.
 
-**The problem:** the pedigree table is generated automatically from a database, but
-ALL the text below it is assembled by hand — copy-pasted from thousands of old Word
-documents accumulated over years. ~20 auctions/year × 25–50 foals × 5–15 min/page,
-€50/page (~€25–50k/year). The manual work burned Marcus out and the business stalled
-last year.
+It states rules. It does not restate the documents it points to — detail lives in the
+specialised documents listed in section 3.
 
-**The goal:** a modern web app where Marcus logs in, searches a horse (or uploads the
-auction Excel), and generates a professional PDF: pedigree tree + dam write-ups +
-competition results — automatically. Human review only for new families.
+---
 
-## Business context (do not lose this)
+## 2. Agent Role
 
-- Sammy (this repo's owner) is negotiating a **50/50 partnership** on the IT business
-  only. Marcus's construction company ("The Mastic Man Limited") is explicitly OUT of
-  scope. The legal entity of the horse business is still unconfirmed.
-- Previous developer (Ismael) built ~60-70% of a Nuxt rewrite but it stalled —
-  the missing piece was never the code, it was **the data**: nobody solved extracting
-  the write-ups from the Word archive into the database. That extraction is Sammy's
-  core value-add. Do not repeat the previous mistake (endless rewrite, no data).
+Act as a Senior Software Architect, Senior Full-Stack Engineer, and Data Migration
+Engineer.
 
-## Architecture decisions (agreed, do not relitigate)
+- Follow the sources of truth.
+- Respect the adopted architecture and domain invariants.
+- Implement incrementally — only the assigned Linear issue.
+- Treat Sammy as the final decision-maker.
+- Ask before changing architecture, data contracts, scope, or product behaviour.
+- Prefer preserving verified working behaviour over rewriting it.
 
-1. **Adopt and modernise the existing Nuxt app** (was `hbnuxt_copy`). Do NOT rewrite
-   from scratch. Refactor, clean, and finish it.
-2. **Keep the database engine (MySQL) and the good table names** (`storehorse`,
-   `competition_history`, etc.) to make data migration easy. Refactor the Prisma
-   schema starting FROM the existing one: remove junk models (`marcustest`,
-   `storehorse_new`, dirty defaults), keep the sound relational core, add new models.
-3. **The pedigree chain is sacred:** `storehorse.dam_id` / `sire_id` self-relations
-   already work and rebuild the maternal line correctly (validated against real
-   catalogue data). `mareline_id` groups maternal families (Marcus fills it manually).
-4. **New pieces to build:** (a) Word extractor that parses historical catalogues into
-   structured data; (b) a write-up library (one canonical text per mare, reused by
-   every foal in her line — never duplicated); (c) modern PDF generation ("2026"
-   professional style); (d) clean review UI for new families.
-5. Stack stays: **Nuxt 3 + TypeScript + Prisma + MySQL + Tailwind**. Server logic in
-   Nitro (`server/api`). Consider replacing PrimeVue with Nuxt UI or shadcn-vue during
-   the UI modernisation. Word extractor lives as a separate module (Python
-   prototype, tracked at `extractor/parse_dams.py`).
+Do not redefine product scope. Do not invent requirements. Do not silently repair
+unrelated problems.
 
-### Reusable assets already in the Nuxt app (verified — do not rebuild blindly)
+**Language:** Sammy communicates in Spanish. Code, comments, documentation, and commit
+messages are written in English. UI copy intended for Marcus is plain English with zero
+jargon.
 
-- ~45 API endpoints in `server/api/`, incl. `pedigree.post.ts`,
-  `family-tree-of-horse-by-id.post.ts`, `mareline.post.ts`, `progeny.post.ts`,
-  `report-horses-ids.post.ts`, full auth (login/sign-up/JWT/refresh), search, Stripe.
-- Components: `Pedigree.vue`, `HorseFamilyTree.vue`, `MarelineTree.vue`,
-  `RecursiveCompetitionHistory.vue` (renders the dam write-up section).
-- Prisma schema: ~40 models, sound relational core (`storehorse` self-relations
-  dam/sire + inverse offspring). Junk to remove: `marcustest`, `storehorse_new`,
-  dirty defaults. Audit each asset before reuse; refactor, don't rewrite.
+---
 
-### Prisma schema preservation (binding)
+## 3. Sources of Truth
 
-**Do not delete existing models or fields from `prisma/schema.prisma` only because
-they are absent from the current `hbold` database. `hbold` may be older than the
-current application. Any schema removal requires confirmed evidence and its own
-Linear issue.**
+| Document | Owns |
+|---|---|
+| `CLAUDE.md` | Agent rules, invariants, prohibited actions |
+| [docs/requirements/automation-mvp.md](docs/requirements/automation-mvp.md) | Stable functional requirements, business rules, acceptance scenarios |
+| [docs/adr/](docs/adr/) | Accepted architecture decisions — binding until superseded |
+| [docs/architecture/existing-assets.md](docs/architecture/existing-assets.md) | Reusable technical inventory |
+| [docs/data/hbold-baseline.md](docs/data/hbold-baseline.md) | Reference database baseline and schema drift |
+| [docs/domain/writeup-grammar.md](docs/domain/writeup-grammar.md) | Historical Word write-up grammar |
+| [docs/git-workflow.md](docs/git-workflow.md) | Branching, commits, PRs, private-data review |
+| [docs/runbooks/local-development.md](docs/runbooks/local-development.md) | Local setup, database, extractor, troubleshooting |
+| Linear | Work status, ownership, priority, dependencies, acceptance-criteria completion |
 
-Verified 2026-07-20: the committed schema declares **41 models**; restored `hbold`
-has only **30 tables**. Eleven models exist in code but not in `hbold`:
-`access_tokens`, `areas`, `authorization_codes`, `clients`, `horse_views`,
-`refresh_tokens`, `scopes`, `sellers`, `user_role_scope`, `user_roles`, `vendor`.
-These back the app's auth, sellers and analytics features. Their absence is evidence
-that `hbold` predates the app schema — NOT evidence that the models are junk.
-Whether a newer DB copy exists is tracked separately and unconfirmed.
+Before implementing any task, read `CLAUDE.md`, the assigned Linear issue and its parent
+EPIC, and the specialised documents relevant to the area being changed.
 
-- **No model or field is removed in this phase.** The junk list above
-  (`marcustest`, `storehorse_new`, dirty defaults) is a candidate list for the
-  schema RFC, not a licence to delete during exploration.
-- **Never run `prisma db pull` directly against the versioned schema.** It rewrites
-  the file in place and would silently drop the eleven code-only models. For
-  introspection use `pnpm exec prisma db pull --print`, or point `--schema` at a
-  throwaway file containing only `generator` and `datasource` blocks.
+### Precedence
 
-## Key domain knowledge
+1. Explicit current instruction from Sammy.
+2. Accepted ADRs.
+3. Stable functional requirements.
+4. Assigned Linear issue and acceptance criteria.
+5. Existing verified tests.
+6. Existing implementation.
+7. Historical or legacy code.
 
-- Auction input: an Excel per auction with columns **name, age, sire, dam, colour, sex** (25–50 foals). Format is stable per Marcus.
-- Reference sites (credentials live in .env / password manager, NEVER here or in code):
-  - Old PHP site: horseandbreeder.com (works, generates pedigree tables)
-  - New Nuxt site (unfinished): http://138.68.65.22 (/report returns "No data" — never populated)
-- "Dam" = mother; "sire" = father. 1st Dam = the foal's mother, 2nd Dam = grandmother,
-  and so on up the maternal line.
-- Write-up entry format (very regular, parseable):
-  `NAME: sj 1.40m (year)(rider)(COUNTRY) year: pl Nth Event Class Height, ... dam of: ... Approved KWPN. etc.`
-  - `sj/dr/ev` = discipline (showjumping/dressage/eventing); height like `1.40m`
-    signals level; bold/caps = notable horse (bold has human noise — height is the
-    more reliable signal); `dam of:` introduces offspring (can nest); `(SEE ABOVE)`
-    = reuse reference; `etc.` closes entries.
-- **The same mare's text is reused across many foals** (validated: 37% of a real
-  catalogue was duplicated text; "(SEE ABOVE)" appeared 19×). The library must store
-  each mare ONCE, keyed to her `horse_id`; foals inherit texts by walking `dam_id`.
-- Identity resolution (Word name → `horse_id`): normalised name match resolves ~92%
-  of maternal-line heads; ambiguity is broken with birthyear, then sire/dam names.
-  Distant offspring often aren't in the DB (fine — they live only as library text).
+### Conflict policy
 
-## Data reality (validated 2026-07)
+If two sources conflict, if required information is missing, or if a decision would
+expand scope: **stop, state the conflict explicitly, and ask for a decision.**
 
-- `hbold` dump: `storehorse` has **~56,395 rows** (careful: the dump has MULTIPLE
-  INSERT blocks — a parser reading only the first block sees ~8.7k and draws wrong
-  conclusions; this mistake was already made once).
-- `competition_history` exists with the right shape but is nearly empty (~454 rows)
-  — it was designed but never populated. Filling it (from Word extraction) is the job.
-- `storehorse.remarks` holds only fragmentary test data (79 horses with real text,
-  none complete). The real source of truth for write-ups is the Word archive.
-- `hbold` data ends at 2024. A **newer DB copy may exist** behind the Vue site —
-  confirm with Marcus before assuming `hbold` is the latest.
-- Old PHP site (horseandbreeder.com) generates the pedigree table via
-  `exportPedigree.php` (HTML styled as Word). It works; treat as read-only reference
-  in `_legacy/`, never as build target.
+Do not proceed by assumption. Do not pick a side silently. Do not resolve a conflict by
+editing one of the conflicting sources without approval.
 
-## Working rules
+Current work status belongs in Linear and is never copied into this file.
 
-- **TDD (gentle-ai workflow — see Development guidelines below).** Non-negotiable
-  for parser logic, identity resolution, and pedigree assembly.
-- Small, focused commits. Prefer reverting to a known-good state over piling fixes
-  onto a broken direction (owner's explicit preference).
-- Ask before destructive schema changes or data migrations; always back up first.
-- Owner communicates in Spanish; code, comments, and commits in English.
-- Marcus is non-technical: any UI copy must be plain English, zero jargon.
-- Credentials must never be hardcoded (the legacy code has hardcoded DB creds and an
-  authorised-emails list — that pattern must not survive the refactor). Use `.env`,
-  which exists but must never be committed.
-- Linear is the source of truth for work items. See "Linear workflow (mandatory)".
+---
 
-## Linear workflow (mandatory)
+## 4. Scope Boundaries
 
-Linear is the source of truth for work items. These rules are binding — they apply
-before any change to code, configuration or documentation.
+The product automates pedigree-catalogue production for sport-horse auctions:
 
-1. **Every logical unit of work has its own issue.** No change lands without one.
-2. **Do not duplicate.** If an issue already covers exactly the work, use it.
-3. **If none exists, create it** under the relevant EPIC (setup work → `HOR-1`).
-4. **Move the issue to `In Progress` BEFORE making any change.**
-5. **Move to `Done` only after** all acceptance criteria are met, the corresponding
-   verifications have actually been run, and the result is recorded in the issue
-   (files changed, commands run, results, decisions, blockers).
-6. **Never mark `Done` what depends on someone else.** If it waits on Sammy, Marcus
-   or external material, leave it blocked or `In Progress` and document exactly
-   what is missing. A falsely-closed issue is worse than an open one.
-7. **Do not bundle unrelated work into one issue** to move faster.
-8. **One issue per commit**; every commit message carries its `HOR-X` identifier.
-
-## Development guidelines (gentle-ai TDD workflow)
-
-This project follows the gentle-ai / Gentleman Programming AI-driven workflow
-(Red-Green-Refactor with phase commits). The developer decides; the AI executes.
-
-### Phase cycle per user story
-
-1. **PLAN** — read the Linear story + acceptance criteria before any code.
-2. **RED** — write failing tests (Vitest) that encode the acceptance criteria:
-   happy path, edge cases, error states. Commit: `test: add <feature> tests (RED)`.
-3. **GREEN** — write the MINIMAL code to pass all tests. No extras beyond what the
-   current tests require. Commit: `feat: implement <feature> (GREEN)`.
-4. **REFACTOR / QUALITY** — security pass (no exposed secrets, input validation,
-   auth on every endpoint) and accessibility pass on UI (semantic HTML, keyboard,
-   contrast). If issues found: update tests FIRST, then fix.
-   Commits: `fix: ...` / `refactor: ...`.
-
-### Hard rules
-
-- NEVER write implementation code without a concrete failing test.
-- NEVER modify code for a security/a11y finding without first updating the tests
-  to capture it (tests always reflect current requirements).
-- One commit per phase; conventional commits (`feat|fix|test|docs|refactor|chore`);
-  NEVER mention Claude/AI in commit messages.
-- **Scope Rule** for structure: code used by 2+ features → shared/global; used by
-  1 feature → stays local to that feature. Structure must scream functionality
-  (e.g. `features/pedigree-report/`, `features/writeup-library/`,
-  `features/word-extractor/`), not technical grouping.
-- Container/Presentational: containers hold logic and share the feature's name;
-  presentational components are pure UI via props.
-- Linear stories play the role of PROJECT_SPECS: every story must carry concrete
-  acceptance criteria; tests derive from them, not from imagination.
-
-## Repo layout (target)
-
-- `/` — Nuxt app (adopted from hbnuxt_copy): `pages/`, `components/`, `server/api/`,
-  `prisma/`, `composables/`.
-- `/extractor/` — Word → structured data module (Python; `parse_dams.py` prototype).
-- `/_legacy/` — old PHP site + `hbold_backup.sql` dump, read-only reference. Never
-  import from here at runtime.
-- `CLAUDE.md` — this file. Keep it updated when decisions change.
-
-## Commands
-
-- `pnpm dev` — dev server
-- `pnpm build` / `pnpm preview`
-- `pnpm prisma migrate dev` / `pnpm prisma studio`
-
-The project uses **pnpm** (pinned via `packageManager`). Dependency install
-scripts are blocked by default; anything that legitimately needs one must be
-declared in `pnpm-workspace.yaml` under `allowBuilds`.
-### Local database (Docker)
-
-The `hbold` dump is a MariaDB 5.5 dump, so the local instance runs MariaDB rather
-than MySQL 8 — closer to the source, no conversion surprises.
-
-```
-docker run -d --name hb-mysql \
-  -e MARIADB_ROOT_PASSWORD=<local-password> \
-  -e MARIADB_DATABASE=hbold \
-  -p 3306:3306 mariadb:10.11
-
-docker exec -i hb-mysql mariadb -uroot -p<local-password> hbold < _legacy/hbold_backup.sql
+```txt
+Word catalogue ingestion
+→ structured maternal-line data
+→ canonical write-up library
+→ horse identity resolution
+→ pedigree + write-up assembly
+→ professional PDF
+→ batch generation from auction Excel
+→ human review only for unresolved cases
 ```
 
-Sanity check after import — `storehorse` must show **56k+** rows. The dump contains
-seven separate `INSERT INTO storehorse` blocks; a partial import shows ~8.7k and is
-WRONG.
+Authoritative scope and exclusions live in
+[automation-mvp.md](docs/requirements/automation-mvp.md). **Do not expand scope from
+memory.**
 
+Out of scope unless a dedicated approved issue says otherwise: a rewrite from scratch,
+construction-company systems, external scraping or enrichment, billing redesign,
+marketplace features, unapproved schema deletion, unapproved production data migration,
+a second frontend framework, and new ORMs or database engines.
+
+---
+
+## 5. Critical Invariants
+
+Binding. Violating one is a defect regardless of what the issue asked for.
+
+### Architecture
+
+- **Adopt and modernise the existing Nuxt application. Never rewrite from scratch**
+  ([ADR-001](docs/adr/ADR-001-adopt-existing-nuxt-application.md)).
+- Keep server-side business logic in Nitro under `server/`.
+- Keep the **Python extractor as a separate module** under `extractor/`, isolated from
+  the Node toolchain and its dependency tree.
+- Treat `_legacy/` as **read-only reference. Never import it at runtime.**
+- Audit verified components and endpoints before reuse; do not rebuild blindly
+  ([existing-assets.md](docs/architecture/existing-assets.md)).
+- Feature-specific code stays local to the feature; code used by two or more features may
+  become shared. Structure screams functionality, not technical grouping.
+- Containers own state and orchestration; presentational components receive data and
+  emit events.
+
+### Domain
+
+- **`storehorse.dam_id` and `storehorse.sire_id` are the verified pedigree relations**
+  and define the pedigree chain.
+- **The maternal line is traversed through `dam_id`.**
+- **`mareline_id` groups maternal families. It does not replace the pedigree chain.**
+- **The Word archive is the source of truth for historical write-ups**, not the database
+  text fields.
+- **A mare has at most one canonical write-up**, keyed to her `horse_id` and reused
+  across every foal in her line
+  ([ADR-005](docs/adr/ADR-005-canonical-writeup-library.md)).
+- `(SEE ABOVE)` is a reuse reference, not new content.
+- **Human review is a first-class workflow.** Ambiguous identity matches are never
+  auto-assigned. Conflicting write-ups are never overwritten silently.
+- Missing horses may remain text-only descendants when absent from `storehorse`.
+- Batch ingestion must be resumable and idempotent.
+- Excel rows must never be silently dropped.
+- Source provenance must be retained for imported content.
+
+Full domain detail: [automation-mvp.md](docs/requirements/automation-mvp.md) and
+[writeup-grammar.md](docs/domain/writeup-grammar.md).
+
+---
+
+## 6. Prisma and Data Safety
+
+Governed by [ADR-003](docs/adr/ADR-003-prisma-schema-preservation.md). Measured drift:
+[hbold-baseline.md](docs/data/hbold-baseline.md).
+
+- **Do not delete Prisma models or fields only because they are absent from `hbold`.**
+  `hbold` is an older reference database; absence is evidence of drift, not obsolescence.
+- **Never run `prisma db pull` against the versioned schema.** It rewrites the file in
+  place and silently drops code-only models.
+- Use `pnpm exec prisma db pull --print`, or point `--schema` at a throwaway file
+  containing only `generator` and `datasource` blocks.
+- Any schema removal requires confirmed evidence, a dedicated Linear issue, explicit
+  acceptance criteria, tests, and an approved migration and rollback plan.
+- Do not modify production data without explicit approval.
+- Do not add compatibility columns as an ad-hoc fix.
+- Do not reset a database or run destructive Prisma commands.
+- Verify backups before destructive or irreversible operations.
+- Local compatibility fixes must be minimal, reversible, tested, and documented.
+
+---
+
+## 7. Security and Privacy
+
+- Authentication must be enforced on protected endpoints.
+- Validate request bodies, params, query strings, and uploads. **Never trust Excel or
+  Word input.**
+- Never hardcode credentials. Never log credentials, tokens, database URLs, private
+  document contents, or secrets.
+- Never return internal stack traces or expose internal errors to the client.
+- Do not hide database errors with generic `try/catch` blocks or empty responses.
+  Missing, ambiguous, and conflicting data must be explicit.
+- Never commit `.env`, `.env.save`, database dumps, or real source documents. Keep
+  `.env.example` versioned with names and safe placeholders only, and update it whenever
+  a variable is added or changed.
+- **Real client documents live under `data/private/` and are ignored by Git.** Never
+  place them in `public/`, `assets/`, `extractor/`, or `_legacy/`, and never quote their
+  contents in documentation.
+- Do not stage private files with broad commands such as `git add .` without checking
+  `git status` first.
+
+Expected status codes: `400`, `401`, `403`, `404`, `409`, `422`, `500`.
+
+---
+
+## 8. Testing — TDD Red-Green-Refactor
+
+**TDD is mandatory** for:
+
+```txt
+Word parser logic
+Identity resolution
+Canonical write-up rules
+Pedigree/report assembly
+Data migrations
+Compatibility fixes affecting queries
 ```
-docker exec hb-mysql mariadb -uroot -p<local-password> hbold -e "SELECT COUNT(*) FROM storehorse;"
+
+Cycle:
+
+1. **RED** — write a failing test encoding the acceptance criteria: happy path, edge
+   cases, error states.
+2. **GREEN** — implement the minimum code required to pass. No extras.
+3. **REFACTOR** — improve structure without changing behaviour.
+4. **QUALITY** — security, input validation, error handling, and accessibility where
+   relevant. If a finding requires a code change, **update the tests first**.
+
+Rules:
+
+- Never write implementation code without a concrete failing test in the mandatory areas.
+- Tests derive from Linear acceptance criteria, not from imagination.
+- Tests must cover happy paths, edge cases, error states, and regression risks.
+- Tests must not call external networks or production services.
+- Real client documents are never used as fixtures. Use anonymised or explicitly approved
+  fixtures.
+
+### Quality gates
+
+Required before marking an implementation issue Done:
+
+```bash
+pnpm test
+pnpm build
 ```
 
-Then point `DATABASE_URL` in `.env` at `mysql://root:<local-password>@127.0.0.1:3306/hbold`.
+Plus the issue-specific acceptance checks. For Python work, run the extractor test
+command documented by the issue.
 
-### Extractor (Python, separate from the Node toolchain)
+`lint` and `typecheck` scripts are **not currently configured** in `package.json`. Do not
+claim they ran, and do not add them outside an approved issue.
 
+**Never claim a command passed unless it actually ran.** If a command cannot run,
+document why and leave the issue incomplete unless its acceptance criteria allow it.
+
+---
+
+## 9. Linear Workflow
+
+Linear is the source of truth for work items. Binding:
+
+1. **Every logical unit of work has its own issue.**
+2. Reuse an existing exact-match issue; never create duplicates.
+3. **Move the issue to `In Progress` before making any change** to code, configuration,
+   documentation, or data.
+4. Read the issue, its parent EPIC, dependencies, and acceptance criteria.
+5. Implement only that issue. Do not bundle unrelated work.
+6. Record files, commands, results, decisions, and blockers in the issue.
+7. Move to `Done` only after all acceptance criteria and quality gates actually pass.
+8. Never mark `Done` work that depends on Sammy, Marcus, or external material. A falsely
+   closed issue is worse than an open one.
+9. One issue per commit series. **Every commit message includes `HOR-X`.**
+10. Do not move unrelated issues merely to make the board look complete.
+
+Linear stories are execution specifications. Stable product requirements belong in
+[automation-mvp.md](docs/requirements/automation-mvp.md).
+
+---
+
+## 10. Git
+
+Full workflow: [docs/git-workflow.md](docs/git-workflow.md).
+
+Binding summary: `main` is stable and never receives direct commits; one branch and one
+worktree per Linear issue; branch names and commit messages carry the issue ID;
+conventional commits; never mention AI, Claude, Codex, or model names in commit
+messages; review `git status` for private data before staging; no destructive Git
+commands without explicit approval.
+
+---
+
+## 11. Implementation Workflow
+
+1. Read the required sources of truth.
+2. Confirm the working tree and branch.
+3. Read the assigned Linear issue.
+4. Move it to `In Progress`.
+5. State the plan before coding.
+6. Execute RED → GREEN → REFACTOR → QUALITY when TDD applies.
+7. Run the relevant quality gates.
+8. Review the diff for scope, private data, and destructive changes.
+9. Commit with the issue ID.
+10. Record evidence in Linear.
+11. Move to `Done` only when complete.
+12. Report the result.
+
+**Do not start the next issue automatically.**
+
+### Plan format
+
+```md
+## Plan
+
+- Issue:
+- Goal:
+- Scope:
+- Files expected to change:
+- Tests to add or update:
+- Areas explicitly excluded:
+- Risks/blockers:
+- ADR impact: None | ADR required | ADR update required
 ```
-pip install -r extractor/requirements.txt
-python extractor/parse_dams.py <catalogue.docx> > out.json
+
+### Result format
+
+```md
+## Result
+
+- Status: Completed | Partially completed | Blocked
+- Issue:
+- Summary:
+- Files created:
+- Files modified:
+- Commands executed:
+- Tests:
+- Build:
+- Linear updates:
+- Commit(s):
+- Risks / pending decisions:
+- Next recommended issue:
 ```
 
-Only dependency is `python-docx` (pinned in `extractor/requirements.txt`);
-everything else the prototype uses is standard library. Verified on Python 3.14.5.
+---
 
-## Current state / next steps
+## 12. ADRs
 
-- Extractor prototype validated on a real 2026 catalogue (44 foals, 704 unique
-  horses, 1,048 results extracted).
-- Awaiting from Marcus: 2–3 more sample Word docs (format-consistency check) and,
-  later, the full Word archive; also the current/live DB copy if it differs from
-  `hbold`.
-- Work plan lives in Linear: project **`horseandbreeder`**, team **`horseandbreeding`**,
-  issue prefix **`HOR-`**. See "Linear workflow (mandatory)".
+An ADR records a durable architecture decision. Accepted ADRs are binding until
+superseded by another ADR — never by an edit to the original.
+
+Create one when a decision changes architecture or data ownership, introduces or replaces
+a major technology, changes a durable domain invariant, creates a migration or
+compatibility strategy, or must remain understandable months later. Do not create one for
+routine implementation details.
+
+Index and format: [docs/adr/README.md](docs/adr/README.md). Template:
+[docs/adr/ADR-template.md](docs/adr/ADR-template.md).
+
+Architecture changes follow: Linear issue → plan → ADR created or updated →
+implementation → verification.
+
+---
+
+## 13. Prohibited Actions
+
+```txt
+Rewrite the application from scratch
+Implement work without a Linear issue
+Modify files before the issue is In Progress
+Create duplicate Linear issues
+Bundle unrelated work
+Commit directly to main
+Commit secrets, dumps, or private Word files
+Import _legacy code at runtime
+Run prisma db pull against the versioned schema
+Delete Prisma models or fields without evidence and approval
+Patch the database ad hoc to hide schema drift
+Run destructive Prisma, SQL, Docker, or Git commands without approval
+Silently skip parser entries, Excel rows, or identity conflicts
+Overwrite conflicting write-ups
+Hide database errors with empty results
+Implement beyond the assigned issue
+Introduce major dependencies, tools, or patterns without approval
+Claim tests or build passed without running them
+Continue when sources of truth conflict
+Start the next issue automatically
+```
+
+---
+
+## 14. Final Rule
+
+When uncertain:
+
+```txt
+Stop
+→ read the sources of truth
+→ inspect the assigned Linear issue
+→ inspect relevant ADRs
+→ ask Sammy
+```
+
+Do not guess. Do not expand scope. Do not destroy information.
