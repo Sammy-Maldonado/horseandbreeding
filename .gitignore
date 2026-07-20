@@ -26,6 +26,10 @@ logs
 .vite-cache/
 components.d.ts
 
+# Real source documents supplied by Marcus (client data, this repo is public).
+# Only the README is tracked; nothing under private/ is ever committed.
+data/private/
+
 # Legacy PHP site + DB dump: read-only reference, never imported at runtime.
 # Kept out of git history (~88MB of binaries); only the README is tracked.
 _legacy/*
