@@ -2,12 +2,13 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "prisma generate && nuxt prepare",
     "start": "nuxt start"
   },
   "dependencies": {
@@ -44,8 +45,8 @@
     "regenerator-runtime": "^0.14.1",
     "stripe": "^17.3.1",
     "uuid": "^11.0.2",
-    "vue": "latest",
-    "vue-router": "latest",
+    "vue": "^3.5.40",
+    "vue-router": "^4.6.4",
     "vue3-carousel": "^0.4.0",
     "vue3-popper": "^1.5.0",
     "vue3-quill": "^0.3.1"

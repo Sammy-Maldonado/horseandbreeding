@@ -154,9 +154,13 @@ This project follows the gentle-ai / Gentleman Programming AI-driven workflow
 
 ## Commands
 
-- `npm run dev` — dev server
-- `npm run build` / `npm run preview`
-- `npx prisma migrate dev` / `npx prisma studio`
+- `pnpm dev` — dev server
+- `pnpm build` / `pnpm preview`
+- `pnpm prisma migrate dev` / `pnpm prisma studio`
+
+The project uses **pnpm** (pinned via `packageManager`). Dependency install
+scripts are blocked by default; anything that legitimately needs one must be
+declared in `pnpm-workspace.yaml` under `allowBuilds`.
 - Extractor: `python extractor/parse_dams.py <catalogue.docx> > out.json`
 
 ## Current state / next steps

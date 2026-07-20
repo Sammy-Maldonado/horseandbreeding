@@ -1,0 +1,11 @@
+# Dependencies allowed to run install scripts; everything else is blocked.
+# core-js is denied on purpose: its postinstall only prints a funding banner.
+allowBuilds:
+  '@parcel/watcher': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  bcrypt: true
+  core-js: false
+  esbuild: true
+  prisma: true
+  vue-demi: true
