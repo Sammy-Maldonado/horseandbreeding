@@ -59,6 +59,29 @@ competition results — automatically. Human review only for new families.
   dam/sire + inverse offspring). Junk to remove: `marcustest`, `storehorse_new`,
   dirty defaults. Audit each asset before reuse; refactor, don't rewrite.
 
+### Prisma schema preservation (binding)
+
+**Do not delete existing models or fields from `prisma/schema.prisma` only because
+they are absent from the current `hbold` database. `hbold` may be older than the
+current application. Any schema removal requires confirmed evidence and its own
+Linear issue.**
+
+Verified 2026-07-20: the committed schema declares **41 models**; restored `hbold`
+has only **30 tables**. Eleven models exist in code but not in `hbold`:
+`access_tokens`, `areas`, `authorization_codes`, `clients`, `horse_views`,
+`refresh_tokens`, `scopes`, `sellers`, `user_role_scope`, `user_roles`, `vendor`.
+These back the app's auth, sellers and analytics features. Their absence is evidence
+that `hbold` predates the app schema — NOT evidence that the models are junk.
+Whether a newer DB copy exists is tracked separately and unconfirmed.
+
+- **No model or field is removed in this phase.** The junk list above
+  (`marcustest`, `storehorse_new`, dirty defaults) is a candidate list for the
+  schema RFC, not a licence to delete during exploration.
+- **Never run `prisma db pull` directly against the versioned schema.** It rewrites
+  the file in place and would silently drop the eleven code-only models. For
+  introspection use `pnpm exec prisma db pull --print`, or point `--schema` at a
+  throwaway file containing only `generator` and `datasource` blocks.
+
 ## Key domain knowledge
 
 - Auction input: an Excel per auction with columns **name, age, sire, dam, colour, sex** (25–50 foals). Format is stable per Marcus.
