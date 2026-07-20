@@ -107,8 +107,25 @@ competition results — automatically. Human review only for new families.
 - Credentials must never be hardcoded (the legacy code has hardcoded DB creds and an
   authorised-emails list — that pattern must not survive the refactor). Use `.env`,
   which exists but must never be committed.
-- Linear is the source of truth for work items. Pick up stories from the
-  `marcus-caballos` project; move them through states; reference story IDs in commits.
+- Linear is the source of truth for work items. See "Linear workflow (mandatory)".
+
+## Linear workflow (mandatory)
+
+Linear is the source of truth for work items. These rules are binding — they apply
+before any change to code, configuration or documentation.
+
+1. **Every logical unit of work has its own issue.** No change lands without one.
+2. **Do not duplicate.** If an issue already covers exactly the work, use it.
+3. **If none exists, create it** under the relevant EPIC (setup work → `HOR-1`).
+4. **Move the issue to `In Progress` BEFORE making any change.**
+5. **Move to `Done` only after** all acceptance criteria are met, the corresponding
+   verifications have actually been run, and the result is recorded in the issue
+   (files changed, commands run, results, decisions, blockers).
+6. **Never mark `Done` what depends on someone else.** If it waits on Sammy, Marcus
+   or external material, leave it blocked or `In Progress` and document exactly
+   what is missing. A falsely-closed issue is worse than an open one.
+7. **Do not bundle unrelated work into one issue** to move faster.
+8. **One issue per commit**; every commit message carries its `HOR-X` identifier.
 
 ## Development guidelines (gentle-ai TDD workflow)
 
