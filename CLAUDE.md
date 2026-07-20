@@ -178,6 +178,30 @@ This project follows the gentle-ai / Gentleman Programming AI-driven workflow
 The project uses **pnpm** (pinned via `packageManager`). Dependency install
 scripts are blocked by default; anything that legitimately needs one must be
 declared in `pnpm-workspace.yaml` under `allowBuilds`.
+### Local database (Docker)
+
+The `hbold` dump is a MariaDB 5.5 dump, so the local instance runs MariaDB rather
+than MySQL 8 — closer to the source, no conversion surprises.
+
+```
+docker run -d --name hb-mysql \
+  -e MARIADB_ROOT_PASSWORD=<local-password> \
+  -e MARIADB_DATABASE=hbold \
+  -p 3306:3306 mariadb:10.11
+
+docker exec -i hb-mysql mariadb -uroot -p<local-password> hbold < _legacy/hbold_backup.sql
+```
+
+Sanity check after import — `storehorse` must show **56k+** rows. The dump contains
+seven separate `INSERT INTO storehorse` blocks; a partial import shows ~8.7k and is
+WRONG.
+
+```
+docker exec hb-mysql mariadb -uroot -p<local-password> hbold -e "SELECT COUNT(*) FROM storehorse;"
+```
+
+Then point `DATABASE_URL` in `.env` at `mysql://root:<local-password>@127.0.0.1:3306/hbold`.
+
 ### Extractor (Python, separate from the Node toolchain)
 
 ```
