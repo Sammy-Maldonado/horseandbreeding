@@ -1,4 +1,4 @@
-# CLAUDE.md — marcus-caballos (Horse & Breeder)
+# CLAUDE.md — horseandbreeder (Horse & Breeder)
 
 ## What this project is
 
@@ -45,8 +45,8 @@ competition results — automatically. Human review only for new families.
    professional style); (d) clean review UI for new families.
 5. Stack stays: **Nuxt 3 + TypeScript + Prisma + MySQL + Tailwind**. Server logic in
    Nitro (`server/api`). Consider replacing PrimeVue with Nuxt UI or shadcn-vue during
-   the UI modernisation. Word extractor may live as a separate module (Python
-   prototype exists and works: `parse_dams.py`).
+   the UI modernisation. Word extractor lives as a separate module (Python
+   prototype, tracked at `extractor/parse_dams.py`).
 
 ### Reusable assets already in the Nuxt app (verified — do not rebuild blindly)
 
@@ -187,4 +187,5 @@ declared in `pnpm-workspace.yaml` under `allowBuilds`.
 - Awaiting from Marcus: 2–3 more sample Word docs (format-consistency check) and,
   later, the full Word archive; also the current/live DB copy if it differs from
   `hbold`.
-- Work plan lives in Linear (project `marcus-caballos`).
+- Work plan lives in Linear: project **`horseandbreeder`**, team **`horseandbreeding`**,
+  issue prefix **`HOR-`**. See "Linear workflow (mandatory)".
