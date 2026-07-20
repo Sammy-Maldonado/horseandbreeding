@@ -9,7 +9,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "prisma generate && nuxt prepare",
-    "start": "nuxt start"
+    "start": "nuxt start",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
@@ -60,6 +62,7 @@
     "nuxt-primevue": "^3.0.0",
     "postcss": "^8.4.47",
     "prettier": "3.3.3",
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.14",
+    "vitest": "^4.1.10"
   }
 }
