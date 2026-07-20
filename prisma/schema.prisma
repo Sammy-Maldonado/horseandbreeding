@@ -1,0 +1,547 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model approvedby {
+  id         Int     @id @default(autoincrement())
+  approvedby String? @db.VarChar(45)
+  breed_code String  @default(dbgenerated("()")) @db.VarChar(10)
+
+  storehorse_has_approvedby storehorse_has_approvedby[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model breeder {
+  id               Int          @id @default(autoincrement())
+  breedername      String?      @db.VarChar(255)
+  contactfname     String?      @db.VarChar(50)
+  contactlname     String?      @db.VarChar(50)
+  addr1            String?      @db.VarChar(255)
+  addr2            String?      @db.VarChar(255)
+  addr3            String?      @db.VarChar(255)
+  addr4            String?      @db.VarChar(255)
+  addr5            String?      @db.VarChar(255)
+  tel              String?      @db.VarChar(50)
+  email            String?      @db.VarChar(50)
+  website          String?      @db.VarChar(100)
+  mapref           String?      @db.VarChar(255)
+  logo             String?      @db.VarChar(255)
+  missionstatement String?      @db.Text
+  notes            Bytes?       @db.Blob
+  twitterid        String?      @db.VarChar(255)
+  facebookurl      String?      @db.VarChar(255)
+  farmname         String?      @default(dbgenerated("(Farm Name)")) @db.VarChar(255)
+  userId           Int          @unique(map: "userId") @default(0)
+  storehorses      storehorse[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model comments {
+  id      Int    @id @default(autoincrement())
+  email   String @default(dbgenerated("()")) @db.VarChar(255)
+  title   String @default(dbgenerated("()")) @db.VarChar(255)
+  details String @default(dbgenerated("()")) @db.VarChar(255)
+}
+
+model counties {
+  id     Int    @id @default(autoincrement()) @db.TinyInt
+  county String @default(dbgenerated("()")) @db.VarChar(50)
+}
+
+model countries {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+}
+
+model diciplines {
+  iddiciplines    Int               @id @default(0)
+  diciplines      String?           @db.VarChar(45)
+  diciplinevalues diciplinevalues[]
+}
+
+model diciplinevalues {
+  idvalues                       Int                              @id @default(0)
+  diciplines_iddiciplines        Int                              @default(0)
+  value                          String?                          @db.VarChar(45)
+  priority                       Int?
+  short                          String?                          @db.VarChar(45)
+  group_priority                  Int?
+  disciplines                    diciplines                       @relation(fields: [diciplines_iddiciplines], references: [iddiciplines], onDelete: NoAction, onUpdate: NoAction, map: "fk_diciplinevalues_diciplines1")
+  storehorse_has_diciplinevalues storehorse_has_diciplinevalues[]
+
+  @@index([diciplines_iddiciplines], map: "fk_diciplinevalues_diciplines1")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model events {
+  id       Int    @id @default(autoincrement())
+  type     Int    @default(0)
+  title    String @default(dbgenerated("()")) @db.VarChar(255)
+  body     String @db.Text
+  link     String @default(dbgenerated("()")) @db.VarChar(255)
+  location String @default(dbgenerated("()")) @db.VarChar(255)
+  date     String @default(dbgenerated("()")) @db.VarChar(255)
+  time     String @default(dbgenerated("()")) @db.VarChar(255)
+  user     String @default(dbgenerated("()")) @db.VarChar(255)
+  active   Int    @default(1)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model forum_answer {
+  question_id Int    @default(0)
+  a_id        Int    @default(0)
+  a_name      String @default(dbgenerated("()")) @db.VarChar(65)
+  a_email     String @default(dbgenerated("()")) @db.VarChar(65)
+  a_answer    String @db.LongText
+  a_datetime  String @default(dbgenerated("()")) @db.VarChar(25)
+
+  @@index([a_id], map: "a_id")
+  @@ignore
+}
+
+model forum_question {
+  id       Int    @id @default(autoincrement())
+  topic    String @default(dbgenerated("()")) @db.VarChar(255)
+  detail   String @db.LongText
+  name     String @default(dbgenerated("()")) @db.VarChar(65)
+  email    String @default(dbgenerated("()")) @db.VarChar(65)
+  datetime String @default(dbgenerated("()")) @db.VarChar(25)
+  view     Int    @default(0)
+  reply    Int    @default(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gallery {
+  user_id       Int         @default(0)
+  horse_id      Int         @default(0)
+  photo_id      String      @default(dbgenerated("()")) @db.VarChar(100)
+  title         String      @default(dbgenerated("()")) @db.VarChar(100)
+  description   String      @default(dbgenerated("()")) @db.VarChar(255)
+  type          Int         @default(0)
+  cover         Boolean     @default(false)
+  uploaded_date DateTime    @default(now()) // Set default to the current timestamp
+  gallery_id    Int         @id @default(autoincrement())
+  status        Boolean     @default(false)
+  storehorse    storehorse? @relation(fields: [horse_id], references: [horse_id])
+
+  @@unique([horse_id, photo_id])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model horse_class {
+  id    Int    @id @default(autoincrement())
+  class String @default(dbgenerated("()")) @db.VarChar(255)
+}
+
+model horse_details {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(266)
+  dob         DateTime @default(now()) @db.Timestamp(0)
+  height      String   @db.VarChar(10)
+  length      String   @db.VarChar(10)
+  weight      String   @db.VarChar(10)
+  breed       String   @db.VarChar(100)
+  color       String   @db.VarChar(50)
+  saleprice   Float    @db.Float
+  horsepic    String   @db.VarChar(255)
+  description String   @db.Text
+}
+
+model marcustest {
+  id          Int       @id @default(autoincrement())
+  horsename   String?   @db.VarChar(255)
+  dob         DateTime? @default(dbgenerated("(0000-00-00 00:00:00)")) @db.DateTime(0)
+  sexe        Int?      @default(0)
+  comment     Bytes?    @db.Blob
+  foalingdate DateTime? @default(dbgenerated("(0000-00-00 00:00:00)")) @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model photos {
+  id       Int    @id @default(autoincrement())
+  horse_id Int    @default(0)
+  photo    String @default(dbgenerated("()")) @db.VarChar(255)
+}
+
+model sexe {
+  idsexe     Int          @id @default(0)
+  type       String       @default(dbgenerated("()")) @db.VarChar(45)
+  storehorse storehorse[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model storehorse {
+  horse_id              Int                              @id @default(autoincrement())
+  name                  String                           @default(dbgenerated("()")) @db.VarChar(100)
+  birthyear             Int                              @default(0)
+  regnr                 String                           @default(dbgenerated("(0)")) @db.VarChar(20)
+  predicates            String                           @default(dbgenerated("()")) @db.VarChar(100)
+  color                 String                           @default(dbgenerated("()")) @db.VarChar(20)
+  height                String                           @default(dbgenerated("(0)")) @db.VarChar(12)
+  sell_price            Float?                           @db.Float
+  sell_price_type       Int?
+  alias                 String                           @default(dbgenerated("()")) @db.VarChar(100)
+  breeding_way          String                           @default(dbgenerated("()")) @db.VarChar(25)
+  sire_id               Int                              @default(0)
+  dam_id                Int?                             @default(0)
+  sexe                  Int                              @default(1)
+  remarks_short         String?                          @db.VarChar(30)
+  remarks               String?                          @db.Text
+  horse_type            String                           @default(dbgenerated("()")) @db.VarChar(45)
+  comments              String?                          @db.Text
+  forsale               Int?                             @default(0)
+  entered               Int                              @default(0)
+  last_updated          Int                              @default(0)
+  breeder               Int                              @default(0)
+  owner                 Int                              @default(0)
+  competitionAuthority  String?                          @db.Text
+  rider                 Int                              @default(0)
+  breederid             Int?                             @default(0)
+  sport_result_jumping  Int?
+  sport_result_dressage Int?
+  sport_result_eventing Int?
+  basic_premium         Int?
+  mareline_id           String?                          @db.VarChar(8)
+  breeders              breeder?                         @relation(fields: [breederid], references: [id])
+  user_has_horse        users_has_storehorse[]
+  has_approvedby        storehorse_has_approvedby[]
+  studbook_has          studbook_has_storehorse[]
+  has_disciplines       storehorse_has_diciplinevalues[]
+  type_horse            sexe                             @relation(fields: [sexe], references: [idsexe])
+  photos                gallery[]
+  dam                   storehorse?                      @relation("HorseToDam", fields: [dam_id], references: [horse_id], map: "dam_id_relation")
+  lineage_dam           storehorse[]                     @relation("HorseToDam", map: "dam_id_relation") // Add this to represent the lineage
+  sire                  storehorse?                      @relation("HorseToSire", fields: [sire_id], references: [horse_id], map: "sire_id_relation")
+  lineage_sire          storehorse[]                     @relation("HorseToSire", map: "sire_id_relation") // Add this to represent the lineage
+  status                Int?
+  currency              String?                          @db.VarChar(1)
+  age                   String?                          @db.VarChar(10)
+  ad_title              String?                          @db.VarChar(100)
+  created_at            DateTime?                        @default(now())
+  horse_views           horse_views[]
+  seller                sellers?                         @relation(fields: [seller_id], references: [id])
+  seller_id             Int?
+  competitionHistory    competition_history[]
+  @@unique([horse_id])
+  @@index([dam_id], map: "fk_dam")
+  @@index([sire_id], map: "fk_sire")
+  @@index([sexe], map: "fk_storehorse_sexe1")
+}
+
+model areas {
+  id        Int    @id @default(autoincrement())
+  name      String @default(dbgenerated("()")) @db.VarChar(100)
+  full_name String @default(dbgenerated("()")) @db.VarChar(100)
+  county    String @default(dbgenerated("()")) @db.VarChar(100)
+  type      String @default(dbgenerated("()")) @db.VarChar(100)
+  latitude  Int    @default(0)
+  longitude Int    @default(0)
+  county_id Int    @default(0)
+  status    Int?
+
+  users_has_storehorse users_has_storehorse[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model storehorse_has_approvedby {
+  id_approvedby Int @default(0)
+  horse_id      Int @default(0)
+
+  storehorse storehorse? @relation(fields: [horse_id], references: [horse_id]) // Relation to storehorse
+  approvedly approvedby? @relation(fields: [id_approvedby], references: [id])
+
+  @@id([id_approvedby, horse_id]) // Composite primary key
+  @@index([id_approvedby, horse_id], map: "id_approvedby_horse")
+}
+
+model storehorse_has_diciplinevalues {
+  storehorse_horse_id      Int             @default(0)
+  diciplinevalues_idvalues Int             @default(0)
+  storehorse               storehorse      @relation(fields: [storehorse_horse_id], references: [horse_id])
+  disciplines              diciplinevalues @relation(fields: [diciplinevalues_idvalues], references: [idvalues])
+
+  @@id([storehorse_horse_id, diciplinevalues_idvalues])
+  @@index([diciplinevalues_idvalues], map: "fk_storehorse_has_diciplinevalues_diciplinevalues1")
+  @@index([storehorse_horse_id], map: "fk_storehorse_has_diciplinevalues_storehorse1")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model storehorse_has_media {
+  id         Int    @id @default(autoincrement())
+  horse_id   Int    @default(0)
+  media_type String @default(dbgenerated("()")) @db.Char(1)
+  media      String @default(dbgenerated("()")) @db.VarChar(60)
+  deleted    Int    @default(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model storehorse_new {
+  horse_id              Int     @id @default(autoincrement())
+  name                  String  @default(dbgenerated("()")) @db.VarChar(100)
+  birthyear             Int     @default(0)
+  regnr                 String  @default(dbgenerated("(0)")) @db.VarChar(20)
+  predicates            String  @default(dbgenerated("()")) @db.VarChar(100)
+  color                 String  @default(dbgenerated("()")) @db.VarChar(20)
+  height                String  @default(dbgenerated("(0)")) @db.VarChar(4)
+  sell_price            Float?  @db.Float
+  sell_price_type       Int?
+  alias                 String  @default(dbgenerated("()")) @db.VarChar(100)
+  breeding_way          String  @default(dbgenerated("()")) @db.VarChar(25)
+  sire_id               Int     @default(0)
+  dam_id                Int     @default(0)
+  sexe                  Int     @default(1)
+  remarks_short         String  @default(dbgenerated("()")) @db.VarChar(30)
+  remarks               String? @db.Text
+  horse_type            String  @default(dbgenerated("()")) @db.VarChar(45)
+  comments              String? @db.Text
+  forsale               Int?    @default(0)
+  entered               Int     @default(0)
+  last_updated          Int     @default(0)
+  breeder               Int     @default(0)
+  owner                 Int     @default(0)
+  competitionAuthority  String? @db.Text
+  rider                 Int     @default(0)
+  breederid             Int?    @default(0)
+  sport_result_jumping  Int?
+  sport_result_dressage Int?
+  sport_result_eventing Int?
+  basic_premium         Int?
+  mareline_id           String? @db.VarChar(8)
+  tag                   String? @db.MediumText
+
+  @@index([dam_id], map: "fk_dam")
+  @@index([sire_id], map: "fk_sire")
+  @@index([sexe], map: "fk_storehorse_sexe1")
+}
+
+model studbook {
+  id                      Int                       @id @default(autoincrement())
+  name                    String                    @default(dbgenerated("()")) @db.VarChar(45)
+  abbr                    String                    @default(dbgenerated("()")) @db.VarChar(6)
+  studbook_has_storehorse studbook_has_storehorse[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model studbook_has_storehorse {
+  studbook_id         Int        @default(0) // Foreign key to the studbook
+  storehorse_horse_id Int        @default(0) // Foreign key to the storehorse
+  storehorse          storehorse @relation(fields: [storehorse_horse_id], references: [horse_id]) // Relation to storehorse
+  studBook            studbook?  @relation(fields: [studbook_id], references: [id]) // Relation to studbook
+
+  @@id([studbook_id, storehorse_horse_id]) // Composite primary key
+  @@index([storehorse_horse_id], map: "storehorse_horse_id") // Index on storehorse_horse_id
+  @@index([studbook_id, storehorse_horse_id], map: "studbook_id") // Composite index
+}
+
+model tbl_color {
+  id         Int    @id @default(autoincrement())
+  color_name String @db.VarChar(50)
+  color_code String @db.VarChar(10)
+  status     Int    @default(1)
+}
+
+model tbl_price {
+  id     Int    @id @default(autoincrement())
+  value  String @db.VarChar(255)
+  status Int    @default(1)
+}
+
+model userlog {
+  id          Int       @id @default(autoincrement())
+  raiseddate  DateTime? @db.DateTime(0)
+  description String?   @db.VarChar(255)
+  comment     Bytes?    @db.Blob
+  userid      String?   @default(dbgenerated("(0)")) @db.VarChar(45)
+  horseid     Int?      @default(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  email                String                 @unique
+  first_name           String                 @default(dbgenerated("()")) @db.VarChar(50)
+  last_name            String                 @default(dbgenerated("()")) @db.VarChar(50)
+  town                 String                 @default(dbgenerated("()")) @db.VarChar(50)
+  countyId             Int                    @default(0) @db.TinyInt
+  password             String                 @default(dbgenerated("()")) @db.VarChar(100)
+  id                   Int                    @id @default(autoincrement())
+  question             String                 @default(dbgenerated("()")) @db.VarChar(254)
+  answer               String?                @default(dbgenerated("()")) @db.VarChar(200)
+  user_type            Int                    @default(0)
+  address              String                 @default("") @db.Text
+  telephone            String                 @default(dbgenerated("()")) @db.VarChar(20)
+  mobile               String                 @default(dbgenerated("()")) @db.VarChar(45)
+  website              String                 @default(dbgenerated("()")) @db.VarChar(45)
+  googlemap            String                 @default(dbgenerated("()")) @db.VarChar(255)
+  farmname             String                 @default(dbgenerated("()")) @db.VarChar(255)
+  welcome              String                 @default("") @db.Text
+  logo                 String                 @default(dbgenerated("()")) @db.VarChar(255)
+  news                 String                 @default("") @db.Text
+  status               Int?                   @default(0)
+  is_breeder           Int?                   @default(0)
+  is_owner             Int?                   @default(0)
+  is_stud              Int?                   @default(0)
+  zip_code             String?                @db.VarChar(50)
+  roles                user_roles[]
+  tokens               access_tokens[]
+  refresh_tokens       refresh_tokens[]
+  authorization_codes  authorization_codes[]
+  users_has_storehorse users_has_storehorse[]
+  seller               sellers[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users_has_storehorse {
+  id          Int        @id @default(autoincrement())
+  user_id     Int        @default(0)
+  horse_id    Int        @default(0)
+  horse_class Int        @default(0)
+  breeder     Int        @default(0)
+  rider       Int        @default(0)
+  studfarm    Int        @default(0)
+  owner       Int        @default(0)
+  area_id     Int        @default(0) // Add new field
+  area        areas?     @relation(fields: [area_id], references: [id])
+  storehorse  storehorse @relation(fields: [horse_id], references: [horse_id])
+  user        users      @relation(fields: [user_id], references: [id])
+
+  @@index([area_id], map: "fk_area")
+}
+
+model videos {
+  id            Int      @id @default(autoincrement())
+  horse_id      Int
+  vurl          String?  @db.VarChar(255)
+  cover         Boolean  @default(false)
+  uploaded_date DateTime @default(now()) @db.Timestamp(0)
+}
+
+model vendor {
+  vendor_id      Int     @id @default(autoincrement())
+  vendor_name    String
+  vendor_contact String?
+  vendor_address String?
+}
+
+model clients {
+  id                  Int                   @id @default(autoincrement())
+  client_id           String                @unique
+  client_secret       String
+  redirect_uri        String
+  name                String
+  created_at          DateTime              @default(now())
+  updated_at          DateTime              @updatedAt
+  authorization_codes authorization_codes[]
+  access_tokens       access_tokens[]
+  refresh_tokens      refresh_tokens[]
+}
+
+model authorization_codes {
+  code        String   @id
+  client_id   String
+  user_id     Int
+  redirectUri String
+  expires_at  DateTime
+  user        users    @relation(fields: [user_id], references: [id])
+  client      clients  @relation(fields: [client_id], references: [client_id])
+}
+
+model access_tokens {
+  token      String   @id
+  client_id  String
+  user_id    Int
+  scope      String
+  created_at DateTime @default(now())
+  expires_at DateTime
+  user       users    @relation(fields: [user_id], references: [id])
+  client     clients  @relation(fields: [client_id], references: [client_id])
+}
+
+model refresh_tokens {
+  token      String   @id
+  client_id  String
+  user_id    Int
+  created_at DateTime @default(now())
+  expires_at DateTime
+  user       users    @relation(fields: [user_id], references: [id])
+  client     clients  @relation(fields: [client_id], references: [client_id])
+}
+
+model scopes {
+  id              Int               @id @default(autoincrement())
+  scope_name      String            @unique
+  description     String
+  user_role_scope user_role_scope[]
+}
+
+model user_roles {
+  id              Int               @id @default(autoincrement())
+  user_id         Int
+  role_name       String            @unique
+  user            users             @relation(fields: [user_id], references: [id])
+  user_role_scope user_role_scope[]
+
+  @@unique([role_name, user_id]) // Add a composite unique constraint
+}
+
+model horse_views {
+  id             Int      @id @default(autoincrement())
+  horse_id       Int
+  views          Int      @default(0)
+  last_viewed_at DateTime @default(now())
+
+  horse storehorse @relation(fields: [horse_id], references: [horse_id]) // Assuming `id` is the primary key in `StoreHorse` model
+}
+
+model sellers {
+  id         Int          @id @default(autoincrement()) // Unique identifier for each seller (Primary Key)
+  full_name  String       @default(dbgenerated("()")) @db.VarChar(255)
+  mobile     String       @default(dbgenerated("()")) @db.VarChar(20)
+  email      String       @default(dbgenerated("()")) @db.VarChar(100)
+  location   String? // Seller's location (optional)
+  user       users?       @relation(fields: [user_id], references: [id]) // Foreign key linking to the Users table
+  user_id    Int? // Foreign key field to link with User
+  created_at DateTime     @default(now()) // Timestamp when the seller was added
+  updated_at DateTime     @updatedAt // Timestamp when the seller's details were last updated
+  storehorse storehorse[]
+
+  @@map("sellers") // Optional: if the table name should be "Sellers" in the DB
+}
+
+model user_role_scope {
+  id       Int        @id @default(autoincrement())
+  role     user_roles @relation(fields: [role_id], references: [id])
+  role_id  Int
+  scope    scopes     @relation(fields: [scope_id], references: [id])
+  scope_id Int
+
+  // Additional fields can be added, e.g., `granted_by`, `granted_at`
+  @@unique([role_id, scope_id]) // Add a composite unique constraint
+}
+
+model competition_history {
+  competition_history_id Int      @id @default(autoincrement())
+  horse_name            String?   @db.VarChar(255)
+  storehorse_id         Int?      @db.Int
+  rider                 String?   @db.VarChar(255)
+  competition_year      Int?      @db.Int
+  location              String?   @db.VarChar(255)
+  csi                   String?   @db.VarChar(10)
+  type                  String?   @db.VarChar(10)
+  height                Decimal?  @db.Decimal(5, 2)
+  placed_in_competition String?   @db.VarChar(50)
+  detail                String?   @db.VarChar(255)
+  status                Boolean   @default(true)
+  created               DateTime  @default(now()) @db.Timestamp
+  storehorse            storehorse? @relation(fields: [storehorse_id], references: [horse_id])
+  @@index([storehorse_id])
+  @@map("competition_history")
+}
+

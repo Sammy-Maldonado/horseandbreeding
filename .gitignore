@@ -1,0 +1,32 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+.vscode/
+.vite-cache/
+components.d.ts
+
+# Legacy PHP site + DB dump: read-only reference, never imported at runtime.
+# Kept out of git history (~88MB of binaries); only the README is tracked.
+_legacy/*
+!_legacy/README.md

@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.server.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "target": "es2020",
+    "module": "ESNext",
+    "strict": true,
+    "types": ["@nuxt/types", "nuxt-stripe-module"]
+  },
+  "include": ["src/**/*.ts", "prisma/**/*.ts", "server/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
