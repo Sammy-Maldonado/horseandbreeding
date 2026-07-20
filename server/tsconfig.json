@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.server.json",
+  "extends": "../.nuxt/tsconfig.server.json",
   "compilerOptions": {
     "verbatimModuleSyntax": false,
     "target": "es2020",
