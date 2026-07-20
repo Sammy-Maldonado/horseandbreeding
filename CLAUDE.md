@@ -178,7 +178,15 @@ This project follows the gentle-ai / Gentleman Programming AI-driven workflow
 The project uses **pnpm** (pinned via `packageManager`). Dependency install
 scripts are blocked by default; anything that legitimately needs one must be
 declared in `pnpm-workspace.yaml` under `allowBuilds`.
-- Extractor: `python extractor/parse_dams.py <catalogue.docx> > out.json`
+### Extractor (Python, separate from the Node toolchain)
+
+```
+pip install -r extractor/requirements.txt
+python extractor/parse_dams.py <catalogue.docx> > out.json
+```
+
+Only dependency is `python-docx` (pinned in `extractor/requirements.txt`);
+everything else the prototype uses is standard library. Verified on Python 3.14.5.
 
 ## Current state / next steps
 
