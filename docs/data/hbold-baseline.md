@@ -94,7 +94,37 @@ Schema preservation is governed by
 evidence, a dedicated Linear issue, explicit acceptance criteria, tests, and an approved
 migration and rollback plan.
 
-### 3.2 Introspection safety
+### 3.2 Column-level drift
+
+Beyond whole missing models, four models present in both places differ at column level.
+Measured by introspecting the live local database and comparing against the committed
+schema.
+
+| Model | Columns declared in code, absent from `hbold` |
+|---|---|
+| **`storehorse`** | `status`, `currency`, `age`, `ad_title`, `created_at`, `seller_id` |
+| `gallery` | `gallery_id`, `status` |
+| `diciplinevalues` | `group_priority` |
+| `users_has_storehorse` | `area_id` |
+
+`hbold` holds exactly **31** `storehorse` columns, from `horse_id` through
+`mareline_id`.
+
+The six `storehorse` columns are a coherent **marketplace feature set** — advertisement
+title, currency, seller, and a publication `status` — built in application code and
+never shipped to this dataset. `seller_id` points at the `sellers` model, itself one of
+the eleven code-only models listed above. `git log -S` places `status Int?` in the
+initial repository baseline commit, so it arrived with the adopted application.
+
+`storehorse.status` is the only drifted column that breaks a user-facing path: the
+application filters `status = 1` to mean "active horse" across the pedigree pipeline.
+The compatibility strategy is recorded in
+[ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md).
+
+The remaining drifted columns affect marketplace endpoints only and are tracked
+separately.
+
+### 3.3 Introspection safety
 
 Never run `prisma db pull` against the versioned schema — it rewrites the file in place
 and would drop the eleven code-only models. Use:
@@ -136,18 +166,17 @@ for historical write-ups. See [writeup-grammar.md](../domain/writeup-grammar.md)
 
 ## 6. Verification status of this document
 
-| Item | Status in the current run |
+Last verification pass: 2026-07-21, against the running local `hb-mysql` container.
+
+| Item | Status |
 |---|---|
-| Prisma model count (41) | Revalidated by counting `model` declarations in `prisma/schema.prisma` |
-| The eleven code-only model names | Recorded from earlier verified analysis; not re-queried |
-| `storehorse` count of 59,903 | **Not revalidated in this run** |
-| `hbold` table count (30) | **Not revalidated in this run** |
-| `competition_history` and `remarks` figures | **Not revalidated in this run** |
+| Prisma model count (41) | **Verified** — counted `model` declarations in `prisma/schema.prisma` |
+| `hbold` table count (30) | **Verified** — live introspection |
+| The eleven code-only model names | **Verified** — live introspection |
+| `storehorse` count of 59,903 | **Verified** — live read-only `COUNT(*)` |
+| Column-level drift table (§3.2) | **Verified** — live introspection compared against the committed schema |
+| `competition_history` and `remarks` figures | **Not revalidated** — carried forward from earlier analysis |
 
-The database figures could not be revalidated because the local `hb-mysql` container was
-stopped and the local credential required to query it lives in `.env`, which the current
-work item is not permitted to open.
-
-Revalidating these figures requires starting the container and running a read-only
-count, as described in [local-development.md](../runbooks/local-development.md). It does
-not require, and must not trigger, another restore.
+Read-only verification is described in
+[local-development.md](../runbooks/local-development.md). It does not require, and must
+not trigger, another restore.
