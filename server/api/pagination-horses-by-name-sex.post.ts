@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import validateApiKey from "../middleware/validateApiKey";
+import { activeHorseFilter, storehorseSupportsStatus } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 const STALLION=0;
@@ -19,6 +20,7 @@ export default defineEventHandler(async (event) => {
     } 
     let search=body.search;
     let sex= body.sex == STALLION ? STALLION:MARE;
+    const supportsStatus = await storehorseSupportsStatus(prisma);
 
     const count  = await prisma.storehorse.count({
         where: {
@@ -28,7 +30,8 @@ export default defineEventHandler(async (event) => {
             sexe: {
                 equals: sex // Exact match for sex
             },
-            status:1
+            // Ensure status is 1, where the database has the column
+            ...activeHorseFilter(supportsStatus)
         }
     });
     return {

@@ -1,9 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import validateApiKey from "../middleware/validateApiKey";
+import {
+  activeHorseFilter,
+  horseStatusSelect,
+  storehorseSupportsStatus
+} from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
-const buildSelect = (level: any, topLevel: any): any => {
+const buildSelect = (
+  level: any,
+  topLevel: any,
+  supportsStatus: boolean
+): any => {
   if (level === 0) {
     if (topLevel == 0) {
       return {
@@ -272,7 +281,7 @@ const buildSelect = (level: any, topLevel: any): any => {
                             }
                           },
                           where: {
-                            status: 1
+                            ...activeHorseFilter(supportsStatus)
                           },
                           orderBy: {
                             birthyear: "asc"
@@ -280,7 +289,7 @@ const buildSelect = (level: any, topLevel: any): any => {
                         }
                       },
                       where: {
-                        status: 1
+                        ...activeHorseFilter(supportsStatus)
                       },
                       orderBy: {
                         birthyear: "asc"
@@ -288,7 +297,7 @@ const buildSelect = (level: any, topLevel: any): any => {
                     }
                   },
                   where: {
-                    status: 1
+                    ...activeHorseFilter(supportsStatus)
                   },
                   orderBy: {
                     birthyear: "asc"
@@ -296,7 +305,7 @@ const buildSelect = (level: any, topLevel: any): any => {
                 }
               },
               where: {
-                status: 1
+                ...activeHorseFilter(supportsStatus)
               },
               orderBy: {
                 birthyear: "asc"
@@ -304,7 +313,7 @@ const buildSelect = (level: any, topLevel: any): any => {
             }
           },
           where: {
-            status: 1
+            ...activeHorseFilter(supportsStatus)
           },
           orderBy: {
             birthyear: "asc"
@@ -341,7 +350,7 @@ const buildSelect = (level: any, topLevel: any): any => {
           name: true
         }
       },
-      dam: buildSelect(level - 1, topLevel)
+      dam: buildSelect(level - 1, topLevel, supportsStatus)
     };
   } else {
     return {
@@ -370,13 +379,17 @@ const buildSelect = (level: any, topLevel: any): any => {
             name: true
           }
         },
-        dam: buildSelect(level - 1, topLevel)
+        dam: buildSelect(level - 1, topLevel, supportsStatus)
       }
     };
   }
 };
 
-async function findFirstAncestor(id: any, level = 0) {
+async function findFirstAncestor(
+  id: any,
+  supportsStatus: boolean,
+  level = 0
+) {
   // Retrieve the horse record with the specified dam_id and status of 1
 
   const storeHorse = await prisma.storehorse.findFirst({
@@ -387,22 +400,23 @@ async function findFirstAncestor(id: any, level = 0) {
         select: {
           dam_id: true,
           horse_id: true,
-          status: true
+          ...horseStatusSelect(supportsStatus)
         },
         where: {
-          status: 1,
           horse_id: {
             gt: 0, // dam_id greater than 0
             not: {
               equals: id // dam_id should not be equal to the current id
             }
-          }
+          },
+          ...activeHorseFilter(supportsStatus)
         }
       }
     },
     where: {
       horse_id: id, // Convert to number if necessary
-      status: 1 // Only consider active horses
+      // Only consider active horses, where the database has the column
+      ...activeHorseFilter(supportsStatus)
     }
   });
   // Check if the horse has a dam (parent)
@@ -416,7 +430,7 @@ async function findFirstAncestor(id: any, level = 0) {
   }
 
   // Otherwise, recursively call to find the ancestor
-  return await findFirstAncestor(storeHorse.dam_id, ++level); // Recursive call
+  return await findFirstAncestor(storeHorse.dam_id, supportsStatus, ++level); // Recursive call
 }
 
 function convertToArray(idString: any) {
@@ -446,15 +460,16 @@ export default defineEventHandler(async (event) => {
     }
 
     let ids = convertToArray(body.id);
+    const supportsStatus = await storehorseSupportsStatus(prisma);
     const data = [];
     for (let i = 0; i < ids.length; i++) {
-      const level = await findFirstAncestor(ids[i]);
-      let select = buildSelect(level, level);
+      const level = await findFirstAncestor(ids[i], supportsStatus);
+      let select = buildSelect(level, level, supportsStatus);
       const apiResponse = await prisma.storehorse.findMany({
         select: select,
         where: {
           horse_id: ids[i],
-          status: 1
+          ...activeHorseFilter(supportsStatus)
         },
         orderBy: {
           birthyear: "asc"
