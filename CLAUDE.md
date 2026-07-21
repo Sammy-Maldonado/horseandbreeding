@@ -260,10 +260,21 @@ Linear stories are execution specifications. Stable product requirements belong 
 
 **The authoritative Git workflow lives in
 [docs/git-workflow.md](docs/git-workflow.md).** That document owns the detail; this
-section states the rules that bind and points there.
+section states the rules that bind and points there. It is not duplicated here — where
+the two differ, `docs/git-workflow.md` wins on Git mechanics.
 
-**Read `docs/git-workflow.md` before creating a branch, a commit, a push, a Pull Request,
-a merge, or deleting a branch.**
+**Read [docs/git-workflow.md](docs/git-workflow.md) before creating or modifying:**
+
+```txt
+branches
+commits
+pushes
+Pull Requests
+merges
+release workflows
+branch rules
+branch cleanup
+```
 
 ### Permanent branches
 
@@ -275,8 +286,18 @@ a merge, or deleting a branch.**
 | `QA` | Functional and technical validation — receives Pull Requests from `DEV` |
 | `main` | Stable, releasable version — receives Pull Requests from `QA` only |
 
-They are **never deleted**, locally or remotely. **None accepts direct commits.** No force
-push. No rewritten history.
+They are **never deleted**, locally or remotely. **None accepts direct commits or direct
+pushes.** No force push. No rewritten history.
+
+**No direct fast-forward alignment.** `git push origin main:QA`, `git push origin main:DEV`,
+a fast-forward push between permanent branches, a direct ref update through the GitHub
+API, and `git reset` on a permanent branch are all forbidden. `git pull --ff-only` is
+permitted only to update a local branch from its own remote counterpart.
+
+**The three branches are not required to share a SHA.** Each promotion Pull Request
+produces its own merge commit, so different SHAs across `DEV`, `QA` and `main` are the
+normal, expected state. Verify containment by ancestry, never by hash equality. Never
+create an empty commit to make SHAs match.
 
 ### Promotion
 
@@ -293,10 +314,33 @@ branch to `main`, and none from `DEV` to `main`.
 A hotfix branches from `main` and is back-propagated to `QA` and `DEV` by Pull Request —
 it is never left only in `main`. See `docs/git-workflow.md` §8.
 
+### Merge method
+
+**Every Pull Request merges with a merge commit.** Squash merge and rebase merge are
+forbidden: they rewrite the conventional commits Release Please depends on and make every
+later promotion report phantom differences. See `docs/git-workflow.md` §7.
+
 ### After reaching `main`
 
-Delete **only** the temporary issue branch, local and remote. `DEV`, `QA` and `main`
-remain.
+Delete **only** the temporary issue branch, local and remote. **`DEV`, `QA` and `main`
+must never be deleted.**
+
+### Checks and evidence
+
+`Test / Build` is the authoritative required check. A green local `pnpm test` and
+`pnpm build` is evidence, but it does not replace the real GitHub check. **"No checks
+reported" is never a passing check.**
+
+**Automatic Linear closure is not acceptance evidence.** If an integration moves an issue
+to `Done`, verify every acceptance criterion; return it to `In Progress` if any is
+incomplete. See `docs/git-workflow.md` §13.
+
+### Releases
+
+Release Please opens a release Pull Request targeting `main`. It must pass `Test / Build`
+like any other change, it is merged manually, and it never bypasses CI or branch
+protection. **Do not merge a generated release Pull Request without explicit
+authorisation from Sammy.** See `docs/git-workflow.md` §12.
 
 ### Always
 
@@ -386,8 +430,15 @@ Modify files before the issue is In Progress
 Create duplicate Linear issues
 Bundle unrelated work
 Commit directly to DEV, QA, or main
+Push directly to DEV, QA, or main
+Fast-forward push between permanent branches to align them
+Create an empty commit to make permanent branch SHAs equal
+Squash merge or rebase merge a promotion Pull Request
 Delete the permanent DEV, QA, or main branches
 Skip a promotion stage or merge into main from anything but QA
+Merge a Release Please release Pull Request without Sammy's authorisation
+Treat automatic Linear closure as acceptance evidence
+Treat "no checks reported" as a passing check
 Commit secrets, dumps, or private Word files
 Import _legacy code at runtime
 Run prisma db pull against the versioned schema
