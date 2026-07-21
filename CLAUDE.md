@@ -258,13 +258,51 @@ Linear stories are execution specifications. Stable product requirements belong 
 
 ## 10. Git
 
-Full workflow: [docs/git-workflow.md](docs/git-workflow.md).
+**The authoritative Git workflow lives in
+[docs/git-workflow.md](docs/git-workflow.md).** That document owns the detail; this
+section states the rules that bind and points there.
 
-Binding summary: `main` is stable and never receives direct commits; one branch and one
-worktree per Linear issue; branch names and commit messages carry the issue ID;
-conventional commits; never mention AI, Claude, Codex, or model names in commit
-messages; review `git status` for private data before staging; no destructive Git
-commands without explicit approval.
+**Read `docs/git-workflow.md` before creating a branch, a commit, a push, a Pull Request,
+a merge, or deleting a branch.**
+
+### Permanent branches
+
+`DEV`, `QA` and `main` are permanent.
+
+| Branch | Responsibility |
+|---|---|
+| `DEV` | Development integration — receives Pull Requests from issue branches |
+| `QA` | Functional and technical validation — receives Pull Requests from `DEV` |
+| `main` | Stable, releasable version — receives Pull Requests from `QA` only |
+
+They are **never deleted**, locally or remotely. **None accepts direct commits.** No force
+push. No rewritten history.
+
+### Promotion
+
+Every issue uses its own branch, created from `DEV`, named `<prefix>/HOR-X-description`.
+Every branch name and every commit message carries the issue ID.
+
+```txt
+issue branch → DEV → QA → main
+```
+
+Every step is a Pull Request. **No stage may be skipped.** There is no path from an issue
+branch to `main`, and none from `DEV` to `main`.
+
+A hotfix branches from `main` and is back-propagated to `QA` and `DEV` by Pull Request —
+it is never left only in `main`. See `docs/git-workflow.md` §8.
+
+### After reaching `main`
+
+Delete **only** the temporary issue branch, local and remote. `DEV`, `QA` and `main`
+remain.
+
+### Always
+
+Conventional commits; one branch and one worktree per Linear issue; never mention AI,
+Claude, Codex, or model names in commit messages; review `git status` for private data
+before staging; no destructive Git commands without explicit approval.
 
 ---
 
@@ -347,7 +385,9 @@ Implement work without a Linear issue
 Modify files before the issue is In Progress
 Create duplicate Linear issues
 Bundle unrelated work
-Commit directly to main
+Commit directly to DEV, QA, or main
+Delete the permanent DEV, QA, or main branches
+Skip a promotion stage or merge into main from anything but QA
 Commit secrets, dumps, or private Word files
 Import _legacy code at runtime
 Run prisma db pull against the versioned schema
