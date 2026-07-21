@@ -1,5 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import validateApiKey from "../middleware/validateApiKey";
+import {
+  activeHorseFilter,
+  horseStatusSelect,
+  storehorseSupportsStatus
+} from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 async function getDescendantsById(whereFilter: any) {
@@ -78,7 +83,11 @@ async function getDescendantsById(whereFilter: any) {
   });
   return horses;
 }
-async function findFirstAncestor(id: any, level: any) {
+async function findFirstAncestor(
+  id: any,
+  level: any,
+  supportsStatus: boolean
+) {
   // Retrieve the horse record with the specified dam_id and status of 1
 
   const storeHorse = await prisma.storehorse.findFirst({
@@ -89,22 +98,22 @@ async function findFirstAncestor(id: any, level: any) {
         select: {
           dam_id: true,
           horse_id: true,
-          status: true
+          ...horseStatusSelect(supportsStatus)
         },
         where: {
-          status: 1,
           horse_id: {
             gt: 0, // dam_id greater than 0
             not: {
               equals: id // dam_id should not be equal to the current id
             }
-          }
+          },
+          ...activeHorseFilter(supportsStatus)
         }
       }
     },
     where: {
       horse_id: id, // Convert to number if necessary
-      status: 1 // Only consider active horses
+      ...activeHorseFilter(supportsStatus) // Only consider active horses
     }
   });
   // Check if the horse has a dam (parent)
@@ -114,7 +123,10 @@ async function findFirstAncestor(id: any, level: any) {
 
   // Validate the dam_id
   if (storeHorse?.dam === null || level == 4) {
-    const whereFolter = { horse_id: storeHorse?.horse_id, status: 1 };
+    const whereFolter = {
+      horse_id: storeHorse?.horse_id,
+      ...activeHorseFilter(supportsStatus)
+    };
     const mainHorse = await getDescendantsById(whereFolter);
     if (mainHorse.length > 0) {
       return mainHorse[0];
@@ -123,20 +135,23 @@ async function findFirstAncestor(id: any, level: any) {
   }
 
   // Otherwise, recursively call to find the ancestor
-  return await findFirstAncestor(storeHorse.dam_id, ++level); // Recursive call
+  return await findFirstAncestor(storeHorse.dam_id, ++level, supportsStatus); // Recursive call
 }
 
-async function getDescendants(horseId: any): Promise<any> {
+async function getDescendants(
+  horseId: any,
+  supportsStatus: boolean
+): Promise<any> {
   // Fetch only the direct children (lineage_dam) of the horse
   const whereFolter = {
     dam_id: Number(horseId),
-    status: 1,
     horse_id: {
       gt: 0, // dam_id greater than 0
       not: {
         equals: horseId // dam_id should not be equal to the current id
       }
-    }
+    },
+    ...activeHorseFilter(supportsStatus)
   };
   const descendants = await getDescendantsById(whereFolter);
 
@@ -144,7 +159,7 @@ async function getDescendants(horseId: any): Promise<any> {
   const allDescendants = await Promise.all(
     descendants.map(async (child) => ({
       ...child,
-      Offspring: await getDescendants(child.horse_id) // Recursively get children's descendants
+      Offspring: await getDescendants(child.horse_id, supportsStatus) // Recursively get children's descendants
     }))
   );
 
@@ -165,8 +180,9 @@ export default defineEventHandler(async (event) => {
       };
     }
     const id = Number(body.id);
-    const mainHorse = await findFirstAncestor(id, 0);
-    const apiResponse = await getDescendants(mainHorse.horse_id);
+    const supportsStatus = await storehorseSupportsStatus(prisma);
+    const mainHorse = await findFirstAncestor(id, 0, supportsStatus);
+    const apiResponse = await getDescendants(mainHorse.horse_id, supportsStatus);
     const response = await {
       ...mainHorse,
       Offspring: apiResponse

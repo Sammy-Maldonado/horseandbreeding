@@ -1,9 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import validateApiKey from "../middleware/validateApiKey";
+import {
+  activeHorseFilter,
+  horseStatusSelect,
+  storehorseSupportsStatus
+} from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
-const buildSelect = (level: any, topLevel: any): any => {
+const buildSelect = (
+  level: any,
+  topLevel: any,
+  supportsStatus: boolean
+): any => {
   if (level === 0) {
     if (topLevel === 0) {
       return {
@@ -101,7 +110,7 @@ const buildSelect = (level: any, topLevel: any): any => {
         }
       },
       where: {
-        status: 1
+        ...activeHorseFilter(supportsStatus)
       }
     };
   }
@@ -175,13 +184,13 @@ const buildSelect = (level: any, topLevel: any): any => {
         },
         take: 1
       },
-      sire: buildSelect(level - 1, topLevel),
-      dam: buildSelect(level - 1, topLevel)
+      sire: buildSelect(level - 1, topLevel, supportsStatus),
+      dam: buildSelect(level - 1, topLevel, supportsStatus)
     };
   } else {
     return {
       select: {
-        status: true,
+        ...horseStatusSelect(supportsStatus),
         name: true,
         horse_id: true,
         remarks_short: true,
@@ -250,12 +259,12 @@ const buildSelect = (level: any, topLevel: any): any => {
           },
           take: 1
         },
-        sire: buildSelect(level - 1, topLevel),
+        sire: buildSelect(level - 1, topLevel, supportsStatus),
 
-        dam: buildSelect(level - 1, topLevel)
+        dam: buildSelect(level - 1, topLevel, supportsStatus)
       },
       where: {
-        status: 1
+        ...activeHorseFilter(supportsStatus)
       }
     };
   }
@@ -276,13 +285,14 @@ export default defineEventHandler(async (event) => {
     }
     const level = Number(body.level);
     let id = Number(body.id);
-    let select = buildSelect(level, level);
+    const supportsStatus = await storehorseSupportsStatus(prisma);
+    let select = buildSelect(level, level, supportsStatus);
 
     const data = await prisma.storehorse.findMany({
       select: select,
       where: {
         horse_id: id,
-        status: 1
+        ...activeHorseFilter(supportsStatus)
       }
     });
     return {
