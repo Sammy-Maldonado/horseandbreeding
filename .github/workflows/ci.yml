@@ -1,0 +1,52 @@
+name: CI
+
+# The Git workflow (docs/git-workflow.md) forbids direct pushes to the permanent
+# branches, so every change reaches DEV, QA and main through a Pull Request.
+# Running on pull_request alone therefore covers every entry point.
+on:
+  pull_request:
+    branches:
+      - DEV
+      - QA
+      - main
+  workflow_dispatch:
+
+# Read-only. This workflow inspects the code; it never writes to the repository.
+permissions:
+  contents: read
+
+# A new push to the same Pull Request makes the previous run obsolete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-build:
+    name: Test / Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No `version` input on purpose: pnpm/action-setup reads the pinned version
+      # from the `packageManager` field in package.json, keeping one source of truth.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
