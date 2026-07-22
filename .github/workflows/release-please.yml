@@ -1,0 +1,44 @@
+name: Release Please
+
+# Runs after a change reaches main. Every promotion into main is a merge commit
+# (docs/git-workflow.md §7), so the original conventional commits stay reachable
+# from main and Release Please — which walks all parents of the history — reads
+# them correctly. workflow_dispatch allows a manual re-run when needed.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Minimum permissions Release Please needs: write the release branch, the version
+# bump, the CHANGELOG, the tag and the GitHub Release (contents); open and update
+# the release Pull Request (pull-requests); apply the autorelease label, which
+# GitHub manages through the issues API (issues). It never deploys, never touches
+# application data, and never reads .env.
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+# Never cancel an in-flight release run; let each push to main settle in order.
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
+        with:
+          # A fine-grained PAT, not the default GITHUB_TOKEN. GitHub does not
+          # trigger workflows for events created with GITHUB_TOKEN, so the CI
+          # check (Test / Build) would never run on the release Pull Request.
+          # The token is a repository secret; its value is never printed or logged.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
