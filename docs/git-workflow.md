@@ -555,20 +555,35 @@ information; erasing it destroys the record of what happened.
 `DEV`, `QA` and `main` must be protected on GitHub. The rules in this document are
 conventions; protection is what makes them enforceable rather than merely honoured.
 
-### Required configuration for all three branches
+### Applied configuration — in force
 
-| Setting | Value |
-|---|---|
-| Require a Pull Request before merging | enabled |
-| Required approving reviews | `0` — solo maintainer; an impossible approval must not block delivery |
-| Require conversation resolution before merging | enabled |
-| Required status check | `Test / Build` |
-| Require branches to be up to date before merging | enabled |
-| Block force pushes | enabled |
-| Block branch deletion | enabled |
-| Block non-fast-forward updates | enabled |
-| Block direct pushes | enabled |
-| Bypass actors | **none** |
+Protection is applied through a **repository ruleset**, not classic branch protection.
+One ruleset covers all three branches, so the rules cannot drift apart between them.
+
+```txt
+Ruleset:      permanent-branches-protection  (id 19566842)
+Target:       branch
+Enforcement:  active
+Applies to:   refs/heads/DEV, refs/heads/QA, refs/heads/main
+Bypass:       none  (current_user_can_bypass: never)
+```
+
+| Setting | Value | Ruleset rule |
+|---|---|---|
+| Require a Pull Request before merging | enabled | `pull_request` |
+| Required approving reviews | `0` — solo maintainer; an impossible approval must not block delivery | `pull_request.required_approving_review_count: 0` |
+| Require conversation resolution before merging | enabled | `pull_request.required_review_thread_resolution: true` |
+| Allowed merge method | **merge commit only** | `pull_request.allowed_merge_methods: ["merge"]` |
+| Required status check | `Test / Build` (GitHub Actions, app 15368) | `required_status_checks` |
+| Require branches to be up to date before merging | enabled | `required_status_checks.strict_required_status_checks_policy: true` |
+| Block force pushes | enabled | `non_fast_forward` |
+| Block branch deletion | enabled | `deletion` |
+| Block direct pushes | enabled | `pull_request` (every change must arrive through a Pull Request) |
+| Bypass actors | **none** | `bypass_actors: []` |
+
+Squash and rebase merges are additionally disabled at the repository level
+(`allow_squash_merge: false`, `allow_rebase_merge: false`, `allow_merge_commit: true`),
+so the forbidden merge buttons do not even appear.
 
 ### No bypass
 
@@ -577,31 +592,14 @@ There is **no** admin bypass, no personal bypass for the maintainer, no bypass t
 Pull Request and passes CI like every other change. An automation exempted from the rule
 it exists to serve is not automation; it is an unaudited write path to `main`.
 
-### Current status — not yet enforced
+### Only temporary branches remain freely deletable
 
-At the time of writing, protection is **documented but not technically applied.**
+The ruleset targets exactly `DEV`, `QA` and `main`. Issue branches (`feature/…`,
+`fix/…`, `chore/…`, the Release Please branch) match no rule and stay freely pushable and
+deletable, as the cleanup in section 9 requires.
 
-The repository is **private** on a **GitHub Free** plan. Both the rulesets API and the
-classic branch-protection API refuse the configuration with the same response:
-
-```txt
-403 — Upgrade to GitHub Pro or make this repository public to enable this feature.
-```
-
-Endpoints that returned it:
-
-```txt
-GET /repos/{owner}/{repo}/rulesets
-GET /repos/{owner}/{repo}/branches/DEV/protection
-GET /repos/{owner}/{repo}/branches/QA/protection
-GET /repos/{owner}/{repo}/branches/main/protection
-```
-
-Until the plan changes, the rules above remain **conventions enforced by discipline.**
-Recording them as enforced would be false. When the plan allows it, apply the table above
-and replace this subsection with the applied configuration and its evidence.
-
-**Do not change GitHub protection rules without an authorising Linear issue.**
+**Do not change GitHub protection rules without an authorising Linear issue.** This
+configuration was applied under HOR-40, which is the only authorisation on record.
 
 ---
 
