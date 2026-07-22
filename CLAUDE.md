@@ -44,9 +44,30 @@ jargon.
 | [docs/git-workflow.md](docs/git-workflow.md) | Branching, commits, PRs, private-data review |
 | [docs/runbooks/local-development.md](docs/runbooks/local-development.md) | Local setup, database, extractor, troubleshooting |
 | Linear | Work status, ownership, priority, dependencies, acceptance-criteria completion |
+| Engram memory | Freshest cross-session context: decisions, discoveries, status corrections — advisory, always verified against the sources above |
 
-Before implementing any task, read `CLAUDE.md`, the assigned Linear issue and its parent
-EPIC, and the specialised documents relevant to the area being changed.
+Before implementing any task, follow the **Consultation order and coordination** below:
+search Engram first, then read `CLAUDE.md`, the assigned Linear issue and its parent EPIC,
+and the specialised documents relevant to the area being changed.
+
+### Consultation order and coordination
+
+Engram persistent memory holds the freshest cross-session context — recent decisions,
+discoveries and status corrections. At the start of any task, consult the sources in this
+order, then confirm they agree:
+
+1. **Engram first** — `mem_search` the area you are about to touch for the most recent
+   context. Treat it as the latest notes, not as gospel: memory reflects what was true
+   when written, so verify anything it names still exists.
+2. **`CLAUDE.md`** — the durable execution contract: rules, invariants, prohibited actions.
+3. **Linear** — current work status and acceptance criteria; read the assigned issue and
+   its parent EPIC.
+
+Then corroborate that Engram, `CLAUDE.md` and Linear are coordinated. If they disagree,
+**stop and reconcile before acting**: the Precedence order below decides which source wins,
+and the stale source must be corrected — update the Engram memory, or add a dated
+status-correction to Linear — never proceed on an unreconciled conflict. Consulting Engram
+first sets context; it does not raise memory above the contract in the Precedence order.
 
 ### Precedence
 
@@ -364,6 +385,10 @@ before staging; no destructive Git commands without explicit approval.
 10. Record evidence in Linear.
 11. Move to `Done` only when complete.
 12. Report the result.
+13. Persist the final result to Engram (`mem_save`) once the work is merged to `main` and
+    documented in Linear, so memory stays coordinated with Linear for the next task. The
+    next task then starts from Engram and contrasts it against Linear — see the
+    **Consultation order and coordination** rule in §3.
 
 **Do not start the next issue automatically.**
 
@@ -397,6 +422,7 @@ before staging; no destructive Git commands without explicit approval.
 - Build:
 - Linear updates:
 - Commit(s):
+- Engram memory:
 - Risks / pending decisions:
 - Next recommended issue:
 ```
