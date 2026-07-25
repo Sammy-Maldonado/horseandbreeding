@@ -43,6 +43,7 @@ jargon.
 | [docs/domain/writeup-grammar.md](docs/domain/writeup-grammar.md) | Historical Word write-up grammar |
 | [docs/git-workflow.md](docs/git-workflow.md) | Branching, commits, PRs, private-data review |
 | [docs/runbooks/local-development.md](docs/runbooks/local-development.md) | Local setup, database, extractor, troubleshooting |
+| [docs/testing/testing-strategy.md](docs/testing/testing-strategy.md) | Authoritative testing policy: test categories, TDD, fixtures, data safety, local/CI gates, modernisation regression gates |
 | Linear | Work status, ownership, priority, dependencies, acceptance-criteria completion |
 | Engram memory | Freshest cross-session context: decisions, discoveries, status corrections — advisory, always verified against the sources above |
 
@@ -205,6 +206,38 @@ Expected status codes: `400`, `401`, `403`, `404`, `409`, `422`, `500`.
 ---
 
 ## 8. Testing — TDD Red-Green-Refactor
+
+**The authoritative testing policy lives in
+[docs/testing/testing-strategy.md](docs/testing/testing-strategy.md).** That document owns
+the detail — test categories, file placement, fixtures, data safety, local and CI gates,
+and the dependency-modernisation regression gates. This section states the rules that bind
+and points there. It is not duplicated — where the two differ, the testing strategy wins on
+testing policy.
+
+**Read [docs/testing/testing-strategy.md](docs/testing/testing-strategy.md) before
+modifying:**
+
+```txt
+application behaviour or the storehorse compatibility logic
+tests, test fixtures, or test placement
+Vitest configuration or the Node/Nuxt project split
+test dependencies (@nuxt/test-utils, @vue/test-utils, happy-dom, vitest)
+framework or dependency versions (Node, Nuxt, Vue, Prisma, Vite, Vitest)
+```
+
+Binding summary:
+
+- Use **RED → GREEN → REFACTOR** for new behaviour in the mandatory areas below.
+- Keep pure, framework-free tests in the **Node** project (`*.test.ts`).
+- Use the **Nuxt** project (`*.nuxt.test.ts`) only when a test genuinely needs a Nuxt
+  runtime; the `*.nuxt.test.ts` suffix is the single switch that routes a file to one
+  project.
+- Test files live **beside the code they protect**.
+- Component and unit tests must **not connect to `hbold`** or any real database.
+- `pnpm test` and `pnpm build` must pass locally before an issue is Done.
+- The GitHub `Test / Build` check must pass; **"no checks reported" is not success**.
+- Modernising a framework or dependency version requires the strategy's **automated and
+  manual regression gates** — do not upgrade without them.
 
 **TDD is mandatory** for:
 
