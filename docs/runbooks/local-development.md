@@ -185,6 +185,12 @@ building.
 
 ## 9. Tests and Build
 
+This section is the **how** — the exact commands to run locally. The **what and why** —
+test categories, placement, fixtures, data safety, and the gates required before
+modernising a dependency — live in the authoritative
+[testing strategy](../testing/testing-strategy.md). When the two touch the same ground, the
+strategy owns the policy and this runbook owns the commands.
+
 ```bash
 pnpm test
 pnpm build
