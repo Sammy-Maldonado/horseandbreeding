@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Run Release Please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         with:
           # A fine-grained PAT, not the default GITHUB_TOKEN. GitHub does not
           # trigger workflows for events created with GITHUB_TOKEN, so the CI
