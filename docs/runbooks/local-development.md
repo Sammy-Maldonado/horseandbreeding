@@ -191,11 +191,51 @@ pnpm build
 ```
 
 These are the two quality gates required before an implementation issue can be marked
-Done.
+Done. `pnpm test` runs the whole suite headless and is the exact command CI runs.
 
 There are **no `lint` or `typecheck` scripts** in `package.json` at present. Do not
 document or claim them as available commands, and do not add them outside an approved
 issue.
+
+### Test harness — two projects
+
+Vitest is split into two isolated projects ([vitest.config.ts](../../vitest.config.ts)) so
+fast server-side unit tests never pay for a browser-like environment:
+
+| Project | Environment | Runs | Loads Nuxt? |
+|---|---|---|---|
+| `node` | `node` | `*.test.ts` / `*.spec.ts` (e.g. `server/utils`) | No |
+| `nuxt` | `nuxt` + happy-dom | `*.nuxt.test.ts` only | Yes |
+
+The `*.nuxt.test.ts` suffix is the single switch that routes a file to exactly one
+project, so no test file is ever executed twice. Name a test by what it needs:
+
+- **`*.test.ts`** — pure logic, no Vue/Nuxt runtime. Fast; no Nuxt boot.
+- **`*.nuxt.test.ts`** — components, composables, or anything needing Nuxt auto-imports.
+  Runs in a real Nuxt context with **happy-dom** as the DOM (jsdom is intentionally not
+  installed).
+
+Run one project or one file in isolation:
+
+```bash
+pnpm test --project node                          # only the Node tests
+pnpm test --project nuxt                           # only the Nuxt tests
+pnpm test RecursiveCompetitionHistory              # only files matching the name
+```
+
+### Component tests
+
+Component tests mount through `mountSuspended` from `@nuxt/test-utils/runtime` and use
+small in-memory fixtures. They **never connect to `hbold`** or any database, and never use
+real client documents. Example: [components/RecursiveCompetitionHistory.nuxt.test.ts](../../components/RecursiveCompetitionHistory.nuxt.test.ts),
+run it directly with:
+
+```bash
+pnpm test RecursiveCompetitionHistory
+```
+
+Booting the Nuxt environment regenerates `.nuxtrc` (git-ignored) — that is expected and
+must not be committed.
 
 ---
 
