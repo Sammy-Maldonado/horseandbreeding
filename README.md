@@ -135,6 +135,7 @@ unattended. Details: [docs/git-workflow.md §12](docs/git-workflow.md).
 | Functional requirements | [docs/requirements/automation-mvp.md](docs/requirements/automation-mvp.md) |
 | Architecture decisions | [docs/adr/](docs/adr/) |
 | Git workflow, CI, releases, protection | [docs/git-workflow.md](docs/git-workflow.md) |
+| Testing policy, TDD, fixtures, quality gates | [docs/testing/testing-strategy.md](docs/testing/testing-strategy.md) |
 | Local development | [docs/runbooks/local-development.md](docs/runbooks/local-development.md) |
 | Reusable technical inventory | [docs/architecture/existing-assets.md](docs/architecture/existing-assets.md) |
 | Reference database baseline | [docs/data/hbold-baseline.md](docs/data/hbold-baseline.md) |
