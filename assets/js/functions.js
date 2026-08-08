@@ -166,12 +166,11 @@ export const formatPrice = (value, local = "en-US") => {
   }).format(value);
 };
 
-export const fetchDataMethodGet = async (url, key) => {
+export const fetchDataMethodGet = async (url) => {
   try {
     const response = await fetch(url, {
       headers: {
-        "Content-Type": "application/json",
-        "api-key": key
+        "Content-Type": "application/json"
       }
     });
     const data = await response.json();
@@ -182,7 +181,7 @@ export const fetchDataMethodGet = async (url, key) => {
   }
 };
 
-export const fetchDataMethodPost = async (url, key, body, method) => {
+export const fetchDataMethodPost = async (url, body, method) => {
   try {
     const token = localStorage.getItem("access_token");
     const response = await fetch(url, {
@@ -190,7 +189,6 @@ export const fetchDataMethodPost = async (url, key, body, method) => {
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
-        "api-key": key,
         token: `${token}`
       }
     });

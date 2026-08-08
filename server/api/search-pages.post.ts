@@ -1,5 +1,4 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import validateApiKey from "../middleware/validateApiKey";
 import { activeHorseFilter, storehorseSupportsStatus } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
@@ -26,7 +25,6 @@ const searchHorses = async (name:string, supportsStatus: boolean ) => {
   
 // @ts-ignore
 export default defineEventHandler(async (event) => {
-  await validateApiKey(event)
   try {
     // @ts-ignore1
     const body = await readBody(event);

@@ -403,21 +403,18 @@ const gender = ref([]);
 // Fetch Counties from API on component mount
 const fetchCounties = async () => {
   const url = "/api/counties";
-  const key = import.meta.env.VITE_API_KEY;
-  counties.value = await fetchDataMethodGet(url, key);
+  counties.value = await fetchDataMethodGet(url);
 };
 
 const fetchGender = async () => {
   const url = "/api/gender";
-  const key = import.meta.env.VITE_API_KEY;
-  gender.value = await fetchDataMethodGet(url, key);
+  gender.value = await fetchDataMethodGet(url);
 };
 
 const fetchAreas = async () => {
   const url = "/api/areas";
-  const key = import.meta.env.VITE_API_KEY;
   const body = { county_id: formData.value.countyId };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.statusCode == 200) {
     areas.value = JSON.parse(response.body);
   }

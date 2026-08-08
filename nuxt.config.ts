@@ -27,14 +27,11 @@ export default defineNuxtConfig({
     "nuxt-file-storage"
     // "@primevue/nuxt-module"
   ],
-  serverHandlers: [
-    { route: "/api", handler: "~/server/middleware/validateApiKey.ts" }
-  ],
+  // Access to /api is governed by server/middleware/apiAccessControl.ts, which
+  // Nitro registers automatically. See ADR-007.
   runtimeConfig: {
-    apiKey: process.env.VITE_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     VITE_ENCRYPT_KEY: process.env.VITE_ENCRYPT_KEY,
-    VITE_API_KEY: process.env.VITE_API_KEY,
     VITE_HOST: process.env.VITE_HOST,
     VITE_API_SERVER_URL: process.env.VITE_API_SERVER_URL,
     VITE_JWT_SECRET: process.env.VITE_JWT_SECRET,

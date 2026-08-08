@@ -224,7 +224,6 @@ const { data: horseDetail } = await useFetch("/api/storeHorseById", {
 
   headers: {
     "Content-Type": "application/json",
-    "api-key": import.meta.env.VITE_API_KEY,
   },
   transform: (data) => JSON.parse(data.body)[0],
 });
@@ -251,7 +250,6 @@ const fetchHorsesSells = async () => {
       }),
       headers: {
         "Content-Type": "application/json",
-        "api-key": import.meta.env.VITE_API_KEY,
       },
     });
 
