@@ -402,11 +402,16 @@ Probed endpoints: `search`, `search-pages`, `pedigree`, `mareline`, `progeny`,
   who has loaded the site. Found while running this stage's manual regression. **Wholly
   pre-existing, entirely outside Stage D**, which changed no source file. It is an
   authentication-design question, not a dependency one.
+  **Acted on by HOR-56**, under [ADR-007](../adr/ADR-007-api-authentication-trust-boundary.md).
 - The same middleware returns its rejection as an ordinary `200` response whose **body**
   carries `statusCode: 401`. The HTTP status is never set, so a client cannot detect the
   refusal from the response status. Also pre-existing and outside this stage.
+  **Removed as an inseparable consequence of HOR-56**: the response existed only on the
+  invalid-shared-key path, and that path no longer exists. The wider class of handlers that
+  return a status in the body instead of setting it is untouched and still open.
 
-Each needs Sammy's decision and its own issue. None was acted on here.
+Each needs Sammy's decision and its own issue. Only the shared-key finding was acted on,
+by HOR-56.
 
 ---
 
