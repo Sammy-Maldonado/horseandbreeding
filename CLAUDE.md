@@ -3,10 +3,13 @@
 ## 1. Purpose
 
 This file is the **authoritative execution contract** for coding agents in this
-repository. It defines how work is authorised, bounded, verified, and recorded.
+repository. It defines how work is authorised, bounded, executed, verified, recorded and
+synchronised — the full task lifecycle, from the first source consulted to the moment an
+issue may be closed.
 
 It states rules. It does not restate the documents it points to — detail lives in the
-specialised documents listed in section 3.
+specialised documents listed in section 3. It holds **no current work status** and it is
+**not a historical log**.
 
 ---
 
@@ -35,7 +38,7 @@ jargon.
 
 | Document | Owns |
 |---|---|
-| `CLAUDE.md` | Agent rules, invariants, prohibited actions |
+| `CLAUDE.md` | The agent execution contract: how work starts, executes, finishes and synchronises; binding agent rules, invariants, prohibited actions |
 | [docs/requirements/automation-mvp.md](docs/requirements/automation-mvp.md) | Stable functional requirements, business rules, acceptance scenarios |
 | [docs/adr/](docs/adr/) | Accepted architecture decisions — binding until superseded |
 | [docs/architecture/existing-assets.md](docs/architecture/existing-assets.md) | Reusable technical inventory |
@@ -45,31 +48,44 @@ jargon.
 | [docs/runbooks/local-development.md](docs/runbooks/local-development.md) | Local setup, database, extractor, troubleshooting |
 | [docs/testing/testing-strategy.md](docs/testing/testing-strategy.md) | Authoritative testing policy: test categories, TDD, fixtures, data safety, local/CI gates, modernisation regression gates |
 | [docs/modernisation/modernisation-plan.md](docs/modernisation/modernisation-plan.md) | Modernisation *progress*: which stages exist, which are complete, which is next — **read before any dependency modernisation** |
-| Linear | Work status, ownership, priority, dependencies, acceptance-criteria completion |
-| Engram memory | Freshest cross-session context: decisions, discoveries, status corrections — advisory, always verified against the sources above |
+| Linear | Work items **and the detailed execution record**: status, ownership, priority, dependencies, acceptance criteria, files changed, commands, test and build results, Pull Requests, CI runs, decisions taken during the issue, blockers, and the durable documents the issue changed |
+| Engram memory | Concise cross-session operational context: recent decisions, discoveries, status corrections, where development stopped — **advisory**, never authoritative over the sources above |
+| Git and `main` | What was actually implemented and promoted — repository reality, verified during the final synchronisation check |
 
-Before implementing any task, follow the **Consultation order and coordination** below:
-search Engram first, then read `CLAUDE.md`, the assigned Linear issue and its parent EPIC,
-and the specialised documents relevant to the area being changed.
+Each source has one responsibility and does not take over another's. `CLAUDE.md` states
+rules. Linear records what happened. The specialised documents above hold **durable
+knowledge** that must remain understandable independently of any session. Engram carries
+context between sessions. Git records what was actually built. Current work status is
+never copied into this file, and Linear's detailed execution record is never copied into
+the durable documents.
 
-### Consultation order and coordination
+### Task start lifecycle
 
-Engram persistent memory holds the freshest cross-session context — recent decisions,
-discoveries and status corrections. At the start of any task, consult the sources in this
-order, then confirm they agree:
+Before any project file is modified, consult these sources **in this order**, then
+reconcile them:
 
-1. **Engram first** — `mem_search` the area you are about to touch for the most recent
-   context. Treat it as the latest notes, not as gospel: memory reflects what was true
-   when written, so verify anything it names still exists.
-2. **`CLAUDE.md`** — the durable execution contract: rules, invariants, prohibited actions.
-3. **Linear** — current work status and acceptance criteria; read the assigned issue and
-   its parent EPIC.
+1. **`CLAUDE.md` — first.** The execution contract: rules, source ownership, precedence,
+   prohibited actions, and which specialised documents this task requires. Read the
+   contract before anything else claims to be the truth.
+2. **Engram.** `mem_search` the area about to be touched: recent cross-session context,
+   the last completed work, recent decisions and corrections, known blockers, where
+   development stopped. Memory reflects what was true when written — verify that anything
+   it names still exists. **Engram provides context, not authority.**
+3. **Linear.** The assigned issue, its parent EPIC, status, dependencies, acceptance
+   criteria, and the evidence already recorded on related issues.
+4. **The relevant specialised authoritative documents** — only those this task touches,
+   routed by the table above: ADRs, requirements, testing strategy, modernisation plan,
+   Git workflow, domain documentation, runbooks.
+5. **Repository reality.** Branch, working tree, the code, tests and configuration
+   actually present.
+6. **Reconcile.** Compare `CLAUDE.md` ↔ Engram ↔ Linear ↔ the relevant authoritative
+   documents ↔ repository reality. **Do not begin implementation while a material
+   contradiction remains unresolved.**
+7. **Resolve conflicts by Precedence, never by timestamp** — see below.
 
-Then corroborate that Engram, `CLAUDE.md` and Linear are coordinated. If they disagree,
-**stop and reconcile before acting**: the Precedence order below decides which source wins,
-and the stale source must be corrected — update the Engram memory, or add a dated
-status-correction to Linear — never proceed on an unreconciled conflict. Consulting Engram
-first sets context; it does not raise memory above the contract in the Precedence order.
+Only once the sources are coordinated does the task itself start: move the Linear issue to
+`In Progress`, create or switch to the issue branch, state the plan, and only then modify
+files. The full cycle is §11.
 
 ### Precedence
 
@@ -88,6 +104,19 @@ expand scope: **stop, state the conflict explicitly, and ask for a decision.**
 
 Do not proceed by assumption. Do not pick a side silently. Do not resolve a conflict by
 editing one of the conflicting sources without approval.
+
+**Being newer is not authority.** A conflict is resolved by the Precedence order above and
+by which source owns the fact — never by which was written last:
+
+- **Engram does not outrank an ADR, a requirement or Linear because it is more recent.** A
+  stale memory is corrected once an authoritative source proves it stale.
+- **Linear may need a dated status-correction** when its current description no longer
+  represents an explicitly approved decision.
+- **Durable documentation is updated only when the underlying knowledge actually
+  changed** — never to make a contradiction disappear.
+- **Never silently rewrite an authoritative source to eliminate a conflict.**
+
+If Precedence does not resolve it: **stop, explain the conflict, ask Sammy.**
 
 Current work status belongs in Linear and is never copied into this file.
 
@@ -296,11 +325,16 @@ Linear is the source of truth for work items. Binding:
 1. **Every logical unit of work has its own issue.**
 2. Reuse an existing exact-match issue; never create duplicates.
 3. **Move the issue to `In Progress` before making any change** to code, configuration,
-   documentation, or data.
+   documentation, or data — and only after the sources are reconciled (§3).
 4. Read the issue, its parent EPIC, dependencies, and acceptance criteria.
 5. Implement only that issue. Do not bundle unrelated work.
-6. Record files, commands, results, decisions, and blockers in the issue.
-7. Move to `Done` only after all acceptance criteria and quality gates actually pass.
+6. **Linear owns the detailed execution record.** Record files created and modified,
+   commands executed, test and build results, manual verification, decisions taken during
+   the issue, the exact durable documents the issue changed, commits, Pull Requests, CI
+   runs, and blockers.
+7. **`Done` is the final lifecycle state.** Move the issue there only after the completion
+   lifecycle in §11 has finished — including the final synchronisation check — and never
+   merely because code was merged.
 8. Never mark `Done` work that depends on Sammy, Marcus, or external material. A falsely
    closed issue is worse than an open one.
 9. One issue per commit series. **Every commit message includes `HOR-X`.**
@@ -405,24 +439,101 @@ before staging; no destructive Git commands without explicit approval.
 
 ---
 
-## 11. Implementation Workflow
+## 11. Task Lifecycle
 
-1. Read the required sources of truth.
-2. Confirm the working tree and branch.
-3. Read the assigned Linear issue.
-4. Move it to `In Progress`.
-5. State the plan before coding.
-6. Execute RED → GREEN → REFACTOR → QUALITY when TDD applies.
-7. Run the relevant quality gates.
-8. Review the diff for scope, private data, and destructive changes.
-9. Commit with the issue ID.
-10. Record evidence in Linear.
-11. Move to `Done` only when complete.
-12. Report the result.
-13. Persist the final result to Engram (`mem_save`) once the work is merged to `main` and
-    documented in Linear, so memory stays coordinated with Linear for the next task. The
-    next task then starts from Engram and contrasts it against Linear — see the
-    **Consultation order and coordination** rule in §3.
+One cycle governs every task, from first source consulted to closed issue:
+
+```txt
+START → EXECUTE → VERIFY & PROMOTE → RECORD → DOCUMENT DURABLE KNOWLEDGE
+→ ENGRAM → SYNCHRONISE → DONE → REPORT
+```
+
+### START
+
+1. Run the **Task start lifecycle** in §3: `CLAUDE.md`, Engram, Linear, the relevant
+   specialised documents, repository reality — then reconcile, and resolve any conflict by
+   Precedence.
+2. Move the Linear issue to `In Progress`. **No project file may be modified before this.**
+3. Create or switch to the issue branch — mechanics in
+   [docs/git-workflow.md](docs/git-workflow.md).
+4. State the plan before coding.
+
+### EXECUTE
+
+5. Implement only the assigned issue. Execute RED → GREEN → REFACTOR → QUALITY where TDD
+   applies (§8).
+
+### VERIFY & PROMOTE
+
+6. Run the quality gates (§8) and the issue-specific acceptance checks.
+7. Review the diff for scope, private data, and destructive changes.
+8. Commit with the issue ID, then promote the change through the flow owned by
+   [docs/git-workflow.md](docs/git-workflow.md). **A task is not finished because the issue
+   branch reached `DEV`** — it is finished when the change reaches `main`, unless the issue
+   explicitly requires otherwise.
+9. Verify the intended change is actually present in `main`.
+
+### RECORD
+
+10. Finalise the Linear evidence described in §9. Automatic closure by a Git integration is
+    not evidence of anything.
+
+### DOCUMENT DURABLE KNOWLEDGE
+
+11. A durable decision discovered or explicitly approved during the work is documented
+    **within the same issue, before it closes**, in the document that owns it:
+
+    | Decision | Belongs in |
+    |---|---|
+    | Product requirement | [automation-mvp.md](docs/requirements/automation-mvp.md) |
+    | Architecture decision meeting the ADR criteria | [docs/adr/](docs/adr/) — see §12 |
+    | Testing policy | [testing-strategy.md](docs/testing/testing-strategy.md) |
+    | Modernisation strategy or progress | [modernisation-plan.md](docs/modernisation/modernisation-plan.md) |
+    | Git mechanics | [docs/git-workflow.md](docs/git-workflow.md) |
+    | Operational procedure | the appropriate runbook |
+    | Agent execution contract or binding agent rule | `CLAUDE.md` |
+
+    Do not open a second documentation issue for a decision that was an integral part of
+    the approved work. A separate issue is appropriate only when the documentation is
+    genuinely independent work, or was never in the original scope.
+
+    **Linear holds the detailed record; the durable documents hold the knowledge.** Do not
+    copy one into the other.
+
+### ENGRAM
+
+12. Only now persist the final state with `mem_save`: the issue completed, important
+    decisions, durable documents changed, the resulting development state, corrections to
+    previous memory, the next legitimate point of work, and any unresolved blocker. Engram
+    must reflect the **final** state after `main`, Linear and the durable documents are
+    settled. **Never save an intermediate result as the final memory.**
+
+### SYNCHRONISE
+
+13. Compare `main` ↔ `CLAUDE.md` ↔ the relevant authoritative documents ↔ Linear ↔ Engram.
+    The goal is not identical text — it is **consistent facts, each held by the source that
+    owns it**. Reconcile by ownership and Precedence, never by timestamp:
+
+    ```txt
+    Engram contradicts what main actually contains       → correct Engram
+    Linear evidence missing or incomplete                → complete Linear
+    An approved durable decision is undocumented         → update the owning document
+    CLAUDE.md points at a document that no longer exists → correct the reference
+    Engram says In Progress, main and Linear prove done  → correct Engram
+    ```
+
+    On an unresolved semantic conflict: **stop and ask Sammy.**
+
+### DONE
+
+14. Move the Linear issue to `Done` only once implementation is complete, the required
+    promotion is complete, every acceptance criterion is verified, the Linear evidence is
+    complete, the durable documentation is correct, Engram is updated, and the
+    synchronisation check succeeded.
+
+### REPORT
+
+15. Report the result.
 
 **Do not start the next issue automatically.**
 
@@ -456,7 +567,9 @@ before staging; no destructive Git commands without explicit approval.
 - Build:
 - Linear updates:
 - Commit(s):
+- Durable documentation updated:
 - Engram memory:
+- Synchronisation check:
 - Risks / pending decisions:
 - Next recommended issue:
 ```
@@ -473,6 +586,10 @@ a major technology, changes a durable domain invariant, creates a migration or
 compatibility strategy, or must remain understandable months later. Do not create one for
 routine implementation details.
 
+**An architecture decision belongs in an ADR, not in `CLAUDE.md`.** This contract points to
+the ADR that owns the decision; it never becomes the record of it. Every other kind of
+durable decision is routed by the table in §11.
+
 Index and format: [docs/adr/README.md](docs/adr/README.md). Template:
 [docs/adr/ADR-template.md](docs/adr/ADR-template.md).
 
@@ -486,6 +603,7 @@ implementation → verification.
 ```txt
 Rewrite the application from scratch
 Implement work without a Linear issue
+Start work before the sources of truth are reconciled
 Modify files before the issue is In Progress
 Create duplicate Linear issues
 Bundle unrelated work
@@ -512,6 +630,11 @@ Implement beyond the assigned issue
 Introduce major dependencies, tools, or patterns without approval
 Claim tests or build passed without running them
 Continue when sources of truth conflict
+Resolve a conflict between sources by timestamp instead of Precedence
+Treat Engram as authoritative over ADRs, requirements, or Linear because it is newer
+Record a durable architecture decision in CLAUDE.md instead of an ADR
+Save an intermediate state to Engram as the final completion state
+Mark an issue Done before the final synchronisation check
 Start the next issue automatically
 ```
 
@@ -523,10 +646,12 @@ When uncertain:
 
 ```txt
 Stop
-→ read the sources of truth
+→ read the sources of truth in the order defined in §3
 → inspect the assigned Linear issue
 → inspect relevant ADRs
+→ compare all of it against repository reality
 → ask Sammy
 ```
 
-Do not guess. Do not expand scope. Do not destroy information.
+Do not guess. Do not expand scope. Do not destroy information. Do not resolve a conflict by
+rewriting a source.
