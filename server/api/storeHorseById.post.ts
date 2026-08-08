@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import validateApiKey from "../middleware/validateApiKey";
 import { title } from "process";
 
 const prisma = new PrismaClient();
@@ -82,7 +81,6 @@ const buildSelect = (level: any, topLevel: any): any => {
 
 // @ts-ignore
 export default defineEventHandler(async (event) => {
-  await validateApiKey(event);
   try {
     // @ts-ignore1
     const body = await readBody(event);

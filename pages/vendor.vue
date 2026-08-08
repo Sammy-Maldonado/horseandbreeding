@@ -169,7 +169,6 @@ const addVendor = async () => {
     },
     headers: {
       "Content-Type": "application/json",
-      "api-key": import.meta.env.VITE_API_KEY,
     },
     transform: (storehorses) => JSON.parse(storehorses.body),
   });

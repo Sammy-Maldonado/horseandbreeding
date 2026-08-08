@@ -14,6 +14,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-004](ADR-004-pnpm-package-manager.md) | pnpm is the official package manager | Accepted |
 | [ADR-005](ADR-005-canonical-writeup-library.md) | Canonical mare write-up library fed by Word extraction | Accepted |
 | [ADR-006](ADR-006-storehorse-column-compatibility-layer.md) | Compatibility layer for drifted `storehorse` columns | Accepted |
+| [ADR-007](ADR-007-api-authentication-trust-boundary.md) | API authentication trust boundary and per-route access classification | Accepted |
 
 ## Writing a new ADR
 

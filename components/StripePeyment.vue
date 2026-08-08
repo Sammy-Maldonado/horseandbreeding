@@ -80,7 +80,6 @@ const handleSubmit = async () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "api-key": import.meta.env.VITE_API_KEY,
       },
       body: JSON.stringify({
         amount: parseFloat(amount.replace("€", "")) * 100,

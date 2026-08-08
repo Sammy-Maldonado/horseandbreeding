@@ -341,9 +341,8 @@ const horseInfo = ref([]);
 
 const fetchStoreHorseInfoId = async () => {
   const url = "/api/store-horse-info-id";
-  const key = import.meta.env.VITE_API_KEY;
   const body = { id: horseId };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     horseInfo.value = JSON.parse(response.body);
   }

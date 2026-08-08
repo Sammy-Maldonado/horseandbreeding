@@ -1,10 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 // import { VercelRequest, VercelResponse } from "@vercel/node";
-import validateApiKey from '../middleware/validateApiKey';
 const prisma = new PrismaClient();
 // @ts-ignore
 export default defineEventHandler(async (event) => {
-  await validateApiKey(event);
   try {
     // @ts-ignore1
     // const query = getQuery(event);
