@@ -38,7 +38,6 @@ const fetchHorsesSells = async () => {
       body: JSON.stringify({ offSet: (offSet.value - 1) * 20 }),
       headers: {
         "Content-Type": "application/json",
-        "api-key": import.meta.env.VITE_API_KEY,
       },
     });
 
@@ -58,7 +57,6 @@ const { data: pages } = await useFetch("/api/horse-sells-count", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "api-key": import.meta.env.VITE_API_KEY,
   },
   transform: (data) => JSON.parse(data.pages),
 });

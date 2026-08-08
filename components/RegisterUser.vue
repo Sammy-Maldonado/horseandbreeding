@@ -163,8 +163,7 @@ const handleCountry = (val) => {
 
 const fetchCounties = async () => {
   const url = "/api/counties";
-  const key = import.meta.env.VITE_API_KEY;
-  counties.value = await fetchDataMethodGet(url, key);
+  counties.value = await fetchDataMethodGet(url);
 };
 
 onMounted(fetchCounties);
@@ -179,7 +178,6 @@ const fetchUser = async () => {
       },
       headers: {
         "Content-Type": "application/json",
-        "api-key": import.meta.env.VITE_API_KEY,
       },
       transform: (user) => user,
       onResponse({ response }) {
@@ -234,7 +232,6 @@ const registerUser = async () => {
       body: JSON.stringify({ userData: form.data, userInfo: userInfo.value }),
       headers: {
         "Content-Type": "application/json",
-        "api-key": import.meta.env.VITE_API_KEY,
       },
       transform: (user) => user,
       onResponse({ response }) {

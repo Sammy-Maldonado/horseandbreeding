@@ -286,15 +286,13 @@ const registerUser = () => {
 
 const fetchCounties = async () => {
   const url = "/api/counties";
-  const key = import.meta.env.VITE_API_KEY;
-  counties.value = await fetchDataMethodGet(url, key);
+  counties.value = await fetchDataMethodGet(url);
 };
 
 onMounted(fetchCounties);
 
 const addUser = async () => {
   const url = "/api/sign-up";
-  const key = import.meta.env.VITE_API_KEY;
   const body = form;
 
   message.value = "";
@@ -314,7 +312,7 @@ const addUser = async () => {
     return; // Stop the form submission
   }
 
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
 
   if (response.statusCode == 200) {
     message.value = response.statusMessage;

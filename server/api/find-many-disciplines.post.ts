@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import validateApiKey from "../middleware/validateApiKey";
 import{defineEventHandler} from "h3";
 
 const prisma = new PrismaClient();
@@ -8,7 +7,6 @@ const DRESSAGE = 1;
 const EVENTING = 2;
 const RACING = 3;
 export default defineEventHandler( async (event) =>{
-    await validateApiKey(event);
     try {
         // @ts-ignore1
         const body = await readBody(event);

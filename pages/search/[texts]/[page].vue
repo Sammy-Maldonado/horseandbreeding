@@ -27,12 +27,11 @@ const data = ref([]);
 
 const fetchSearch = async () => {
   const url = "/api/search";
-  const key = import.meta.env.VITE_API_KEY;
   const body = {
     search: searchText.value,
     page: (currentPage.value - 1) * 50,
   };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     data.value = JSON.parse(response.body);
   }
@@ -45,7 +44,6 @@ const { data: pagination } = await useFetch("/api/search-pages", {
   },
   headers: {
     "Content-Type": "application/json",
-    "api-key": import.meta.env.VITE_API_KEY,
   },
   transform: (data) => JSON.parse(data.data),
 });
