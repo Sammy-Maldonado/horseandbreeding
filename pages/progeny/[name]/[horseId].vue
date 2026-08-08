@@ -25,9 +25,8 @@ const data = ref([]);
 
 const fetchProgeny = async () => {
   const url = "/api/progeny";
-  const key = import.meta.env.VITE_API_KEY;
   const body = { id: horseId };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     data.value = JSON.parse(response.body);
   }

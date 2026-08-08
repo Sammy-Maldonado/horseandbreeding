@@ -1,9 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import validateApiKey from "../middleware/validateApiKey";
 const prisma = new PrismaClient();
 // @ts-ignore
 export default defineEventHandler(async (event) => {
-  await validateApiKey(event);
   try {
     // @ts-ignore
     const data = getQuery(event);

@@ -26,9 +26,8 @@ const pedigrees = ref([]);
 
 const fetchPedigree = async () => {
   const url = "/api/pedigree-detail";
-  const key = import.meta.env.VITE_API_KEY;
   const body = { id: horseId, level: 3 };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     pedigrees.value = JSON.parse(response.body);
   }

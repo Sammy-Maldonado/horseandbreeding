@@ -194,7 +194,6 @@ const fetchPedigree = async () => {
       body: JSON.stringify({ id: search.value, level: 3 }),
       headers: {
         "Content-type": "application/json",
-        "api-key": import.meta.env.VITE_API_KEY,
       },
       transform: (data) => JSON.parse(data.body),
     });

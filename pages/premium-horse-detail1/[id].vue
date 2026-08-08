@@ -176,7 +176,6 @@ useFetch("/api/familyHorseStore", {
   body: JSON.stringify({ id: id, level: 2 }),
   headers: {
     "Content-Type": "application/json",
-    "api-key": import.meta.env.VITE_API_KEY,
   },
   transform: (familyHorse) => JSON.parse(familyHorse.body),
 }).then((data) => {
@@ -193,7 +192,6 @@ const { data: _storehorse, execute: fetchSecondApi } = useFetch(
     body: JSON.stringify({ limit: 10, skip: 0, breederid: breederid }),
     headers: {
       "Content-Type": "application/json",
-      "api-key": import.meta.env.VITE_API_KEY,
     },
     transform: (storeHhorse) => JSON.parse(storeHhorse.body),
   }
@@ -216,7 +214,6 @@ async function getCompetitionHistory() {
         body: JSON.stringify({ id: id.toString(), level: 4 }),
         headers: {
           "Content-Type": "application/json",
-          "api-key": import.meta.env.VITE_API_KEY,
         },
         transform: (competitionHistory) => JSON.parse(competitionHistory.body),
       }

@@ -33,9 +33,8 @@ const id = decryptNumber(
 const mareline = ref([]);
 const fetchMareline = async () => {
   const url = "/api/mareline";
-  const key = import.meta.env.VITE_API_KEY;
   const body = { id: id };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     mareline.value = JSON.parse(response.body);
   }

@@ -488,9 +488,8 @@ const message = ref(""); // To store success/error messages
 // fetch disciplines
 const fetchHorseEdit = async (horseId) => {
   const url = "/api/edit-horse-by-id";
-  const key = import.meta.env.VITE_API_KEY;
   let body = { id: horseId };
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     resetForm();
     const storeHorse = JSON.parse(response.body);
@@ -694,8 +693,7 @@ const fetchSearch = async () => {
       break;
   }
 
-  const key = import.meta.env.VITE_API_KEY;
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     data.value = JSON.parse(response.body);
   }
@@ -717,9 +715,8 @@ const fetchPagination = async () => {
       body = { search: searchTerm.value };
       break;
   }
-  const key = import.meta.env.VITE_API_KEY;
 
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     pagination.value = JSON.parse(response.body);
   }
@@ -758,9 +755,8 @@ const handleColor = (val) => {
 
 const fetchColorsSexesStudbook = async () => {
   const url = "/api/colors-sexes-studbooks";
-  const key = import.meta.env.VITE_API_KEY;
   let body = {};
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     const dataCXS = JSON.parse(response.body);
     sexes.value = dataCXS.sexes;
@@ -797,9 +793,8 @@ const handleRacing = (val) => {
 // fetch disciplines
 const fetchManyDisciplines = async () => {
   const url = "/api/find-many-disciplines";
-  const key = import.meta.env.VITE_API_KEY;
   let body = {};
-  const response = await fetchDataMethodPost(url, key, body, "POST");
+  const response = await fetchDataMethodPost(url, body, "POST");
   if (response.status == 200) {
     const disciplines = JSON.parse(response.body);
     jumping.value = disciplines[JUMPING];
