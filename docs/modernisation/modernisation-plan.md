@@ -55,6 +55,8 @@ where the real versions and the real evidence live
 | Source | Owns |
 |---|---|
 | `package.json` → `packageManager` | the pnpm version |
+| `package.json` → `engines.node` | the Node.js runtime range the project supports |
+| `package.json` → `dependencies` / `devDependencies` | the declared dependency ranges |
 | `.github/workflows/ci.yml` → `node-version` | the Node.js version used by CI |
 | [ADR-004](../adr/ADR-004-pnpm-package-manager.md) | the decision to use pnpm, and `packageManager` as its single source of truth |
 | [ADR-001](../adr/ADR-001-adopt-existing-nuxt-application.md) | adopt and modernise; never rewrite |
@@ -84,8 +86,8 @@ are deliberately omitted** and are re-validated when each stage starts.
 |---|---|---|---|
 | **A** | GitHub Actions major versions (`checkout`, `setup-node`, `pnpm/action-setup`, `release-please-action`) | HOR-42 | **Done** |
 | **B** | Node.js runtime and pnpm tooling (`packageManager` + CI `node-version`) | HOR-50 | **Done** |
-| **C** | `package.json` metadata hygiene — align declared ranges to resolved, add `engines` | Not created | **Next** |
-| **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | Not created | Planned |
+| **C** | `package.json` metadata hygiene — align declared ranges to resolved, add `engines` | HOR-54 | **Done** |
+| **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | Not created | **Next** |
 | **E** | Prisma client major upgrade — client only, no database or schema change | Not created | Planned |
 | **F** | Contained single-major library upgrades, split one issue per library | Not created | Planned |
 | **G** | Nuxt framework major migration — the pivot; includes the content-module sub-migration | Not created | Planned |
@@ -97,7 +99,7 @@ are deliberately omitted** and are re-validated when each stage starts.
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A and B have Linear issues.** Stages C–J are planned but **not created**.
+**Only Stages A, B and C have Linear issues.** Stages D–J are planned but **not created**.
 Creating a stage issue requires Sammy's authorisation.
 
 ---
@@ -199,20 +201,106 @@ failure. No tag or release was created manually.
 
 ---
 
-## 6. Next stage — Stage C
+## 6. Completed — Stage C (HOR-54)
 
-**Stage C is next and has not been started.** Its Linear issue does **not** exist.
+`package.json` was made to describe what the project actually installs and actually runs
+on. Metadata only.
 
-Scope, from the HOR-48 audit: `package.json` metadata hygiene — align the declared
-dependency ranges to the versions that already resolve, and add the missing `engines`
-field. No resolved version changes, so no application behaviour changes.
+### What changed
 
-Creating the Stage C issue **requires Sammy's authorisation**. No agent starts it
+- **The declared dependency ranges.** Twenty-five direct dependencies declared a floor
+  below the version that already resolved. Each floor was raised to the version already in
+  the lockfile.
+- **`engines.node` was added.** The project had never declared the Node.js runtime it
+  supports.
+- `pnpm-lock.yaml` — the `importers` `specifier:` lines only, synchronised by pnpm. The
+  lockfile was never hand-edited.
+
+That is the complete change set.
+
+### Why
+
+A declared floor that lags the resolved version is a promise the repository does not keep.
+It tells a fresh install that a version verified by nobody is acceptable, and it hides
+which upgrades a later stage still has to make. Raising each floor to the version already
+installed **restricts** future resolution; it never widens it.
+
+Every raise was tested individually against the same five questions: the resolved version
+already satisfied the old range — that is why it resolved; the change is therefore
+declarative only; it raises the floor rather than lowering it; it is not an upgrade,
+because the installed tree is untouched; and it crosses no major, so it belongs to no
+other stage. **No range change crossed a major boundary.**
+
+`engines.node` turns the LTS rule in §8 from documentation into something the toolchain
+enforces. Its floor is the runtime Stage B adopted and CI verifies; its ceiling keeps the
+project on the **adopted Active LTS line**, so a *Current* release cannot creep in through
+a contributor's machine. Moving that line stays a future stage's job, with its own issue
+and its own gates. The exact range lives in `package.json` and is not repeated here.
+
+> **Consequence, recorded deliberately.** pnpm enforces `engines` **hard for the project
+> itself**, independently of `engineStrict`: an incompatible runtime fails the install
+> rather than warning. That is the intended effect — it is the reason the field is worth
+> adding — but it is a real behavioural change in a stage otherwise labelled hygiene, and
+> a contributor on an unsupported Node.js line will meet it as a failed install.
+
+### What deliberately did not change
+
+- **No resolved version moved.** The installed tree before and after is identical: 51
+  direct dependencies, none added, none removed, not one resolved version different, no
+  integrity or resolution line touched anywhere in the lockfile.
+- **The four exactly-pinned devDependencies were left alone.** They are pinned on purpose
+  by the HOR-46 harness hardening and showed no drift.
+- **`packageManager` was not touched**, and **`engines.pnpm` was not added**.
+  [ADR-004](../adr/ADR-004-pnpm-package-manager.md) made `packageManager` the single source
+  of truth for the pnpm version and rejected duplicating that number into a second place
+  that then drifts; `engines.pnpm` would have recreated exactly what it rejected.
+- **`engines.runtime` was not added.** It makes pnpm download and install a Node runtime,
+  which changes install behaviour and is not metadata hygiene.
+- No dependency was added, removed or upgraded. No pre-release was introduced. Prisma, the
+  `hbold` reference database, `prisma/schema.prisma`, the Python extractor and CI were all
+  untouched.
+- **No ADR was created or modified.** Stage C introduced no architecture decision:
+  `engines.node` is the executable form of a rule §8 had already approved.
+
+### What was verified
+
+Full dependency-modernisation gate,
+[testing-strategy §11](../testing/testing-strategy.md):
+
+```txt
+pnpm install --frozen-lockfile        clean
+Vitest node project                   pass — 2 files, 26 tests
+Vitest nuxt project                   pass — 1 file, 2 tests
+complete pnpm test                    pass — 3 files, 28 tests
+pnpm build                            pass
+```
+
+Manual regression, run locally against `hbold` and never in CI: the **ERNE ALERT** search
+and pedigree, sire and dam rendering, ancestors resolved through `sire_id` / `dam_id`,
+maternal-line traversal through `dam_id`, and confirmation that the `storehorse.status`
+error **did not return** — the compatibility layer still detects the column's absence and
+contributes nothing to the filter ([ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md)).
+The database was not modified.
+
+All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
+`pull_request` event.
+
+---
+
+## 7. Next stage — Stage D
+
+**Stage D is next and has not been started.** Its Linear issue does **not** exist.
+
+Scope, from the HOR-48 audit: remove the deprecated PrimeVue Nuxt module and wire the
+supported one. Unlike Stage C this one *does* change what is installed, so it carries the
+full gate rather than a metadata diff.
+
+Creating the Stage D issue **requires Sammy's authorisation**. No agent starts it
 automatically.
 
 ---
 
-## 7. Rules
+## 8. Rules
 
 Binding for every stage:
 
@@ -237,7 +325,7 @@ Binding for every stage:
 
 ---
 
-## 8. Updating this document
+## 9. Updating this document
 
 Update it when a stage **completes** — move the row to Done, add the summary section, and
 point the "next stage" section forward.
