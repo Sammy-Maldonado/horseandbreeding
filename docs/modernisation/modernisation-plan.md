@@ -87,8 +87,8 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **A** | GitHub Actions major versions (`checkout`, `setup-node`, `pnpm/action-setup`, `release-please-action`) | HOR-42 | **Done** |
 | **B** | Node.js runtime and pnpm tooling (`packageManager` + CI `node-version`) | HOR-50 | **Done** |
 | **C** | `package.json` metadata hygiene — align declared ranges to resolved, add `engines` | HOR-54 | **Done** |
-| **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | Not created | **Next** |
-| **E** | Prisma client major upgrade — client only, no database or schema change | Not created | Planned |
+| **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | HOR-55 | **Done** |
+| **E** | Prisma client major upgrade — client only, no database or schema change | Not created | **Next** |
 | **F** | Contained single-major library upgrades, split one issue per library | Not created | Planned |
 | **G** | Nuxt framework major migration — the pivot; includes the content-module sub-migration | Not created | Planned |
 | **H** | Tailwind CSS major migration — depends on the build tooling that arrives with Stage G | Not created | Planned |
@@ -99,8 +99,8 @@ are deliberately omitted** and are re-validated when each stage starts.
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A, B and C have Linear issues.** Stages D–J are planned but **not created**.
-Creating a stage issue requires Sammy's authorisation.
+**Only Stages A, B, C and D have Linear issues.** Stages E–J are planned but **not
+created**. Creating a stage issue requires Sammy's authorisation.
 
 ---
 
@@ -231,7 +231,7 @@ declarative only; it raises the floor rather than lowering it; it is not an upgr
 because the installed tree is untouched; and it crosses no major, so it belongs to no
 other stage. **No range change crossed a major boundary.**
 
-`engines.node` turns the LTS rule in §8 from documentation into something the toolchain
+`engines.node` turns the LTS rule in §9 from documentation into something the toolchain
 enforces. Its floor is the runtime Stage B adopted and CI verifies; its ceiling keeps the
 project on the **adopted Active LTS line**, so a *Current* release cannot creep in through
 a contributor's machine. Moving that line stays a future stage's job, with its own issue
@@ -260,7 +260,7 @@ and its own gates. The exact range lives in `package.json` and is not repeated h
   `hbold` reference database, `prisma/schema.prisma`, the Python extractor and CI were all
   untouched.
 - **No ADR was created or modified.** Stage C introduced no architecture decision:
-  `engines.node` is the executable form of a rule §8 had already approved.
+  `engines.node` is the executable form of a rule §9 had already approved.
 
 ### What was verified
 
@@ -287,20 +287,127 @@ All three promotion Pull Requests carried a **real, green `Test / Build`** trigg
 
 ---
 
-## 7. Next stage — Stage D
+## 7. Completed — Stage D (HOR-55)
 
-**Stage D is next and has not been started.** Its Linear issue does **not** exist.
+### What changed
 
-Scope, from the HOR-48 audit: remove the deprecated PrimeVue Nuxt module and wire the
-supported one. Unlike Stage C this one *does* change what is installed, so it carries the
-full gate rather than a metadata diff.
+**One dependency removed: `nuxt-primevue`.** Nothing else. The commit touches
+`package.json` and `pnpm-lock.yaml` and **no source file**.
 
-Creating the Stage D issue **requires Sammy's authorisation**. No agent starts it
+### Why
+
+The package is deprecated by its own publisher, which points at the supported successor
+already declared in this project. It was also dead weight: nothing referenced it, and it
+dragged in a **second, older major of PrimeVue** alongside the supported one, so two
+majors of the same library resolved in the tree at once.
+
+### The audit question this stage answered
+
+The HOR-48 row offered an alternative — wire the supported module **or confirm the
+resolver path**. The repository proved the second. PrimeVue is wired through
+`unplugin-vue-components` with `PrimeVueResolver` in `nuxt.config.ts` under `vite.plugins`,
+and the PrimeVue Nuxt module is **deliberately commented out** of `modules`. The generated
+component manifest contains **zero PrimeVue components** — `Menu` comes from Headless UI,
+`Carousel` from `vue3-carousel` — and no PrimeVue plugin is registered. The only live
+consumption of the family is `primeicons/primeicons.css`.
+
+There was therefore nothing to wire. Confirming the resolver path was the correct outcome,
+and `nuxt.config.ts` was deliberately left untouched.
+
+The conclusion came from the **real dependency graph**, resolved with `pnpm why`, not from
+a text search.
+
+### What deliberately did not change
+
+- **`nuxt.config.ts` was not modified.** It holds the wiring this stage confirmed.
+- No source, test, style or asset file was touched.
+- The supported PrimeVue packages — the Nuxt module, the theme package, `primevue` and
+  `primeicons` — were all left at their declared ranges. Crossing the PrimeVue major
+  belongs to **Stage J**.
+- No dependency was added. No version was upgraded. No pre-release was introduced.
+- **No ADR was created or modified.** The HOR-48 row records ADR impact: none, and
+  removing a deprecated, unreferenced package decides nothing durable.
+- Prisma, `prisma/schema.prisma`, the `hbold` reference database, the Python extractor and
+  CI were untouched.
+
+### Lockfile
+
+The package count fell by exactly two: the removed module and the older PrimeVue major it
+carried. **Nothing was added and no resolved version changed.** The remaining diff is
+pnpm's peer-suffix normalisation of entries that already existed — reproduced identically
+by an unrelated `pnpm remove` on a throwaway branch, which is what proves it is *keying*
+and not a version change. `pnpm why primevue` now reports a single version where it
+previously reported two majors.
+
+The change was performed with `pnpm remove`. Neither file was hand-edited.
+
+### What was verified
+
+Automated gate, [testing-strategy §11](../testing/testing-strategy.md):
+
+```txt
+pnpm install --frozen-lockfile        clean
+Vitest node project                   pass — 2 files, 26 tests
+Vitest nuxt project                   pass — 1 file, 2 tests
+complete pnpm test                    pass — 3 files, 28 tests
+pnpm build                            pass
+```
+
+Application smoke test against a dev server started **after** the removal: eight routes
+answered `200` — home, login, register, search, pedigree, mare line, progeny and
+horses-for-sale. `primeicons.css` was served. No unresolved component, no missing module,
+and no reference to the removed package anywhere in the server output.
+
+All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
+`pull_request` event.
+
+> **Gate deviation — recorded, not hidden.** The manual `hbold` regression required by §9
+> and by [testing-strategy §11](../testing/testing-strategy.md) **could not be executed**
+> for this stage. Every `/api` request on the local machine returns `401`, because the API
+> key that `server/middleware/validateApiKey.ts` requires is not defined in the local
+> environment. The gap is **pre-existing and independent of this stage** — the commit
+> contains no source file and cannot affect authentication — but the regression was not
+> run, so Stage D is recorded as having passed the **automated gate and the UI smoke test
+> only**. The local environment must be repaired **before Stage E**, whose blast radius is
+> the data layer itself and which cannot be signed off without that regression.
+
+### Findings raised, not acted on
+
+- The PrimeVue **theme package is marked deprecated by its publisher**, pointing at a
+  successor. Outside Stage D's scope.
+- `unplugin-vue-components` and the PrimeVue auto-import resolver are **imported by
+  `nuxt.config.ts` but declared in no `package.json` field**. They resolve only
+  transitively, through the PrimeVue Nuxt module. The build works today and Stage D did not
+  change that, but the wiring depends on packages the project never declares.
+
+Each needs Sammy's decision and its own issue. Neither was acted on here.
+
+---
+
+## 8. Next stage — Stage E
+
+**Stage E is next and has not been started.** Its Linear issue does **not** exist.
+
+Scope, from the HOR-48 audit: the **Prisma client major upgrade — client only**. It
+includes the MySQL full-text-search preview-flag cleanup and a client regeneration, and it
+changes **no database and no schema** — no model and no field is deleted, per
+[ADR-003](../adr/ADR-003-prisma-schema-preservation.md). It depends on Stage B. It is
+**ADR-003-sensitive**, and the [ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md)
+`storehorse` compatibility layer must be **re-tested against `hbold`** as part of its gate.
+
+Target versions are deliberately not recorded here and are re-validated when the stage
+starts (§2).
+
+**Blocking precondition:** the local `hbold` regression environment must work again — see
+the gate deviation in §7. Stage E touches the data layer and cannot be signed off on
+automated gates alone.
+
+Creating the Stage E issue **requires Sammy's authorisation**. No agent starts it
 automatically.
 
 ---
 
-## 8. Rules
+## 9. Rules
 
 Binding for every stage:
 
@@ -325,7 +432,7 @@ Binding for every stage:
 
 ---
 
-## 9. Updating this document
+## 10. Updating this document
 
 Update it when a stage **completes** — move the row to Done, add the summary section, and
 point the "next stage" section forward.
