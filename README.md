@@ -136,6 +136,7 @@ unattended. Details: [docs/git-workflow.md §12](docs/git-workflow.md).
 | Architecture decisions | [docs/adr/](docs/adr/) |
 | Git workflow, CI, releases, protection | [docs/git-workflow.md](docs/git-workflow.md) |
 | Testing policy, TDD, fixtures, quality gates | [docs/testing/testing-strategy.md](docs/testing/testing-strategy.md) |
+| Modernisation stages and progress | [docs/modernisation/modernisation-plan.md](docs/modernisation/modernisation-plan.md) |
 | Local development | [docs/runbooks/local-development.md](docs/runbooks/local-development.md) |
 | Reusable technical inventory | [docs/architecture/existing-assets.md](docs/architecture/existing-assets.md) |
 | Reference database baseline | [docs/data/hbold-baseline.md](docs/data/hbold-baseline.md) |

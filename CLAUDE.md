@@ -44,6 +44,7 @@ jargon.
 | [docs/git-workflow.md](docs/git-workflow.md) | Branching, commits, PRs, private-data review |
 | [docs/runbooks/local-development.md](docs/runbooks/local-development.md) | Local setup, database, extractor, troubleshooting |
 | [docs/testing/testing-strategy.md](docs/testing/testing-strategy.md) | Authoritative testing policy: test categories, TDD, fixtures, data safety, local/CI gates, modernisation regression gates |
+| [docs/modernisation/modernisation-plan.md](docs/modernisation/modernisation-plan.md) | Modernisation *progress*: which stages exist, which are complete, which is next — **read before any dependency modernisation** |
 | Linear | Work status, ownership, priority, dependencies, acceptance-criteria completion |
 | Engram memory | Freshest cross-session context: decisions, discoveries, status corrections — advisory, always verified against the sources above |
 
