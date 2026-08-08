@@ -361,15 +361,32 @@ and no reference to the removed package anywhere in the server output.
 All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
 `pull_request` event.
 
-> **Gate deviation — recorded, not hidden.** The manual `hbold` regression required by §9
-> and by [testing-strategy §11](../testing/testing-strategy.md) **could not be executed**
-> for this stage. Every `/api` request on the local machine returns `401`, because the API
-> key that `server/middleware/validateApiKey.ts` requires is not defined in the local
-> environment. The gap is **pre-existing and independent of this stage** — the commit
-> contains no source file and cannot affect authentication — but the regression was not
-> run, so Stage D is recorded as having passed the **automated gate and the UI smoke test
-> only**. The local environment must be repaired **before Stage E**, whose blast radius is
-> the data layer itself and which cannot be signed off without that regression.
+Manual `hbold` regression required by §9 and by
+[testing-strategy §11](../testing/testing-strategy.md), executed read-only against the
+local reference database through the running application:
+
+```txt
+search "ERNE ALERT"          1 row — horse_id 1003, birthyear 1997
+sire                         ABLE ALBERT
+dam                          SPRINTER
+known ancestors              ABWAH, POLLY PEACHUM, ikt, UNKNOWN IKT
+maternal line via dam        SPRINTER -> UNKNOWN IKT
+mare line                    first ancestor UNKNOWN IKT, 17 descendants
+progeny                      4 foals for SPRINTER; 0 for ERNE ALERT (correct)
+storehorse.status error      absent — ADR-006 compatibility layer holds
+```
+
+Probed endpoints: `search`, `search-pages`, `pedigree`, `mareline`, `progeny`,
+`storehorses`, `horse`. No unknown-column error, no internal server error.
+
+> **Correction to an earlier record.** A previous revision of this section stated that the
+> manual regression could not be run because the API key required by
+> `server/middleware/validateApiKey.ts` "is not defined in the local environment". **That
+> statement was wrong and has been removed.** The variable is defined in the local `.env`.
+> The `401` observed at the time came from probe requests issued **without** the `api-key`
+> header — exactly what the middleware is designed to reject. Nothing was broken, nothing
+> needed repairing, and Stage E has no precondition arising from it. Stage D passed the
+> automated gate, the UI smoke test **and** the manual `hbold` regression.
 
 ### Findings raised, not acted on
 
@@ -379,8 +396,17 @@ All three promotion Pull Requests carried a **real, green `Test / Build`** trigg
   `nuxt.config.ts` but declared in no `package.json` field**. They resolve only
   transitively, through the PrimeVue Nuxt module. The build works today and Stage D did not
   change that, but the wiring depends on packages the project never declares.
+- The `/api` shared key is read in client code through a **`VITE_`-prefixed variable**, so
+  the bundler inlines it into the browser bundle, and `server/middleware/validateApiKey.ts`
+  compares the incoming header against that same value. The check therefore admits anyone
+  who has loaded the site. Found while running this stage's manual regression. **Wholly
+  pre-existing, entirely outside Stage D**, which changed no source file. It is an
+  authentication-design question, not a dependency one.
+- The same middleware returns its rejection as an ordinary `200` response whose **body**
+  carries `statusCode: 401`. The HTTP status is never set, so a client cannot detect the
+  refusal from the response status. Also pre-existing and outside this stage.
 
-Each needs Sammy's decision and its own issue. Neither was acted on here.
+Each needs Sammy's decision and its own issue. None was acted on here.
 
 ---
 
@@ -398,9 +424,10 @@ changes **no database and no schema** — no model and no field is deleted, per
 Target versions are deliberately not recorded here and are re-validated when the stage
 starts (§2).
 
-**Blocking precondition:** the local `hbold` regression environment must work again — see
-the gate deviation in §7. Stage E touches the data layer and cannot be signed off on
-automated gates alone.
+**No blocking precondition remains.** The local `hbold` regression environment works and
+was exercised in §7. Stage E still touches the data layer and therefore still cannot be
+signed off on automated gates alone — its own manual regression against `hbold` is part of
+its gate, as it is for every stage.
 
 Creating the Stage E issue **requires Sammy's authorisation**. No agent starts it
 automatically.
