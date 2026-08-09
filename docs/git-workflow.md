@@ -631,6 +631,35 @@ Release Please must not auto-merge anything.
 Sammy.** Merging it publishes a version and a tag; that is a product decision, not a
 maintenance step.
 
+### After a release Pull Request merges — back-propagate it before the next promotion
+
+Merging the release Pull Request puts a commit on `main` that `QA` and `DEV` do not have.
+Because the ruleset in section 11 requires a branch to be **up to date** before merging, the
+next ordinary promotion `QA → main` is refused until that commit has travelled back down —
+and the `main → QA` Pull Request that would fix it is refused for the same reason, in the
+opposite direction. Both report *"the head branch is not up to date with the base branch"*.
+
+GitHub's own **Update branch** button cannot resolve it. It answers
+`422 — Required status check "Test / Build" is expected`, because it would place a commit on
+a protected branch with no check run attached. That is the ruleset working, not a fault.
+
+The route out is the one section 10 already mandates, and there is no other:
+
+```bash
+git switch -c chore/HOR-X-backpropagate-release origin/QA
+git merge origin/main --no-ff
+git push -u origin chore/HOR-X-backpropagate-release
+gh pr create --base QA --head chore/HOR-X-backpropagate-release
+```
+
+The Pull Request runs `Test / Build` on the `pull_request` event like any other and is
+merged with a merge commit. The same two steps then carry `QA` into `DEV`. Delete only the
+temporary branch afterwards; `DEV`, `QA` and `main` are never deleted.
+
+**Never** resolve this with a direct push, a fast-forward push, `git reset`, a force push or
+an empty sync commit. Section 10 forbids all five, and a blocked promotion is not an
+exception to them.
+
 ### Why it needs a token rather than `GITHUB_TOKEN`
 
 GitHub does not start a new workflow run for events created with the default
