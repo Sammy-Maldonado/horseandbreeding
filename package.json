@@ -28,7 +28,7 @@
     "@stripe/stripe-js": "^4.10.0",
     "@vee-validate/nuxt": "^4.15.1",
     "axios": "^1.18.1",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "core-js": "^3.49.0",
     "crypto-js": "^4.2.0",
     "file-saver": "^2.0.5",
