@@ -39,7 +39,7 @@
     "jwt-decode": "^4.0.0",
     "multiparty": "^4.3.0",
     "node-fetch": "^3.3.2",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^7.0.13",
     "nuxt": "^3.21.9",
     "nuxt-file-storage": "^0.2.9",
     "nuxt-stripe-module": "^3.2.0",
