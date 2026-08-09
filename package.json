@@ -44,7 +44,6 @@
     "nuxt": "^3.21.9",
     "nuxt-file-storage": "^0.2.9",
     "nuxt-stripe-module": "^3.2.0",
-    "primeicons": "^7.0.0",
     "primevue": "^4.5.5",
     "prisma": "^6.19.3",
     "quill": "^2.0.3",
