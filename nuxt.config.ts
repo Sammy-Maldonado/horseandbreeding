@@ -1,9 +1,6 @@
 // nuxt.config.ts
-import dotenv from "dotenv";
-// Load .env file
 import Components from "unplugin-vue-components/vite";
 import { PrimeVueResolver } from "@primevue/auto-import-resolver";
-dotenv.config();
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
