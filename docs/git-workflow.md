@@ -650,6 +650,16 @@ Never read, print, echo, log or commit the value of that secret.
 
 Linear is the source of truth for work status. A status is not evidence of correctness.
 
+**A status written by an integration reports that a Git event happened. It is never a
+finding about the work.** An integration reacts to a merge, an opened Pull Request or a
+branch name. It cannot read acceptance criteria, and it does not know which issue a Pull
+Request really belongs to. Its writes therefore prove nothing — **in either direction**.
+
+Both directions are handled the same way: **reconcile the event against the recorded
+evidence before touching the status.**
+
+### Case A — an integration moves an issue *to* `Done`
+
 **Automatic movement of an issue to `Done` — by a Git integration, a merged Pull Request
 or a branch name — does not prove a single acceptance criterion.** It proves that a
 branch was merged. Nothing more.
@@ -663,6 +673,51 @@ If an integration closes an issue before evidence has been recorded:
 
 A falsely closed issue is worse than an open one: an open issue is visible work, while a
 falsely closed one is an unverified claim that nobody will revisit.
+
+### Case B — an integration moves a completed issue *away from* `Done`
+
+The same rule runs backwards. **Automatic movement of a completed issue out of `Done` —
+into `In Progress`, `In Review` or any other active state — is not evidence that the work
+reopened.** The usual cause is a Pull Request body or a branch name mentioning an issue
+identifier while the Pull Request belongs to a different issue. Cross-referencing issues
+is normal practice here, so this recurs.
+
+Before changing the status, establish whether real new work exists:
+
+1. Read the issue's **state history** — when it completed, when it moved, and the gap.
+2. Identify the **Pull Request or branch** that triggered the transition, and **which
+   issue it actually belongs to**.
+3. Check for **commit and branch activity** on this issue after it completed.
+4. Read the **comments** and the **acceptance criteria** recorded at completion.
+
+Then:
+
+```txt
+No genuinely new work → record why the transition was automatic, restore Done deliberately
+Genuinely new work    → leave the issue active and run the normal Task Lifecycle
+```
+
+A restoration is a **state correction, not a second completion**:
+
+- Acceptance criteria already satisfied are **not** re-executed because a status moved.
+- **No commit, branch or Pull Request is created to justify a status.** An artificial
+  commit fabricates a history event to satisfy a field — the same defect section 10
+  rejects for SHA equality.
+- The correction is recorded as an evidence note on the issue: what the state history
+  showed, which Pull Request triggered the move, and that no new work was performed.
+
+### Recency is not authority
+
+Neither case is settled by which write happened last. An automatic transition always
+carries a newer timestamp than the evidence it contradicts, and that changes nothing.
+Conflicts are resolved by Precedence and by which source owns the fact, never by which
+was written most recently. **Recorded acceptance evidence outranks an integration's
+opinion of the status.**
+
+If reconciliation does not resolve the conflict — the evidence is ambiguous, or the
+transition suggests the automation itself is wrong for this repository — **stop and ask
+Sammy.** Reconfiguring a Linear or GitHub automation requires its own authorising issue
+and is never done on an agent's initiative.
 
 ---
 
