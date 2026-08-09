@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.0.0...v1.1.0) (2026-08-09)
+
+
+### Features
+
+* **security:** HOR-56 classify /api access and enforce it server-side ([3562826](https://github.com/Sammy-Maldonado/horseandbreeding/commit/3562826b73de83320305d0979779d326d6a7c38b))
+
+
+### Bug Fixes
+
+* **security:** HOR-56 remove the shared api-key gate from client and server ([c108a10](https://github.com/Sammy-Maldonado/horseandbreeding/commit/c108a1097f5fdc08ca3ae8afc4f246a131c480ab))
+* **security:** HOR-56 replace the shared api-key gate with per-route access control ([e46cd65](https://github.com/Sammy-Maldonado/horseandbreeding/commit/e46cd652d633b99a772c97c51405f811c2f572eb))
+
 ## 1.0.0 (2026-07-22)
 
 
