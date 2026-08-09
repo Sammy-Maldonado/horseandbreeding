@@ -31,7 +31,6 @@
     "bcrypt": "^5.1.1",
     "core-js": "^3.49.0",
     "crypto-js": "^4.2.0",
-    "dotenv": "^16.6.1",
     "file-saver": "^2.0.5",
     "html-docx-js-typescript": "^0.1.5",
     "html2pdf": "^0.0.11",
