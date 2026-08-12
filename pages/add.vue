@@ -469,13 +469,6 @@
 </template>
 
 <script setup>
-import {
-  UserCircleIcon,
-  LocationMarkerIcon,
-  PhoneIcon,
-  MailIcon,
-  ExternalLinkIcon,
-} from "@heroicons/vue/solid";
 import { reactive } from "vue";
 import { fetchWithToken, isLoggedIn } from "@/composables/tokenManager";
 import { fetchDataMethodPost } from "../assets/js/functions";
