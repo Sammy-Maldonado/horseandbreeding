@@ -75,7 +75,7 @@
 
                     <div class="mt-1 flex w-full flex-none gap-x-2 px-3">
                       <div class="flex-none">
-                        <MailIcon
+                        <EnvelopeIcon
                           class="h-6 w-5 text-white"
                           aria-hidden="true"
                         />
@@ -98,7 +98,7 @@
 
                     <div class="mt-1 flex w-full flex-none gap-x-2 px-3">
                       <div class="flex-none">
-                        <ExternalLinkIcon
+                        <ArrowTopRightOnSquareIcon
                           class="h-6 w-5 text-white"
                           aria-hidden="true"
                         />
@@ -181,11 +181,10 @@
 import Popper from "vue3-popper";
 import {
   UserCircleIcon,
-  LocationMarkerIcon,
   PhoneIcon,
-  MailIcon,
-  ExternalLinkIcon,
-} from "@heroicons/vue/solid";
+  EnvelopeIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/vue/20/solid";
 
 import {
   convertUpCase,

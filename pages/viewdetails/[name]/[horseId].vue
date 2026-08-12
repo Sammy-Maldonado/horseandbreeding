@@ -321,7 +321,6 @@
 </template>
   
   <script setup>
-import { SwitchVerticalIcon } from "@heroicons/vue/solid";
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import {

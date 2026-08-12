@@ -33,10 +33,7 @@
                         <!-- Add flex for alignment -->
                         {{ timeAgo(horseDetail?.created_at) }}
                       </span>
-                      <LocationMarkerIcon
-                        class="my-1 h-4 w-4"
-                        aria-hidden="true"
-                      />
+                      <MapPinIcon class="my-1 h-4 w-4" aria-hidden="true" />
                       <span class="flex items-center px-1">
                         <!-- Add flex for alignment -->
 
@@ -72,7 +69,7 @@
                           class="inline-flex items-center gap-x-1.5 rounded-md bg-sky-900 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                           Share
-                          <SaveAsIcon
+                          <ArrowDownOnSquareStackIcon
                             class="-mr-0.5 h-5 w-5"
                             aria-hidden="true"
                           />
@@ -197,12 +194,11 @@ import {
 } from "@headlessui/vue";
 import {
   ShareIcon,
-  SaveIcon,
-  SaveAsIcon,
+  ArrowDownOnSquareStackIcon,
   ClockIcon,
-  LocationMarkerIcon,
+  MapPinIcon,
   PlusCircleIcon,
-} from "@heroicons/vue/solid";
+} from "@heroicons/vue/20/solid";
 import { useRoute } from "vue-router";
 import { decryptNumber, formatPrice, timeAgo } from "/assets/js/functions";
 import SellerDetail from "../../../components/SellerDetail.vue";

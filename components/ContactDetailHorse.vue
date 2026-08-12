@@ -43,7 +43,7 @@
         <div class="mt-4 flex w-full flex-none gap-x-4 px-6">
           <div class="flex-none">
             <span class="sr-only">Address</span>
-            <LocationMarkerIcon class="h-6 w-5 text-white" aria-hidden="true" />
+            <MapPinIcon class="h-6 w-5 text-white" aria-hidden="true" />
           </div>
           <div class="text-sm leading-6 text-white">
             {{ breederDetail?.addr1.replace(/\r?\n/g, "") || "N/A" }}
@@ -63,7 +63,7 @@
         <div class="mt-4 flex w-full flex-none gap-x-4 px-6">
           <div class="flex-none">
             <span class="sr-only">Email</span>
-            <MailIcon class="h-6 w-5 text-white" aria-hidden="true" />
+            <EnvelopeIcon class="h-6 w-5 text-white" aria-hidden="true" />
           </div>
           <div class="text-sm leading-6 text-white">
             <a :href="emailLink" target="_blank" rel="noopener noreferrer">
@@ -75,7 +75,10 @@
         <div class="mt-4 flex w-full flex-none gap-x-4 px-6">
           <div class="flex-none">
             <span class="sr-only">Web site</span>
-            <ExternalLinkIcon class="h-6 w-5 text-white" aria-hidden="true" />
+            <ArrowTopRightOnSquareIcon
+              class="h-6 w-5 text-white"
+              aria-hidden="true"
+            />
           </div>
           <div class="text-sm leading-6 text-white">
             <a
@@ -111,11 +114,11 @@
   <script setup>
 import {
   UserCircleIcon,
-  LocationMarkerIcon,
+  MapPinIcon,
   PhoneIcon,
-  MailIcon,
-  ExternalLinkIcon,
-} from "@heroicons/vue/solid"; // Adjust the path based on your project structure
+  EnvelopeIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/vue/20/solid"; // Adjust the path based on your project structure
 
 const props = defineProps(["breederDetail"]);
 const emailLink = `mailto:${props.breederDetail?.email}?subject=Subject%20of%20the%20email&body=Hi%20${props.breederDetail?.breedername}`;

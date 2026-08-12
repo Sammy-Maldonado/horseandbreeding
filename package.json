@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@heroicons/vue": "^1.0.6",
+    "@heroicons/vue": "^2.2.0",
     "@nuxt/content": "^2.13.4",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@primevue/nuxt-module": "^4.5.5",
