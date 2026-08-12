@@ -47,7 +47,7 @@
 </template>
   
   <script setup>
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/vue/solid";
+import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/vue/20/solid";
 const props = defineProps({
   total: { type: Number, default: 0 },
   page: { type: Number, default: 0 },

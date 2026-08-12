@@ -153,7 +153,7 @@
   </div>
 </template>
 <script setup>
-import { UserCircleIcon } from "@heroicons/vue/solid";
+import { UserCircleIcon } from "@heroicons/vue/20/solid";
 import { ref } from "vue";
 const vendorName = ref("");
 

@@ -32,7 +32,7 @@
       <div class="mt-4 flex w-full flex-none gap-x-4 px-6">
         <div class="flex-none">
           <span class="sr-only">Address</span>
-          <LocationMarkerIcon class="h-6 w-5 text-white" aria-hidden="true" />
+          <MapPinIcon class="h-6 w-5 text-white" aria-hidden="true" />
         </div>
         <div class="text-sm leading-6 text-white">
           {{ seller?.location }}
@@ -61,7 +61,7 @@
       <div class="mt-4 flex w-full flex-none gap-x-4 px-6">
         <div class="flex-none">
           <span class="sr-only">Email</span>
-          <MailIcon class="h-6 w-5 text-white" aria-hidden="true" />
+          <EnvelopeIcon class="h-6 w-5 text-white" aria-hidden="true" />
         </div>
         <div class="text-sm leading-6 text-white">
           <a :href="emailLink" target="_blank" rel="noopener noreferrer">
@@ -90,11 +90,10 @@
 <script setup>
 import {
   UserCircleIcon,
-  LocationMarkerIcon,
+  MapPinIcon,
   PhoneIcon,
-  MailIcon,
-  ExternalLinkIcon,
-} from "@heroicons/vue/solid";
+  EnvelopeIcon,
+} from "@heroicons/vue/20/solid";
 
 // Define props
 const props = defineProps({

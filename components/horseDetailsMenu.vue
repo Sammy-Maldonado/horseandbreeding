@@ -19,7 +19,6 @@
   
   <script setup>
 import { ref } from "vue";
-import { MenuIcon, LockClosedIcon } from "@heroicons/vue/solid";
 import {
   convertUpCaseSireOrDam,
   getAbsoluteUrl,

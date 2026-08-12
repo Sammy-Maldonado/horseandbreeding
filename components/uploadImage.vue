@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { PlusIcon, TrashIcon, StarIcon } from "@heroicons/vue/solid";
+import { PlusIcon, TrashIcon, StarIcon } from "@heroicons/vue/20/solid";
 import { fetchWithToken } from "@/composables/tokenManager";
 const props = defineProps({
   getPhotosIds: {

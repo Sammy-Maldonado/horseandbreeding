@@ -163,7 +163,6 @@ import {
   decodedNotes,
   decryptNumber,
 } from "/assets/js/functions";
-import { ExternalLinkIcon, PlusIcon } from "@heroicons/vue/solid";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
