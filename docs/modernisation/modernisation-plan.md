@@ -89,17 +89,17 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **C** | `package.json` metadata hygiene — align declared ranges to resolved, add `engines` | HOR-54 | **Done** |
 | **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | HOR-55 | **Done** |
 | **E** | Prisma client major upgrade — client only, no database or schema change | HOR-58 | **Done** |
-| **F** | Contained single-major library upgrades, split one issue per library | Not created | **Next** |
-| **G** | Nuxt framework major migration — the pivot; includes the content-module sub-migration | Not created | Planned |
+| **F** | Contained single-major library upgrades, split one issue per library | HOR-59, HOR-60, HOR-61, HOR-62, HOR-63, HOR-64 | **Done** |
+| **G** | Nuxt framework major migration — the pivot; includes the content-module sub-migration | Not created | **Next** |
 | **H** | Tailwind CSS major migration — depends on the build tooling that arrives with Stage G | Not created | Planned |
 | **I** | Stripe integration modernisation, including replacing the unmaintained module | Not created | Planned |
-| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, dead-weight cleanup, advisory sweep, Python patch | Not created | Deferred |
+| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | Deferred |
 
 **Order rationale:** external tooling → runtime → hygiene → dead-weight removal → contained
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A, B, C, D and E have Linear issues.** Stages F–J are planned but **not
+**Only Stages A, B, C, D, E and F have Linear issues.** Stages G–J are planned but **not
 created**. Creating a stage issue requires Sammy's authorisation.
 
 ---
@@ -231,7 +231,7 @@ declarative only; it raises the floor rather than lowering it; it is not an upgr
 because the installed tree is untouched; and it crosses no major, so it belongs to no
 other stage. **No range change crossed a major boundary.**
 
-`engines.node` turns the LTS rule in §10 from documentation into something the toolchain
+`engines.node` turns the LTS rule in §11 from documentation into something the toolchain
 enforces. Its floor is the runtime Stage B adopted and CI verifies; its ceiling keeps the
 project on the **adopted Active LTS line**, so a *Current* release cannot creep in through
 a contributor's machine. Moving that line stays a future stage's job, with its own issue
@@ -260,7 +260,7 @@ and its own gates. The exact range lives in `package.json` and is not repeated h
   `hbold` reference database, `prisma/schema.prisma`, the Python extractor and CI were all
   untouched.
 - **No ADR was created or modified.** Stage C introduced no architecture decision:
-  `engines.node` is the executable form of a rule §10 had already approved.
+  `engines.node` is the executable form of a rule §11 had already approved.
 
 ### What was verified
 
@@ -361,7 +361,7 @@ and no reference to the removed package anywhere in the server output.
 All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
 `pull_request` event.
 
-Manual `hbold` regression required by §10 and by
+Manual `hbold` regression required by §11 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only against the
 local reference database through the running application:
 
@@ -442,7 +442,7 @@ crossing is **Stage J** — deferred and ADR-gated. The major adopted here keeps
 `prisma-client-js` generator and needs no driver adapter, so the premise stays intact.
 
 Exact versions are not recorded here; they live in `package.json`. The target was
-re-validated from primary sources at stage start as §10 requires, and the current → target
+re-validated from primary sources at stage start as §11 requires, and the current → target
 justification and the full breaking-change classification are HOR-58's evidence.
 
 ### The audit expectation this stage closed by evidence
@@ -521,7 +521,7 @@ git diff --check                      clean
 `prisma validate` passed on both sides of the upgrade, and `prisma generate` regenerated the
 client successfully.
 
-Manual `hbold` regression, required by §10 and by
+Manual `hbold` regression, required by §11 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only **before and
 after** the upgrade with every counter compared:
 
@@ -558,32 +558,146 @@ outcome, not a failure. No tag and no release were created manually.
 
 ---
 
-## 9. Next stage — Stage F
+## 9. Completed — Stage F (HOR-59, HOR-60, HOR-61, HOR-62, HOR-63, HOR-64)
 
-**Stage F is next and has not been started.** Its Linear issues do **not** exist.
+Six contained library majors, **one Linear issue, one branch, one commit series and one
+three-Pull-Request chain each**, executed strictly one at a time. No Pull Request in the
+stage carried two libraries, and no library was started before the previous one was closed.
 
-Scope, from the HOR-48 audit: **contained single-major library upgrades**, each one crossing
-a single major in a library the application uses directly — the icon set, the second icon
-library, the password-hashing library, the environment loader, the mailer and the UUID
-generator. The audit is explicit that they are **split one issue per library**, each
-independently TDD-gated, so no Pull Request ever carries two unrelated majors.
+### What changed
 
-It depends on Stage C, not on Stage E. Its ADR impact is **none**: these are contained
-library majors that decide nothing durable.
+| Library | Issue | Outcome |
+|---|---|---|
+| `primeicons` | HOR-59 | **Removed** |
+| `dotenv` | HOR-60 | **Removed** |
+| `uuid` | HOR-61 | One major crossed |
+| `nodemailer` | HOR-62 | One major crossed |
+| `bcrypt` | HOR-63 | One major crossed |
+| `@heroicons/vue` | HOR-64 | One major crossed |
+
+Four of the six changed only `package.json` and `pnpm-lock.yaml`. The two exceptions are
+`dotenv`, which took its single consumer with it, and `@heroicons/vue`, whose major renamed
+the package entry points and therefore reached fifteen `.vue` files — by far the largest
+source diff of the stage, and the reason it was sequenced last.
+
+### Why
+
+Stage F is the *contained library* band: majors that can each be crossed, reviewed and
+reverted on their own, ahead of the framework pivot rather than tangled inside it. Splitting
+one issue per library is what makes that true. A single "upgrade the dependencies" Pull
+Request would have been unreviewable, and a regression in it unattributable.
+
+### Two libraries were removed, not upgraded
+
+This is the stage's durable lesson, and the reason it cannot be summarised as *six
+upgrades*.
+
+**`primeicons` was removed.** Its next major is not a technical breaking change at all — it
+relicenses the package from MIT to a commercial licence. Sammy decided against adopting that
+licence, and equally against pinning the old major merely to retain MIT. The dependency was
+then **exhaustively proven unused** — not by a literal name search, which proves nothing, but
+across import paths, CSS entry points, build configuration and rendered output — and removed.
+
+**`dotenv` was removed as a redundant direct dependency.** Nuxt already loads `.env` through
+`c12`, so the direct dependency and its explicit configuration call duplicated a mechanism the
+framework provides. The framework's internal mechanism was deliberately **not** touched;
+only the redundant direct declaration and its single consumer were.
+
+In both cases the honest answer to "which major should we adopt?" turned out to be "none —
+this dependency should not be here". A modernisation stage that cannot reach that conclusion
+will keep upgrading things the project does not need.
+
+### The deferred tail
+
+**Two of the six libraries remain below their current line.** Each crossed exactly one
+major, as the stage requires, and each still has further majors above it. Those crossings
+were deliberately not chased inside a contained stage: crossing two majors at once destroys
+the attribution that makes this band reviewable. They belong to **Stage J**, deferred and
+re-validated when that stage starts.
+
+The other two upgraded libraries sit on their current stable line, so they carry no tail.
+
+Exact versions are not recorded here; they live in `package.json`. Every target was
+re-validated from primary sources at the start of its own issue, as §11 requires.
+
+### What deliberately did not change
+
+- **Node.js, pnpm, Nuxt and Vue were not moved** to accommodate any of the six. A library
+  that had required one of them to move would have stopped its issue and reported the
+  incompatibility instead.
+- **No two libraries were ever in flight together.** One issue `In Progress` at a time, and
+  a blocked library stopped the stage rather than being skipped for the next one — which is
+  exactly what happened when the `primeicons` licence change surfaced.
+- **No lockfile was hand-edited**, and no global update was run. Every lockfile diff was
+  audited entry by entry and attributed to the one library being changed; a diff that had
+  touched a second direct dependency would have stopped the issue.
+- **No ADR was created or modified.** Contained library majors decide nothing durable.
+- **`docs/modernisation/modernisation-plan.md` was not touched by any of the six issues.**
+  Each explicitly excluded it, so that the stage summary could be written once, from the
+  finished stage, rather than six times from partial states. This section is that write-up.
+- **Pre-existing defects met along the way were recorded, not repaired.** The clearest case
+  is a pair of swapped button icons found during the icon upgrade: fixing it inside a
+  dependency issue would have made that issue's diff impossible to review *as an upgrade*.
+  It is filed separately.
+
+### What was verified
+
+Every issue ran the full dependency-modernisation gate in
+[testing-strategy §11](../testing/testing-strategy.md) — `pnpm install --frozen-lockfile`,
+both Vitest projects, the complete `pnpm test` with **no reduction** in file or test count
+against its own pre-change baseline, `pnpm build`, and `git diff --check`.
+
+Every issue also ran the **manual `hbold` regression read-only, both before and after**, and
+compared the two captures rather than merely observing that the second one worked. The
+comparison was byte-level: identical response bodies, identical aggregate digest. The
+`storehorse.status` error did not return in any of the six, so
+[ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md) compatibility held
+throughout. CI never connected to `hbold`.
+
+The icon upgrade added one gate the others did not need, because it is the only library in
+the stage whose failure mode is **visual rather than functional**: the affected routes were
+rendered from the production build and compared against the same routes rendered from a
+rebuilt pre-change state. Icon counts matched exactly, and no component was left unresolved.
+A build-size increase was **fully attributed** rather than accepted — it is the server bundle
+vendoring the dependency whole, which Nitro does without tree-shaking, while the tree-shaken
+browser payload barely moved.
+
+Each of the eighteen Pull Requests carried a real green `Test / Build` on its own
+`pull_request` event, and each change was confirmed present in `main` **by ancestry**, never
+by SHA equality.
+
+### Release Please
+
+Release Please produced **no release Pull Request** for any of the six, and no tag was
+created. All six landed as `chore` commits, which are not user-facing. That is the expected
+outcome — six consecutive times — not a failure. No tag and no release were created manually.
+
+---
+
+## 10. Next stage — Stage G
+
+**Stage G is next and has not been started.** Its Linear issue does **not** exist.
+
+Scope, from the HOR-48 audit: the **Nuxt framework major migration** — the pivot of this
+plan, including the content-module sub-migration that travels with it. Every earlier stage
+exists to de-risk this one.
+
+Unlike Stage F, it is **not** a contained band. It moves the framework the entire
+application runs on, so its blast radius is the whole repository rather than one dependency
+line, and its ADR impact must be assessed before implementation rather than assumed to be
+none.
 
 Target versions are deliberately not recorded here and are re-validated when the stage
 starts (§2). The numbers the audit captured are a snapshot of its own date.
 
-Stage F touches application code rather than the data layer, so its gate is the ordinary
-one: the automated gates *and* the manual `hbold` regression, for every issue in the stage,
-not once for the stage as a whole.
+Its gate is the ordinary one: the automated gates *and* the manual `hbold` regression.
 
-Creating the Stage F issues **requires Sammy's authorisation**. No agent starts them
-automatically.
+Creating the Stage G issue **requires Sammy's authorisation**. No agent starts it
+automatically, and finishing Stage F is not authorisation to begin (§11).
 
 ---
 
-## 10. Rules
+## 11. Rules
 
 Binding for every stage:
 
@@ -608,7 +722,7 @@ Binding for every stage:
 
 ---
 
-## 11. Updating this document
+## 12. Updating this document
 
 Update it when a stage **completes** — move the row to Done, add the summary section, and
 point the "next stage" section forward.
