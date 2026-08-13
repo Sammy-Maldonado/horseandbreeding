@@ -91,16 +91,16 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **E** | Prisma client major upgrade — client only, no database or schema change | HOR-58 | **Done** |
 | **F** | Contained single-major library upgrades, split one issue per library | HOR-59, HOR-60, HOR-61, HOR-62, HOR-63, HOR-64 | **Done** |
 | **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and was not part of this stage (§10) | HOR-67, HOR-68 | **Done** |
-| **H** | Tailwind CSS major migration — depends on the build tooling that arrived with Stage G | Not created | **Next** |
-| **I** | Stripe integration modernisation, including replacing the unmaintained module | Not created | Planned |
+| **H** | Tailwind CSS major migration — depends on the build tooling that arrived with Stage G | HOR-69 | **Done** |
+| **I** | Stripe integration modernisation, including replacing the unmaintained module | Not created | **Next** |
 | **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | Deferred |
 
 **Order rationale:** external tooling → runtime → hygiene → dead-weight removal → contained
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A, B, C, D, E, F and G have Linear issues.** Stages H–J are planned but **not
-created**. Creating a stage issue requires Sammy's authorisation.
+**Only Stages A, B, C, D, E, F, G and H have Linear issues.** Stages I and J are planned but
+**not created**. Creating a stage issue requires Sammy's authorisation.
 
 ---
 
@@ -231,7 +231,7 @@ declarative only; it raises the floor rather than lowering it; it is not an upgr
 because the installed tree is untouched; and it crosses no major, so it belongs to no
 other stage. **No range change crossed a major boundary.**
 
-`engines.node` turns the LTS rule in §12 from documentation into something the toolchain
+`engines.node` turns the LTS rule in §13 from documentation into something the toolchain
 enforces. Its floor is the runtime Stage B adopted and CI verifies; its ceiling keeps the
 project on the **adopted Active LTS line**, so a *Current* release cannot creep in through
 a contributor's machine. Moving that line stays a future stage's job, with its own issue
@@ -260,7 +260,7 @@ and its own gates. The exact range lives in `package.json` and is not repeated h
   `hbold` reference database, `prisma/schema.prisma`, the Python extractor and CI were all
   untouched.
 - **No ADR was created or modified.** Stage C introduced no architecture decision:
-  `engines.node` is the executable form of a rule §12 had already approved.
+  `engines.node` is the executable form of a rule §13 had already approved.
 
 ### What was verified
 
@@ -361,7 +361,7 @@ and no reference to the removed package anywhere in the server output.
 All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
 `pull_request` event.
 
-Manual `hbold` regression required by §12 and by
+Manual `hbold` regression required by §13 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only against the
 local reference database through the running application:
 
@@ -442,7 +442,7 @@ crossing is **Stage J** — deferred and ADR-gated. The major adopted here keeps
 `prisma-client-js` generator and needs no driver adapter, so the premise stays intact.
 
 Exact versions are not recorded here; they live in `package.json`. The target was
-re-validated from primary sources at stage start as §12 requires, and the current → target
+re-validated from primary sources at stage start as §13 requires, and the current → target
 justification and the full breaking-change classification are HOR-58's evidence.
 
 ### The audit expectation this stage closed by evidence
@@ -521,7 +521,7 @@ git diff --check                      clean
 `prisma validate` passed on both sides of the upgrade, and `prisma generate` regenerated the
 client successfully.
 
-Manual `hbold` regression, required by §12 and by
+Manual `hbold` regression, required by §13 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only **before and
 after** the upgrade with every counter compared:
 
@@ -618,7 +618,7 @@ re-validated when that stage starts.
 The other two upgraded libraries sit on their current stable line, so they carry no tail.
 
 Exact versions are not recorded here; they live in `package.json`. Every target was
-re-validated from primary sources at the start of its own issue, as §12 requires.
+re-validated from primary sources at the start of its own issue, as §13 requires.
 
 ### What deliberately did not change
 
@@ -820,29 +820,156 @@ created manually.
 
 ---
 
-## 11. Next stage — Stage H
+## 11. Completed — Stage H (HOR-69)
 
-**Stage H is next and has not been started.** Its Linear issue does **not** exist.
+The **Tailwind CSS major migration**, sequenced after the framework because it depends on the
+build tooling the framework major brought with it.
 
-Scope, from the HOR-48 audit: the **Tailwind CSS major migration**. It was deliberately
-sequenced after the framework, because the Tailwind major depends on the build tooling that
-the framework major brings with it — that tooling is now in place.
+### What changed
 
-Stage G's CSS-delivery finding is directly relevant context: this project now links its
-stylesheet rather than inlining it, so a CSS major's before/after comparison must fetch and
-measure the stylesheet, not merely diff the served HTML.
+| Package | Outcome |
+|---|---|
+| `tailwindcss` | One major crossed |
+| `@nuxtjs/tailwindcss` | **Removed.** Cannot resolve the new major, and its stable line still depends on a Nuxt 3 kit |
+| `@tailwindcss/vite` | **Added.** Tailwind's own first-party integration, the one its Nuxt installation guide prescribes |
+| `autoprefixer` | **Removed as a direct dependency.** Nuxt's Vite builder already depends on it and on `cssnano`, and applies both by default |
+
+`tailwind.config.js` was deleted — the new major configures in CSS and detects its own source
+files, and the file was the untouched generator stub. The `postcss` block left `nuxt.config.ts`
+for the same reason. Both decisions are recorded in
+[ADR-009](../adr/ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md).
+
+### Why the integration had to change, and why it cost nothing
+
+There was no module-versus-plugin choice to make. The module's stable line pins the previous
+Tailwind major and cannot resolve the new one, so staying on the module meant staying on
+Tailwind 3; and its only newer artefacts are pre-releases, which §13 forbids.
+
+What the audit had to establish was the **cost of leaving it**, and the cost was nil. The
+project used no module option, no config exposure, no editor support, no module hook and no
+config import. The `tailwindcss: {}` entry in `nuxt.config.ts` was the PostCSS plugin key, not
+module configuration. Removing a wrapper that wrapped nothing is a reduction in dependency
+surface, not a migration.
+
+### The real risk was visual, and it was not in the upgrade guide
+
+This project defines **no design tokens of its own**. It renders entirely on the framework's
+defaults, so it inherits every default change in full. A CSS major can therefore restyle every
+page while the test suite passes and the build stays green — which is exactly why a green gate
+was never going to be sufficient evidence here.
+
+Four base-style changes were found by reading the upgrade guide. Two more were found only by
+**measuring the built stylesheet against the previous major's published palette**:
+
+- The **default sans font stack** changed in a **patch** release of the new major, not between
+  majors. The upgrade guide does not mention it — correctly, because it did not happen there.
+  It was found by unpacking each published tarball in turn and reading the theme file.
+- The **entire colour palette** was re-derived in OKLCH. Of the 43 palette tokens this
+  application uses, **35 resolve to a different colour**, 15 of them visibly (CIE76 ΔE ≥ 5,
+  worst case 16.08). The neutrals barely move and the dominant brand colours are effectively
+  unchanged, so the shift concentrates in accents — payment and destructive buttons, alert
+  states, and focus rings.
+
+**The palette change was missed by this issue's own breaking-change matrix.** It surfaced at
+verification, not at planning. That is the durable lesson and it is stronger than Stage G's:
+Stage G learned that a sweep scoped by file extension is not a sweep; Stage H learned that a
+breaking-change matrix built from release notes is not a breaking-change analysis. **Measure
+the artefact the build actually emits.**
+
+### The one decision it required — ADR-009
+
+Two legitimate options existed: adopt the new defaults, or hold the previous appearance. Both
+were put to Sammy with the measurement in hand, and **neither was taken by an agent**.
+
+He chose to hold the existing appearance, and framed why: Stage H is a build-tooling
+migration, not a visual redesign, and a PRE/POST comparison is only meaningful if any
+difference it shows is a real regression rather than a restyle bundled into an upgrade. That
+is the same reasoning [ADR-008](../adr/ADR-008-flat-repository-structure-during-framework-majors.md)
+applied to directory moves inside a framework major.
+
+`assets/css/tailwind.css` therefore carries a **temporary compatibility layer**: the four base
+styles plus the 35 moved palette tokens, every value measured rather than transcribed.
+[ADR-009](../adr/ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md) records it as a
+compatibility layer and **explicitly not as this project's visual identity**. It is expected to
+be removed.
+
+**Adopting the new font stack and the OKLCH palette is independent visual work.** It needs a
+side-by-side comparison and a conscious decision, it is out of Stage H's scope, and **its issue
+was deliberately not created here** — recording the finding is not authorisation to act on it
+(§13).
+
+### What deliberately did not change
+
+- **The appearance.** By decision, and verified rather than assumed.
+- **No database, schema, migration or Prisma change of any kind.**
+  [ADR-003](../adr/ADR-003-prisma-schema-preservation.md) and
+  [ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md) untouched, and the
+  compatibility layer verified still to hold.
+- **No `server/api`, access-policy, authentication or middleware change.** ADR-007 untouched.
+- **The repository structure stayed flat** — ADR-008 still binding through a second major.
+- **No browser automation framework was installed.** Verification is declaration-level, and
+  §"What was verified" says so plainly rather than implying screenshots exist.
+- **`assets/css/main.css` remains orphaned and untouched.** It is dead code and deleting it is
+  a cleanup, not a migration.
+- **The renamed utilities were rewritten at the call site, not aliased back into existence.**
+  A shim would have left the source saying names the framework no longer agrees with.
+- **The lockfile was never hand-edited.**
+
+### What was verified
+
+The full dependency-modernisation gate in
+[testing-strategy §11](../testing/testing-strategy.md), plus the manual read-only `hbold`
+regression captured **before and after** and compared capture against capture.
+
+Because the risk was visual and the gate is not, the comparison was extended:
+
+- **Four targeted probes** against the built stylesheet, one per changed base style, located by
+  byte offset so that override order — which wins in CSS — is proven rather than assumed.
+- **All 43 palette tokens** converted from the emitted stylesheet back to sRGB and compared
+  against the previous major's published palette. Result after the compatibility layer:
+  **0 tokens differ**. 35 held explicitly, 8 already identical.
+- **14 server-rendered routes** captured before and after and compared **class token by class
+  token**, with the utility renames normalised. Result: **0 unexplained differences**.
+- **Every class token in all 67 components and pages**, same normalisation, DEV against the
+  branch. Result: **0 unexplained differences**.
+
+Stage G's CSS-delivery finding shaped this: the stylesheet is linked rather than inlined, so
+every one of these checks fetches and measures the sheet instead of diffing the served HTML.
+
+**What this evidence is not.** It is a declaration-level and markup-level comparison, not a
+pixel comparison. It proves that the same classes reach the same elements and that every
+declaration those classes resolve to is unchanged. It does not photograph the result. Installing
+a browser automation framework to do that was not authorised for this stage, and it is recorded
+as a limitation rather than papered over.
+
+### Release Please
+
+The change landed as a `chore`, which is not user-facing, so **no release Pull Request and no
+tag** were produced. That is the expected outcome, not a failure. No tag or release was created
+manually.
+
+---
+
+## 12. Next stage — Stage I
+
+**Stage I is next and has not been started.** Its Linear issue does **not** exist.
+
+Scope, from the HOR-48 audit: **Stripe integration modernisation, including replacing the
+unmaintained module**.
+
+Unlike Stages G and H, this one touches **payment behaviour**, not presentation or tooling.
+Its blast radius is a live commercial path, so the ordinary gate is a floor rather than a
+ceiling, and the verification approach needs to be settled before any version is changed.
 
 Target versions are deliberately not recorded here and are re-validated when the stage starts
 (§2). The numbers the audit captured are a snapshot of its own date.
 
-Its gate is the ordinary one: the automated gates *and* the manual `hbold` regression.
-
-Creating the Stage H issue **requires Sammy's authorisation**. No agent starts it
-automatically, and finishing Stage G is not authorisation to begin (§12).
+Creating the Stage I issue **requires Sammy's authorisation**. No agent starts it
+automatically, and finishing Stage H is not authorisation to begin (§13).
 
 ---
 
-## 12. Rules
+## 13. Rules
 
 Binding for every stage:
 
@@ -867,7 +994,7 @@ Binding for every stage:
 
 ---
 
-## 13. Updating this document
+## 14. Updating this document
 
 Update it when a stage **completes** — move the row to Done, add the summary section, and
 point the "next stage" section forward.

@@ -27,14 +27,14 @@
         autofocus
         id="simple-search"
         minlength="3"
-        class="bg-gray-100 border border-gray-300 focus:outline-none focus:border-sky-500 text-gray-900 text-sm rounded-lg block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-sky-950"
+        class="bg-gray-100 border border-gray-300 focus:outline-hidden focus:border-sky-500 text-gray-900 text-sm rounded-lg block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-sky-950"
         placeholder="Search by horse name..."
         required
       />
     </div>
     <button
       type="submit"
-      class="p-2.5 ms-2 text-sm font-medium text-white bg-sky-700 rounded-lg border border-sky-700 hover:bg-sky-800 focus:ring-4 focus:outline-none focus:ring-sky-300 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800"
+      class="p-2.5 ms-2 text-sm font-medium text-white bg-sky-700 rounded-lg border border-sky-700 hover:bg-sky-800 focus:ring-4 focus:outline-hidden focus:ring-sky-300 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800"
     >
       <svg
         class="w-4 h-4"

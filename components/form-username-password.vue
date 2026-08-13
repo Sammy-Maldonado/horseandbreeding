@@ -11,7 +11,7 @@
         id="email"
         pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
         placeholder="e.g. ana@gmail.com"
-        class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+        class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
         required
       />
     </div>
@@ -29,7 +29,7 @@
         placeholder="********"
         pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
         title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters"
-        class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+        class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
       />
     </div>
     <!-- Submit Button -->

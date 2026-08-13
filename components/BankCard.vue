@@ -15,7 +15,7 @@
             id="name-on-card"
             name="name-on-card"
             autocomplete="cc-name"
-            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
             required
           />
         </div>
@@ -35,7 +35,7 @@
             id="card-number"
             name="card-number"
             autocomplete="cc-number"
-            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
             required
           />
         </div>
@@ -56,7 +56,7 @@
             id="expiration-date"
             autocomplete="cc-exp"
             placeholder="MM/YY"
-            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
             required
           />
         </div>
@@ -69,7 +69,7 @@
             name="cvc"
             id="cvc"
             autocomplete="csc"
-            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+            class="appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
             required
           />
         </div>

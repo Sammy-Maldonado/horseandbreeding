@@ -11,7 +11,7 @@
         <contact-detail-horse :breederDetail="_familyHorse?.breeders" />
         <!-- end contact summary -->
         <div
-          class="px-4 py-4 shadow-sm ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 xl:px-16 xl:pb-10 xl:pt-8"
+          class="px-4 py-4 shadow-xs ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 xl:px-16 xl:pb-10 xl:pt-8"
         >
           <!-- horse detail -->
           <h2 class="text-base font-semibold leading-6 text-gray-900">
