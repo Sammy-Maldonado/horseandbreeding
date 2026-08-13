@@ -17,6 +17,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-007](ADR-007-api-authentication-trust-boundary.md) | API authentication trust boundary and per-route access classification | Accepted |
 | [ADR-008](ADR-008-flat-repository-structure-during-framework-majors.md) | Keep the flat repository structure during framework majors | Accepted |
 | [ADR-009](ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md) | Integrate Tailwind CSS through its official Vite plugin, and hold the Tailwind 3 appearance behind a temporary compatibility layer | Accepted — reviewed 2026-08-13; the layer is withdrawn and the appearance is Tailwind 4 native |
+| [ADR-010](ADR-010-server-side-payment-amount-authority.md) | The server owns the payment amount, and the Stripe API version is pinned | Accepted |
 
 ## Writing a new ADR
 
