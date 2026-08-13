@@ -4,6 +4,16 @@ import { PrimeVueResolver } from "@primevue/auto-import-resolver";
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
+
+  // Nuxt 4 defaults `srcDir` to `app/`. This project keeps its application code
+  // at the repository root, so the framework major migration does not double as
+  // a directory reorganisation. This is the officially supported opt-out and
+  // needs no `compatibilityVersion`. See ADR-008.
+  srcDir: ".",
+  dir: {
+    app: "app"
+  },
+
   css: ["~/assets/css/tailwind.css"],
 
   imports: {
