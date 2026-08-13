@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.1.0...v1.2.0) (2026-08-13)
+
+
+### Features
+
+* **ui:** HOR-70 adopt Tailwind 4 native visual defaults ([9e1ea5e](https://github.com/Sammy-Maldonado/horseandbreeding/commit/9e1ea5e895ac74c6ae1a7e3b0d4e81e889c5c9d5))
+* **ui:** HOR-70 adopt Tailwind 4 native visual defaults ([91515e8](https://github.com/Sammy-Maldonado/horseandbreeding/commit/91515e8483cc6fb25a0ae47341e078dd0045d2cf))
+
 ## [1.1.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.0.0...v1.1.0) (2026-08-09)
 
 
