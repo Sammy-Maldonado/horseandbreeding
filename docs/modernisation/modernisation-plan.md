@@ -90,7 +90,7 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | HOR-55 | **Done** |
 | **E** | Prisma client major upgrade — client only, no database or schema change | HOR-58 | **Done** |
 | **F** | Contained single-major library upgrades, split one issue per library | HOR-59, HOR-60, HOR-61, HOR-62, HOR-63, HOR-64 | **Done** |
-| **G** | Nuxt framework major migration — the pivot; includes the content-module sub-migration | Not created | **Next** |
+| **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and is no longer part of this stage (§10) | Not created | **Next** |
 | **H** | Tailwind CSS major migration — depends on the build tooling that arrives with Stage G | Not created | Planned |
 | **I** | Stripe integration modernisation, including replacing the unmaintained module | Not created | Planned |
 | **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | Deferred |
@@ -679,8 +679,40 @@ outcome — six consecutive times — not a failure. No tag and no release were 
 **Stage G is next and has not been started.** Its Linear issue does **not** exist.
 
 Scope, from the HOR-48 audit: the **Nuxt framework major migration** — the pivot of this
-plan, including the content-module sub-migration that travels with it. Every earlier stage
-exists to de-risk this one.
+plan. Every earlier stage exists to de-risk this one.
+
+### The content-module sub-migration is closed — HOR-67
+
+The audit expected a content-module sub-migration to travel with Stage G. **It does not.**
+It was resolved ahead of the stage, by removal rather than migration, in HOR-67.
+
+`@nuxt/content` v2 is unmaintained on the v3 line, and v3 requires SQLite, `db0`, content
+collections, a `content.config.ts` and connector infrastructure. A four-layer audit — source,
+dependency graph, build output and running routes — confirmed the module served nothing: no
+`content/` directory, no markdown or MDC outside `docs/`, no `content.config.ts`, no consumer
+anywhere in the application, and a direct dependency of this package and of nothing else. It
+was removed rather than migrated, because none of that infrastructure was worth introducing
+to serve zero documents.
+
+The durable consequences for Stage G:
+
+- **The content-module sub-migration is not in Stage G's scope.** It is done, and Stage G is
+  a framework migration only.
+- **Only one Unhead major remains.** `@nuxt/content` pulled `@vueuse/head@2.0.0` →
+  `@unhead/vue@1.11.20` → `unhead@1.11.20` alongside the copy Nuxt itself uses. The
+  duplicate left with the module, so Stage G's Unhead decision has one line to reason about
+  rather than two.
+- **`components/StripePeyment.vue` still imports `useHead` from a bare `"unhead"` specifier
+  it does not declare**, resolved only through pnpm hoisting. The removal was verified not to
+  break it, but the accidental resolution remains and is **Stage G's to settle**.
+- **ADR-007 needs no amendment.** `isModuleOwnedApiPath` reads the framework's own convention
+  that an underscore on the first `/api` segment marks a module-registered path. It is a
+  general rule, not a `@nuxt/content` exception, its behaviour is unchanged, and the
+  application still owns 44 `/api` routes, none underscore-prefixed.
+
+The removal passed the ordinary gate, including the manual read-only `hbold` regression
+captured before and after. The two captures differed in exactly two lines: every page became
+~1.3 kB smaller, and `/api/_content/query` began answering 404 instead of 200.
 
 Unlike Stage F, it is **not** a contained band. It moves the framework the entire
 application runs on, so its blast radius is the whole repository rather than one dependency
