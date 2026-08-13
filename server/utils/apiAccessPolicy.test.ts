@@ -135,7 +135,7 @@ describe("isBrowserReachable", () => {
 });
 
 describe("isModuleOwnedApiPath", () => {
-  it("recognises the routes @nuxt/content registers under /api/_content", () => {
+  it("recognises the underscore-prefixed paths a module registers for itself", () => {
     expect(isModuleOwnedApiPath("/api/_content/query")).toBe(true);
     expect(isModuleOwnedApiPath("/api/_content/navigation/abc123")).toBe(true);
     expect(isModuleOwnedApiPath("/api/_content/cache.1786211738577.json")).toBe(
@@ -151,16 +151,24 @@ describe("isModuleOwnedApiPath", () => {
   it("only accepts the underscore on the first segment", () => {
     expect(isModuleOwnedApiPath("/api/send-email/_content")).toBe(false);
   });
+
+  it("classifies no route this application owns as module-owned", () => {
+    const moduleOwned = [...declaredRouteFiles()].filter((route) =>
+      isModuleOwnedApiPath(`/api/${route}`)
+    );
+
+    expect(moduleOwned).toEqual([]);
+  });
 });
 
 describe("classifyApiRoute leaves module-owned paths ungoverned", () => {
-  it("returns null for a @nuxt/content route", () => {
+  it("returns null for an underscore-prefixed module route", () => {
     expect(classifyApiRoute("/api/_content/query")).toBeNull();
   });
 });
 
 describe("apiAccessDenial", () => {
-  it("lets @nuxt/content serve its own routes", () => {
+  it("lets a module serve its own underscore-prefixed routes", () => {
     expect(apiAccessDenial("/api/_content/query")).toBeNull();
     expect(
       apiAccessDenial("/api/_content/cache.1786211738577.json")
