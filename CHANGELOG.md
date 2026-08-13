@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.2.0...v1.2.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **payments:** HOR-72 modernise Stripe and move the payment amount authority to the server ([000bafc](https://github.com/Sammy-Maldonado/horseandbreeding/commit/000bafc5f76aa35453251424ae847a1d4ad305df))
+* **payments:** HOR-72 move payment amount authority to the server ([c37a559](https://github.com/Sammy-Maldonado/horseandbreeding/commit/c37a559e31e6a03858158ebeb6f5e00eee4691d8))
+
 ## [1.2.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.1.0...v1.2.0) (2026-08-13)
 
 
