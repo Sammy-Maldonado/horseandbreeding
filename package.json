@@ -39,7 +39,7 @@
     "multiparty": "^4.3.0",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.13",
-    "nuxt": "^3.21.9",
+    "nuxt": "^4.5.2",
     "nuxt-file-storage": "^0.2.9",
     "nuxt-stripe-module": "^3.2.0",
     "primevue": "^4.5.5",
@@ -49,7 +49,7 @@
     "stripe": "^17.7.0",
     "uuid": "^12.0.1",
     "vue": "^3.5.40",
-    "vue-router": "^4.6.4",
+    "vue-router": "^5.2.0",
     "vue3-carousel": "^0.4.0",
     "vue3-popper": "^1.5.0",
     "vue3-quill": "^0.3.1"
