@@ -15,6 +15,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-005](ADR-005-canonical-writeup-library.md) | Canonical mare write-up library fed by Word extraction | Accepted |
 | [ADR-006](ADR-006-storehorse-column-compatibility-layer.md) | Compatibility layer for drifted `storehorse` columns | Accepted |
 | [ADR-007](ADR-007-api-authentication-trust-boundary.md) | API authentication trust boundary and per-route access classification | Accepted |
+| [ADR-008](ADR-008-flat-repository-structure-during-framework-majors.md) | Keep the flat repository structure during framework majors | Accepted |
 
 ## Writing a new ADR
 
