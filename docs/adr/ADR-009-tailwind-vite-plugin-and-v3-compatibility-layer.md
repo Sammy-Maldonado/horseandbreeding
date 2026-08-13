@@ -1,8 +1,16 @@
 # ADR-009: Integrate Tailwind CSS through its official Vite plugin, and hold the Tailwind 3 appearance behind a temporary compatibility layer
 
-**Status:** Accepted
+**Status:** Accepted — reviewed 2026-08-13 (HOR-70). Decisions 1, 2 and 4 remain binding.
+Decision 3 was **fulfilled and retired**: the compatibility layer it created has been removed.
 **Date:** 2026-08-13
 **Deciders:** Sammy
+
+> **Reviewed 2026-08-13 — HOR-70.** The first Review Trigger below has fired. The temporary
+> Tailwind 3 compatibility layer no longer exists in the repository, and Horse & Breeder now
+> renders on Tailwind 4's native defaults by Sammy's explicit decision. Nothing below is
+> deleted or rewritten — the layer existed, and this ADR records why. Read
+> [Review outcome — 2026-08-13 (HOR-70)](#review-outcome--2026-08-13-hor-70) at the end of
+> this document for what changed, what survives, and what the visual baseline is now.
 
 ---
 
@@ -110,6 +118,11 @@ from Sammy, taken against a measured comparison — never as a side effect of an
 This is a rule about upgrades, not a rule about Tailwind. It binds the general case.
 
 ### 3. The held values are a temporary compatibility layer, not this project's design
+
+> **Retired 2026-08-13 by HOR-70 — fulfilled, not reversed.** This decision required the block
+> to be removed rather than maintained, and it has been. The paragraphs below describe the
+> layer as it existed between HOR-69 and HOR-70 and are kept so the reason it existed survives
+> its deletion. See [Review outcome](#review-outcome--2026-08-13-hor-70).
 
 `assets/css/tailwind.css` carries a block that restates the Tailwind 3 values Tailwind 4
 would otherwise change: the `gray-200` border colour, the `gray-400` placeholder colour, the
@@ -243,12 +256,17 @@ This would preserve a wrapper the project does not use, for the sole benefit of 
 pre-releases in the meantime. Waiting to keep a dependency that provides nothing is not a
 trade-off, it is inertia.
 
-### Adopt Tailwind 4's defaults and accept the visual change — Rejected
+### Adopt Tailwind 4's defaults and accept the visual change — Rejected *for Stage H*; adopted 2026-08-13 by HOR-70
 
 Rejected as an unauthorised redesign smuggled inside a dependency upgrade. It is the option
 to revisit later, deliberately, per default, with a comparison in hand — not the option to
 take by not deciding. Sammy was shown the measured palette comparison and chose to hold the
 existing appearance for exactly this reason: so that Stage H stays attributable.
+
+> **2026-08-13 — HOR-70 revisited it exactly as this paragraph prescribed, and Sammy adopted
+> it.** What was rejected here was taking the change *by not deciding*, inside an upgrade. It
+> was taken deliberately, per default, with the comparison in hand. See
+> [Review outcome](#review-outcome--2026-08-13-hor-70).
 
 ### Hold only the 15 visibly-different palette tokens — Rejected
 
@@ -277,10 +295,12 @@ place, one thing to delete when the layer goes.
 
 ## Review Triggers
 
-- **A visual issue is opened to adopt Tailwind's current font stack or its OKLCH palette.**
-  This is the expected end of the compatibility layer: the comparison is made deliberately,
-  Sammy decides, and the corresponding block is deleted. That work is independent of Stage H
-  and was not started by it. The rule in Decision 2 survives; the layer does not.
+- ~~**A visual issue is opened to adopt Tailwind's current font stack or its OKLCH palette.**~~
+  **FIRED — 2026-08-13, HOR-70.** This is the expected end of the compatibility layer: the
+  comparison is made deliberately, Sammy decides, and the corresponding block is deleted. That
+  work is independent of Stage H and was not started by it. The rule in Decision 2 survives;
+  the layer does not. It played out exactly this way. See
+  [Review outcome](#review-outcome--2026-08-13-hor-70).
 - `@nuxtjs/tailwindcss` reaches a stable release that supports the current Tailwind and Nuxt
   majors **and** the project acquires an actual need for something it provides. Absent the
   second condition, this trigger does not fire.
@@ -291,3 +311,84 @@ place, one thing to delete when the layer goes.
   inventory.
 - The application acquires a real design-token layer. Restating individual defaults stops
   being the right instrument once the project defines its own theme.
+
+---
+
+## Review outcome — 2026-08-13 (HOR-70)
+
+This section records the review this ADR asked for. It is additive: nothing above was deleted
+or reworded to make the compatibility layer look like something that never happened. The layer
+existed for one release cycle, on purpose, and the reason is the point of this record.
+
+### How it happened
+
+1. **Stage H (HOR-69) deliberately preserved the Tailwind 3 appearance.** Decision 3 above
+   created the compatibility layer not because those values were better — this ADR took no
+   position on that — but so that a PRE/POST comparison across a dependency major would mean
+   something. With the appearance held constant, any visual difference after the migration was
+   a real regression rather than a restyle bundled into an upgrade. Stage H closed
+   colour-neutral by construction, and it is `Done`.
+2. **HOR-70 built a controlled comparison.** The two states were compiled from the same source
+   with the project's own Tailwind 4 compiler and the same candidate list — `Preserved —
+   Tailwind 3 values` against `Native — Tailwind 4 defaults` — and rendered side by side per
+   default: font stack, all 35 moved palette tokens with their CIE76 ΔE, border colour,
+   placeholder colour and button cursor. Nothing was transcribed; every value in the artefact
+   was read out of emitted CSS.
+3. **Sammy reviewed the artefact** and was presented with two options per default: hold the
+   Tailwind 3 value, or adopt the Tailwind 4 native one.
+4. **Sammy chose FULL TAILWIND 4 NATIVE** — every default, explicitly:
+
+   | | Default | Adopted value |
+   |---|---|---|
+   | A2 | Sans font stack | Tailwind 4.3.3's `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, …` |
+   | B2 | Colour palette | Tailwind 4's OKLCH palette, all 35 previously-held tokens |
+   | C2 | Border colour | `currentColor` — the preflight sets `border: 0 solid` and assigns no colour |
+   | D2 | Placeholder colour | `currentColor` at 50%, via `color-mix(in oklab, currentcolor 50%, transparent)` |
+   | E2 | Button cursor | the browser default; no base rule forces `pointer` |
+
+5. **The compatibility layer was withdrawn as a consequence.** `assets/css/tailwind.css` is now
+   its header comment and `@import "tailwindcss";` — the `@theme` block, all 35 `--color-*`
+   overrides, the held `--font-sans`, and the three `@layer base` rules are gone. No other CSS
+   was removed: there was none. 142 lines deleted, and no component, route or test touched.
+6. **The resulting appearance is a deliberate adoption, not an upgrade side effect.** This is
+   the distinction Decision 2 exists to protect, and it held: the visual change was taken by an
+   explicit decision from Sammy, against a measured comparison, in an issue of its own — not
+   inherited by upgrading a dependency.
+
+### What survives
+
+- **Decision 1** — Tailwind is integrated through `@tailwindcss/vite`. Unchanged.
+- **Decision 2** — *a version upgrade does not change the design*. **Unchanged and still
+  binding.** HOR-70 is what Decision 2 prescribes, not an exception to it: the design moved
+  because Sammy moved it, in a separate decision, with a comparison in hand. The next major
+  that changes a visual default gets held again until someone decides.
+- **Decision 4** — utility renames live at the call site. Unchanged. `shadow-xs`,
+  `outline-hidden`, `shrink-0`, the radius shifts and the opacity modifiers stay as Tailwind 4
+  names them. Nothing reverted to a Tailwind 3 utility name.
+- **Decision 3** is retired by fulfilment. It required the layer to be temporary; the layer
+  was temporary.
+
+The Consequences section above listed as negative that the project "is deliberately running a
+design one major behind the framework's own defaults" and that an unremoved layer "eventually
+reads as a design choice to whoever finds it next". Both are now closed. Neither is
+outstanding debt.
+
+### The visual baseline from here
+
+**Horse & Breeder's official appearance is Tailwind 4 native.** The `Native — Tailwind 4
+defaults` state that HOR-70 compiled is the reference, and it was verified byte-for-byte
+against what the repository now emits.
+
+A difference against the old Tailwind 3 appearance is therefore **no longer a regression** —
+it is the approved design. A regression now means a difference between what native Tailwind 4
+is expected to produce and what the application actually produces. Restoring a Tailwind 3
+value to make a comparison pass would be the defect, not the fix.
+
+### What this evidence does not cover
+
+The verification was structural and value-level: emitted CSS compared byte-for-byte against the
+approved native state, rendered `class` attributes compared route by route across a 25-route
+sample, and the `hbold` endpoints compared byte-for-byte read-only. **No pixel rendering was
+compared**, and no browser screenshot was taken. Typography metrics in particular — line
+lengths and wrapping under a different default font stack — are outside what this evidence
+establishes.
