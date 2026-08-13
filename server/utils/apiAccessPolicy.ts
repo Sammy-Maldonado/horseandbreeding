@@ -114,9 +114,14 @@ export function routeNameFromUrl(url: string): string | null {
  * application.
  *
  * A leading underscore on the first segment is the framework's own convention
- * for internal paths, and `@nuxt/content` uses it for everything it registers
- * under `/api/_content/**`. Those routes are the module's to govern; this
- * policy classifies only the surface the application owns in `server/api`.
+ * for the paths a module registers for itself. Those routes are the module's to
+ * govern; this policy classifies only the surface the application owns in
+ * `server/api`, where no route name begins with an underscore.
+ *
+ * No module currently installed registers such a route. `@nuxt/content` did,
+ * under `/api/_content/**`, and was removed once it was confirmed to serve no
+ * content. The rule stays because it belongs to the framework rather than to
+ * that module: a module added later inherits it without reopening this file.
  */
 export function isModuleOwnedApiPath(url: string): boolean {
   const name = routeNameFromUrl(url);
