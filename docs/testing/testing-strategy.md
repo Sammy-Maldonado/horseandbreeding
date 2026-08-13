@@ -319,9 +319,9 @@ Rules:
 
 ## 11. Dependency modernisation gate
 
-Before upgrading **Node, pnpm, Nuxt, Vue, Prisma, Vite, Vitest or related tooling**, at
-minimum the following must be verified. Modernisation is precisely when regressions hide,
-so this gate is not optional.
+Before upgrading **Node, pnpm, Nuxt, Vue, Prisma, Tailwind, Vite, Vitest or related
+tooling**, at minimum the following must be verified. Modernisation is precisely when
+regressions hide, so this gate is not optional.
 
 ### Automated
 
@@ -344,6 +344,34 @@ These verify the core pedigree behaviour the Automation MVP depends on, includin
 - verify **maternal-line behaviour**;
 - verify the **`storehorse.status` error does not return**.
 
+### Presentation regression — required when an upgrade can change how the application looks
+
+The automated gates above prove the application still *works*. They cannot see how it
+*looks*: a styling upgrade can restyle every page while every test passes and the build stays
+green. When the upgrade touches CSS tooling, the design system, or anything that resolves
+style — Tailwind, PostCSS, a UI component library, a theme package — the gate additionally
+requires:
+
+- **Capture the built stylesheet before and after**, and compare it. Comparing the served
+  HTML is not sufficient: this project links its stylesheet rather than inlining it, so a
+  style change leaves the markup byte-identical.
+- **Compare the values, not the version.** For every design token the application actually
+  uses, verify what the new build *emits* against what the old build emitted. Release notes
+  and upgrade guides are a starting point, never the evidence — a default can move in a patch
+  release, and an upgrade guide correctly omits changes that did not happen between the
+  majors it documents.
+- **Compare rendered class attributes route by route**, before and after, normalising any
+  deliberate utility rename. A difference that no rename explains is a regression until
+  proven otherwise.
+- **State what the evidence does not cover.** Declaration-level and markup-level comparison
+  proves the same classes reach the same elements and resolve to the same declarations. It is
+  not a pixel comparison. Say so explicitly rather than letting "verified" imply screenshots.
+
+**A visible default change is a decision for Sammy, not a finding to absorb.** Where holding
+the previous appearance and adopting the new one are both legitimate, stop and present the
+measurement. Anything held to keep the old appearance is a temporary compatibility layer and
+is documented as one — never as the project's design.
+
 ### Where each check runs
 
 - **Manual search and pedigree regression require the local `hbold` database.**
@@ -365,6 +393,7 @@ private data.
 | Vue component or composable change | `nuxt` project tests |
 | `storehorse` compatibility change | `node` regression tests **plus** manual `hbold` validation (section 11) |
 | Dependency update | complete automated gates **plus** relevant manual regression (section 11) |
+| Styling, theme or CSS-tooling update | everything a dependency update requires **plus** the presentation regression (section 11) |
 | Documentation-only change | `pnpm test` and `pnpm build` stay green; **no artificial RED test** |
 | Future database migration | dedicated Linear issue, migration plan, rollback plan, and integration evidence |
 

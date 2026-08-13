@@ -31,14 +31,14 @@
     <button
       type="button"
       @click.prevent="UploadPhotos()"
-      class="rounded-md bg-sky-950 px-3 py-2 text-sm text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      class="rounded-md bg-sky-950 px-3 py-2 text-sm text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
     >
       Upload Images
     </button>
 
     PNG, JPG, GIF
     <div
-      class="grid grid-cols-2 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 gap-2 border p-2 rounded"
+      class="grid grid-cols-2 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 gap-2 border p-2 rounded-sm"
     >
       <figure
         class="relative max-w-sm"
@@ -89,7 +89,7 @@
           type="button"
           @click="openFilePicker"
           id="photo_ids"
-          class="rounded-full bg-sky-950 p-2 text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 flex items-center justify-center"
+          class="rounded-full bg-sky-950 p-2 text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 flex items-center justify-center"
         >
           <PlusIcon class="h-5 w-5" aria-hidden="true" />
         </button>

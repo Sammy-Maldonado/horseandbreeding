@@ -2,13 +2,15 @@
   <!-- Recursively render children if they exist -->
   <div>
     <ul
-      :class="horses?.genealogy ? 'relative rounded' : 'relative rounded pl-4'"
+      :class="
+        horses?.genealogy ? 'relative rounded-sm' : 'relative rounded-sm pl-4'
+      "
       v-for="(child, key) in horses"
       :key="key"
     >
       <li
         v-if="key == 'genealogy'"
-        class="text-white rounded bg-sky-900 shadow-sm ring-1 ring-gray-900/5 text-xs p-2"
+        class="text-white rounded-sm bg-sky-900 shadow-xs ring-1 ring-gray-900/5 text-xs p-2"
       >
         <div>{{ relationshipLevel[level] }}</div>
         {{ child?.birthyear }}
@@ -31,8 +33,8 @@
         v-else-if="child?.name"
         :class="
           !sw
-            ? 'bg-sky-100 text-xs rounded-sm ring-1'
-            : 'bg-sky-200 text-xs rounded-sm ring-1'
+            ? 'bg-sky-100 text-xs rounded-xs ring-1'
+            : 'bg-sky-200 text-xs rounded-xs ring-1'
         "
       >
         {{ child.birthyear }}

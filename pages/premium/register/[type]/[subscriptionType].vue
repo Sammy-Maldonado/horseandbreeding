@@ -7,13 +7,13 @@
       >
         <div class="lg:col-start-1 lg:row-end-1">
           <div
-            class="rounded-lg bg-sky-900 shadow-sm ring-1 ring-gray-900/5 p-6"
+            class="rounded-lg bg-sky-900 shadow-xs ring-1 ring-gray-900/5 p-6"
           >
             <payment-card :type="type" :subscriptionType="subscriptionType" />
           </div>
         </div>
         <div
-          class="px-4 py-8 shadow-sm ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 xl:px-8 xl:pb-10 xl:pt-8"
+          class="px-4 py-8 shadow-xs ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 xl:px-8 xl:pb-10 xl:pt-8"
         >
           <div class="tabs">
             <div class="flex">

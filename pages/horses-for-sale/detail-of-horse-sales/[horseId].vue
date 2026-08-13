@@ -13,7 +13,7 @@
 
               <ul role="list" class="space-y-3 pt-2 lg:col-span-2 col-span-3">
                 <li
-                  class="overflow-hidden rounded-md bg-gray-50 px-6 py-4 shadow"
+                  class="overflow-hidden rounded-md bg-gray-50 px-6 py-4 shadow-sm"
                 >
                   <!-- Your content -->
                   <p class="text-xl font-semibold leading-6 text-black">
@@ -46,7 +46,7 @@
                       class="sm:flex sm:px-6 sm:py-5 lg:col-span-1 md:col-span-1 sm:col-span-2 col-span-2"
                     >
                       <dt
-                        class="text-sm font-medium text-gray-500 sm:w-10 sm:flex-shrink-0 lg:w-20"
+                        class="text-sm font-medium text-gray-500 sm:w-10 sm:shrink-0 lg:w-20"
                       >
                         <p
                           class="lg:text-4xl text-xl font-semibold leading-6 text-black"
@@ -62,11 +62,11 @@
                       class="sm:flex sm:px-6 sm:py-5 lg:col-span-1 md:col-span-1 sm:col-span-2 col-span-2"
                     >
                       <dt
-                        class="text-sm font-medium text-gray-500 sm:w-20 sm:flex-shrink-0 lg:w-30"
+                        class="text-sm font-medium text-gray-500 sm:w-20 sm:shrink-0 lg:w-30"
                       >
                         <button
                           type="button"
-                          class="inline-flex items-center gap-x-1.5 rounded-md bg-sky-900 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                          class="inline-flex items-center gap-x-1.5 rounded-md bg-sky-900 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                           Share
                           <ArrowDownOnSquareStackIcon
@@ -78,7 +78,7 @@
                       <dd class="mt-1 text-sm text-gray-900 sm:ml-6 sm:mt-0">
                         <button
                           type="button"
-                          class="inline-flex items-center gap-x-1.5 rounded-md bg-sky-900 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                          class="inline-flex items-center gap-x-1.5 rounded-md bg-sky-900 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                           Save
                           <ShareIcon
@@ -91,7 +91,7 @@
                   </div>
                 </li>
                 <li
-                  class="overflow-hidden rounded-md bg-gray-50 px-6 py-4 shadow"
+                  class="overflow-hidden rounded-md bg-gray-50 px-6 py-4 shadow-sm"
                 >
                   <!-- Your content -->
                   <h3 class="text-sm font-semibold leading-6 text-black">
@@ -102,7 +102,7 @@
                       class="sm:flex sm:px-6 sm:py-5 lg:col-span-1 md:col-span-1 sm:col-span-2 col-span-2"
                     >
                       <dt
-                        class="text-sm font-medium text-gray-500 sm:w-10 sm:flex-shrink-0 lg:w-20"
+                        class="text-sm font-medium text-gray-500 sm:w-10 sm:shrink-0 lg:w-20"
                       >
                         Age
                       </dt>
@@ -114,7 +114,7 @@
                       class="sm:flex sm:px-6 sm:py-5 lg:col-span-1 md:col-span-1 sm:col-span-2 col-span-2"
                     >
                       <dt
-                        class="text-sm font-medium text-gray-500 sm:w-10 sm:flex-shrink-0 lg:w-20"
+                        class="text-sm font-medium text-gray-500 sm:w-10 sm:shrink-0 lg:w-20"
                       >
                         Gender
                       </dt>
@@ -126,7 +126,7 @@
                       class="sm:flex sm:px-6 sm:py-5 lg:col-span-1 md:col-span-1 sm:col-span-2 col-span-2"
                     >
                       <dt
-                        class="text-sm font-medium text-gray-500 sm:w-20 sm:flex-shrink-0 lg:w-30"
+                        class="text-sm font-medium text-gray-500 sm:w-20 sm:shrink-0 lg:w-30"
                       >
                         Height
                       </dt>
@@ -138,7 +138,7 @@
                 </li>
 
                 <li
-                  class="overflow-hidden rounded-md bg-gray-50 px-6 py-4 shadow"
+                  class="overflow-hidden rounded-md bg-gray-50 px-6 py-4 shadow-sm"
                 >
                   <div class="mt-6">
                     <h3 class="text-sm font-semibold leading-6 text-black pb-4">
