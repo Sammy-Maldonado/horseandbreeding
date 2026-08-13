@@ -1,6 +1,6 @@
 <template>
   <div
-    class="py-8 shadow-sm ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-1 xl:pb-10 xl:pt-8"
+    class="py-8 shadow-xs ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-1 xl:pb-10 xl:pt-8"
   >
     <h2
       class="text-base font-semibold leading-6 text-black"

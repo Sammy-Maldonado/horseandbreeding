@@ -65,7 +65,7 @@
         <div class="mt-6 flex justify-end">
           <button
             @click="acceptTerms"
-            class="px-4 py-2 text-white bg-sky-950 rounded-lg hover:bg-sky-500 focus:outline-none"
+            class="px-4 py-2 text-white bg-sky-950 rounded-lg hover:bg-sky-500 focus:outline-hidden"
           >
             Accept
           </button>
@@ -92,7 +92,7 @@
               @blur="disableHoverHorseName"
               type="text"
               id="name"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
 
@@ -134,7 +134,7 @@
               required
               type="number"
               id="birthyear"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
 
@@ -151,13 +151,13 @@
               disabled
               type="text"
               id="sire"
-              class="mt-1 block w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm bg-gray-100 cursor-not-allowed"
+              class="mt-1 block w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-xs text-sm bg-gray-100 cursor-not-allowed"
             />
             <!-- Find Button -->
             <button
               @click="handleSire"
               type="button"
-              class="mt-1 px-2 py-1 text-sm bg-sky-950 text-white rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
+              class="mt-1 px-2 py-1 text-sm bg-sky-950 text-white rounded-md shadow-xs focus:ring-2 focus:ring-indigo-500"
             >
               Find
             </button>
@@ -166,7 +166,7 @@
             <button
               @click="clearSire"
               type="button"
-              class="mt-1 px-2 py-1 text-sm bg-gray-500 text-white rounded-md shadow-sm focus:ring-2 focus:ring-gray-500"
+              class="mt-1 px-2 py-1 text-sm bg-gray-500 text-white rounded-md shadow-xs focus:ring-2 focus:ring-gray-500"
             >
               Clear
             </button>
@@ -186,13 +186,13 @@
               disabled
               type="text"
               id="dam"
-              class="mt-1 block w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm bg-gray-100 cursor-not-allowed"
+              class="mt-1 block w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-xs text-sm bg-gray-100 cursor-not-allowed"
             />
             <!-- Find Button -->
             <button
               @click="handleDam"
               type="button"
-              class="mt-1 px-2 py-1 text-sm bg-sky-950 text-white rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
+              class="mt-1 px-2 py-1 text-sm bg-sky-950 text-white rounded-md shadow-xs focus:ring-2 focus:ring-indigo-500"
             >
               Find
             </button>
@@ -201,7 +201,7 @@
             <button
               @click="clearDam"
               type="button"
-              class="mt-1 px-2 py-1 text-sm bg-gray-500 text-white rounded-md shadow-sm focus:ring-2 focus:ring-gray-500"
+              class="mt-1 px-2 py-1 text-sm bg-gray-500 text-white rounded-md shadow-xs focus:ring-2 focus:ring-gray-500"
             >
               Clear
             </button>
@@ -234,7 +234,7 @@
               v-model="form.horse.regnr"
               type="text"
               id="regnr"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
           <!-- predicates -->
@@ -249,7 +249,7 @@
               v-model="form.horse.predicates"
               type="text"
               id="predicates"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
           <!-- Color -->
@@ -279,7 +279,7 @@
               v-model="form.horse.height"
               type="text"
               id="height"
-              class="mt-1 block w-1/2 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-1/2 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
             <span class="pl-2"> metres (i.e. 165) </span>
           </div>
@@ -295,7 +295,7 @@
               v-model="form.horse.alias"
               type="text"
               id="alias"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
           <app-select-option
@@ -378,7 +378,7 @@
               v-model="form.horse.competitionAuthority"
               type="text"
               id="competitionAuthority"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
           <!-- remarks_short -->
@@ -393,7 +393,7 @@
               v-model="form.horse.remarks_short"
               type="text"
               id="remarks_short"
-              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-3/4 focus:ring-2 focus:ring-inset focus:ring-sky-600 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             />
           </div>
 
@@ -411,7 +411,7 @@
               id="remarks"
               name="remarks"
               rows="5"
-              class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6"
+              class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6"
             />
           </div>
 
@@ -430,7 +430,7 @@
                 <button
                   type="button"
                   @click="openTerms"
-                  class="text-sky-950 hover:text-sky-600 underline focus:outline-none"
+                  class="text-sky-950 hover:text-sky-600 underline focus:outline-hidden"
                 >
                   Terms and Conditions
                 </button>
@@ -457,7 +457,7 @@
             <!-- Submit Button -->
             <button
               :disabled="!agreed"
-              class="mt-4 px-4 py-2 rounded-md text-white font-semibold transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 bg-sky-950 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="mt-4 px-4 py-2 rounded-md text-white font-semibold transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 bg-sky-950 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit
             </button>

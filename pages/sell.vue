@@ -11,7 +11,7 @@
         <div class="hidden md:block lg:block col-span-1"></div>
         <div class="lg:col-span-5 md:col-span-5 sm:col-span-7 col-span-7">
           <form
-            class="bg-gray-50 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-4 mx-4"
+            class="bg-gray-50 shadow-xs ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-4 mx-4"
             @submit.prevent="addHorse"
           >
             <div class="px-4 py-6 sm:p-8">
@@ -31,7 +31,7 @@
                   id="ad_title"
                   autocomplete="given-horse"
                   minlength="4"
-                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
               <div class="mb-4 flex item-center">
@@ -49,7 +49,7 @@
                   name="comments"
                   minlength="50"
                   rows="5"
-                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
               <app-select-option name="gender" @update:selected="handleGender"
@@ -74,7 +74,7 @@
                   id="currency"
                   name="currency"
                   autocomplete="currency-name"
-                  class="block w-full rounded-md border-0 p-2 pb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 p-2 pb-3 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 >
                   <option value="" disabled>Select a age</option>
                   <option value="6 months">6 months</option>
@@ -103,7 +103,7 @@
                   id="currency"
                   name="currency"
                   autocomplete="currency-name"
-                  class="block w-full rounded-md border-0 p-2 pb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 p-2 pb-3 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 >
                   <option value="" disabled>Select a height</option>
                   <option value="Under 12.0">Under 12.0</option>
@@ -135,7 +135,7 @@
                   id="currency"
                   name="currency"
                   autocomplete="currency-name"
-                  class="block w-1/4 mr-4 rounded-md border-0 p-2 pb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                  class="block w-1/4 mr-4 rounded-md border-0 p-2 pb-3 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                 >
                   <option value="€">Euro (€)</option>
                   <option value="£">Pound (£)</option>
@@ -149,7 +149,7 @@
                   id="price"
                   placeholder="Enter amount, e.g., 1,000"
                   autocomplete="address-level1"
-                  class="block w-3/4 rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-3/4 rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
 
@@ -167,7 +167,7 @@
                   name="fullname"
                   id="fullname"
                   autocomplete="given-name"
-                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
 
@@ -187,7 +187,7 @@
                   title="Enter a valid phone number"
                   id="telphone"
                   autocomplete="phone-number"
-                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
 
@@ -205,7 +205,7 @@
                   name="fullname"
                   id="fullname"
                   autocomplete="given-name"
-                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  class="block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
               <app-select-option name="county" @update:selected="handleCountry">
@@ -259,7 +259,7 @@
               </button>
               <button
                 type="submit"
-                class="rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                class="rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Save
               </button>

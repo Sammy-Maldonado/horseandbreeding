@@ -10,7 +10,7 @@
       <button
         type="submit"
         @click="handleSubmit"
-        class="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition duration-200"
+        class="w-full py-2 bg-blue-600 text-white font-semibold rounded-sm hover:bg-blue-700 transition duration-200"
       >
         Pay {{ pricing.tiers[type].price[subscriptionType] }}
       </button>

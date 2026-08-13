@@ -2,7 +2,7 @@
   <div>
     <div class="pt-6" v-if="familyTree.length > 0">
       <div
-        class="gap-x-8 border rounded"
+        class="gap-x-8 border rounded-sm"
         v-for="(horse, index) in familyTree.slice(0, familyTree.length - 1)"
         :key="index"
       >

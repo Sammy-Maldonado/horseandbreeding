@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-lg bg-sky-900 shadow-sm ring-1 ring-gray-900/5 p-6">
+  <div class="rounded-lg bg-sky-900 shadow-xs ring-1 ring-gray-900/5 p-6">
     <dl class="flex flex-wrap">
       <div class="flex-auto">
         <dt

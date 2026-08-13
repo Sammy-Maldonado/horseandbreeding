@@ -2,7 +2,7 @@
   <teleport to="body">
     <div
       v-if="isVisible"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
     >
       <!-- Modal container for responsiveness -->
       <div
@@ -28,7 +28,7 @@
           <button
             type="button"
             @click="close"
-            class="bg-sky-950 px-3 py-2 text-xs font-medium text-center text-white rounded-lg hover:bg-sky-800 focus:ring-4 focus:outline-none focus:ring-sky-300 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800 ml-auto"
+            class="bg-sky-950 px-3 py-2 text-xs font-medium text-center text-white rounded-lg hover:bg-sky-800 focus:ring-4 focus:outline-hidden focus:ring-sky-300 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800 ml-auto"
           >
             Close
           </button>

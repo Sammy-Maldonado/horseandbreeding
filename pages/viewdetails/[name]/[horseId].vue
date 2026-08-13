@@ -23,7 +23,7 @@
             :value="convertUpCaseSireOrDam(horseInfo.name)"
             type="text"
             id="name"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -43,7 +43,7 @@
               horseInfo?.has_approvedby[0]?.approvedly?.approvedby || ''
             } (${horseInfo?.has_approvedby[0]?.approvedly?.breed_code || ''})`"
             id="approved"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
           <input
@@ -51,7 +51,7 @@
             v-else
             value=""
             id="approved"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -70,7 +70,7 @@
               type="text"
               :value="horseInfo.type_horse?.type"
               id="sexe"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
               disabled
             />
           </div>
@@ -87,7 +87,7 @@
               v-model="horseInfo.birthyear"
               type="number"
               id="birthyear"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
               disabled
             />
           </div>
@@ -105,7 +105,7 @@
             :value="convertUpCaseSireOrDam(horseInfo?.sire?.name)"
             type="text"
             id="sire"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -122,7 +122,7 @@
             :value="convertUpCaseSireOrDam(horseInfo?.dam?.name)"
             type="text"
             id="dam"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -140,7 +140,7 @@
             :value="`${horseInfo.studbook_has[0]?.studBook?.name} (${horseInfo.studbook_has[0]?.studBook?.abbr})`"
             type="text"
             id="studbook"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
           <input
@@ -148,7 +148,7 @@
             v-else
             value=""
             id="studbook"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -165,7 +165,7 @@
             v-model="horseInfo.regnr"
             type="text"
             id="regNr"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -188,7 +188,7 @@
                 horseInfo.color
               })`"
               id="color"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
               disabled
             />
           </div>
@@ -206,7 +206,7 @@
               :value="getHeight(horseInfo?.height)"
               type="text"
               id="birthyear"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
               disabled
             />
           </div>
@@ -224,7 +224,7 @@
             v-model="horseInfo.alias"
             type="text"
             id="alias"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -240,10 +240,10 @@
               <li
                 v-for="(has_dis, index) in horseInfo?.has_disciplines"
                 :key="index"
-                class="col-span-1 flex rounded-md shadow-sm"
+                class="col-span-1 flex rounded-md shadow-xs"
               >
                 <div
-                  class="flex bg-sky-700 w-20 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white"
+                  class="flex bg-sky-700 w-20 shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white"
                 >
                   {{ has_dis?.disciplines?.value }}
                 </div>
@@ -279,7 +279,7 @@
             v-model="horseInfo.competitionAuthority"
             type="text"
             id="competitionAuthority"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -296,7 +296,7 @@
             v-model="horseInfo.remarks_short"
             type="text"
             id="remarks_short"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             disabled
           />
         </div>
@@ -311,7 +311,7 @@
           </label>
           <div
             id="remarks"
-            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm"
+            class="mt-1 block w-3/4 px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:outline-hidden sm:text-sm"
             v-html="horseInfo.remarks"
           ></div>
         </div>
