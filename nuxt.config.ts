@@ -20,7 +20,6 @@ export default defineNuxtConfig({
   modules: [
     "@nuxtjs/tailwindcss",
     "@vee-validate/nuxt", // Add any other modules here as needed
-    "@nuxt/content",
     "nuxt-file-storage"
     // "@primevue/nuxt-module"
   ],
