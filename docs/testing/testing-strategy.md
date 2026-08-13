@@ -372,6 +372,16 @@ the previous appearance and adopting the new one are both legitimate, stop and p
 measurement. Anything held to keep the old appearance is a temporary compatibility layer and
 is documented as one — never as the project's design.
 
+**When Sammy adopts a new default, the baseline moves with it.** From that point the previous
+appearance is history, not the reference: a difference against it is the approved design and
+must not be reported as a regression. A regression is then a difference between what the
+adopted default is expected to emit and what the application actually emits — verified by
+compiling the entry stylesheet with the project's own compiler and comparing it against the
+state the decision was taken on. **Never restore an old value to make a comparison pass.** That
+inverts the gate: it hides the real difference and reintroduces the compatibility layer the
+decision retired. The current appearance baseline is recorded in the ADR that owns the
+decision — for styling, [ADR-009](../adr/ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md).
+
 ### Where each check runs
 
 - **Manual search and pedigree regression require the local `hbold` database.**

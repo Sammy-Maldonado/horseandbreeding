@@ -887,16 +887,16 @@ difference it shows is a real regression rather than a restyle bundled into an u
 is the same reasoning [ADR-008](../adr/ADR-008-flat-repository-structure-during-framework-majors.md)
 applied to directory moves inside a framework major.
 
-`assets/css/tailwind.css` therefore carries a **temporary compatibility layer**: the four base
+`assets/css/tailwind.css` therefore carried a **temporary compatibility layer**: the four base
 styles plus the 35 moved palette tokens, every value measured rather than transcribed.
-[ADR-009](../adr/ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md) records it as a
-compatibility layer and **explicitly not as this project's visual identity**. It is expected to
-be removed.
+[ADR-009](../adr/ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md) recorded it as a
+compatibility layer and **explicitly not as this project's visual identity**. It was expected to
+be removed, and it has been — see *Follow-up outside the stage* below.
 
 **Adopting the new font stack and the OKLCH palette is independent visual work.** It needs a
-side-by-side comparison and a conscious decision, it is out of Stage H's scope, and **its issue
+side-by-side comparison and a conscious decision, it was out of Stage H's scope, and **its issue
 was deliberately not created here** — recording the finding is not authorisation to act on it
-(§13).
+(§13). That issue was opened separately, as HOR-70.
 
 ### What deliberately did not change
 
@@ -947,6 +947,31 @@ as a limitation rather than papered over.
 The change landed as a `chore`, which is not user-facing, so **no release Pull Request and no
 tag** were produced. That is the expected outcome, not a failure. No tag or release was created
 manually.
+
+### Follow-up outside the stage — the compatibility layer is withdrawn (HOR-70)
+
+**Stage H is unchanged and stays Done.** This note records what happened to the layer it
+created, because leaving the paragraphs above as the last word would describe outstanding debt
+that no longer exists.
+
+HOR-70 is not a modernisation stage. It is the visual issue ADR-009 foresaw: it compiled the
+two states from the same source with the project's own compiler and rendered them side by side
+per default, Sammy reviewed the comparison, and he chose **Tailwind 4 native for every default**
+— font stack, the full OKLCH palette, `currentColor` borders, the native placeholder, and the
+browser's own button cursor.
+
+The compatibility layer was therefore removed. `assets/css/tailwind.css` is now its header
+comment and a single `@import "tailwindcss";`. No component, route or test changed, and no
+utility reverted to a Tailwind 3 name — Decision 4 of ADR-009 still holds.
+
+**The project's official appearance is now Tailwind 4 native**, not "Tailwind 4 engine plus a
+Tailwind 3 compatibility layer". A difference against the old Tailwind 3 appearance is the
+approved design, not a regression. The full record is in
+[ADR-009 § Review outcome](../adr/ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md#review-outcome--2026-08-13-hor-70).
+
+The rule that made the layer necessary — **a version upgrade does not change the design** — is
+untouched and still binding on every future stage. HOR-70 is what that rule prescribes, not an
+exception to it: the design moved because Sammy moved it, deliberately, in an issue of its own.
 
 ---
 
