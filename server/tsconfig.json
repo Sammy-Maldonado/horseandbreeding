@@ -5,7 +5,7 @@
     "target": "es2020",
     "module": "ESNext",
     "strict": true,
-    "types": ["@nuxt/types", "nuxt-stripe-module"]
+    "types": ["@nuxt/types"]
   },
   "include": ["src/**/*.ts", "prisma/**/*.ts", "server/**/*.ts"],
   "exclude": ["node_modules", "dist"]
