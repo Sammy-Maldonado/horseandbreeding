@@ -21,7 +21,6 @@
   
 <script setup>
 import { ref, onMounted } from "vue";
-import { useHead } from "unhead";
 import { loadStripe } from "@stripe/stripe-js";
 // Define props
 const paymentResult = ref("");

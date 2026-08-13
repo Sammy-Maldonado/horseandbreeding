@@ -90,8 +90,8 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **D** | Remove the deprecated PrimeVue Nuxt module and wire the supported one | HOR-55 | **Done** |
 | **E** | Prisma client major upgrade — client only, no database or schema change | HOR-58 | **Done** |
 | **F** | Contained single-major library upgrades, split one issue per library | HOR-59, HOR-60, HOR-61, HOR-62, HOR-63, HOR-64 | **Done** |
-| **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and is no longer part of this stage (§10) | Not created | **Next** |
-| **H** | Tailwind CSS major migration — depends on the build tooling that arrives with Stage G | Not created | Planned |
+| **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and was not part of this stage (§10) | HOR-67, HOR-68 | **Done** |
+| **H** | Tailwind CSS major migration — depends on the build tooling that arrived with Stage G | Not created | **Next** |
 | **I** | Stripe integration modernisation, including replacing the unmaintained module | Not created | Planned |
 | **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | Deferred |
 
@@ -99,7 +99,7 @@ are deliberately omitted** and are re-validated when each stage starts.
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A, B, C, D, E and F have Linear issues.** Stages G–J are planned but **not
+**Only Stages A, B, C, D, E, F and G have Linear issues.** Stages H–J are planned but **not
 created**. Creating a stage issue requires Sammy's authorisation.
 
 ---
@@ -231,7 +231,7 @@ declarative only; it raises the floor rather than lowering it; it is not an upgr
 because the installed tree is untouched; and it crosses no major, so it belongs to no
 other stage. **No range change crossed a major boundary.**
 
-`engines.node` turns the LTS rule in §11 from documentation into something the toolchain
+`engines.node` turns the LTS rule in §12 from documentation into something the toolchain
 enforces. Its floor is the runtime Stage B adopted and CI verifies; its ceiling keeps the
 project on the **adopted Active LTS line**, so a *Current* release cannot creep in through
 a contributor's machine. Moving that line stays a future stage's job, with its own issue
@@ -260,7 +260,7 @@ and its own gates. The exact range lives in `package.json` and is not repeated h
   `hbold` reference database, `prisma/schema.prisma`, the Python extractor and CI were all
   untouched.
 - **No ADR was created or modified.** Stage C introduced no architecture decision:
-  `engines.node` is the executable form of a rule §11 had already approved.
+  `engines.node` is the executable form of a rule §12 had already approved.
 
 ### What was verified
 
@@ -361,7 +361,7 @@ and no reference to the removed package anywhere in the server output.
 All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
 `pull_request` event.
 
-Manual `hbold` regression required by §11 and by
+Manual `hbold` regression required by §12 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only against the
 local reference database through the running application:
 
@@ -442,7 +442,7 @@ crossing is **Stage J** — deferred and ADR-gated. The major adopted here keeps
 `prisma-client-js` generator and needs no driver adapter, so the premise stays intact.
 
 Exact versions are not recorded here; they live in `package.json`. The target was
-re-validated from primary sources at stage start as §11 requires, and the current → target
+re-validated from primary sources at stage start as §12 requires, and the current → target
 justification and the full breaking-change classification are HOR-58's evidence.
 
 ### The audit expectation this stage closed by evidence
@@ -521,7 +521,7 @@ git diff --check                      clean
 `prisma validate` passed on both sides of the upgrade, and `prisma generate` regenerated the
 client successfully.
 
-Manual `hbold` regression, required by §11 and by
+Manual `hbold` regression, required by §12 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only **before and
 after** the upgrade with every counter compared:
 
@@ -618,7 +618,7 @@ re-validated when that stage starts.
 The other two upgraded libraries sit on their current stable line, so they carry no tail.
 
 Exact versions are not recorded here; they live in `package.json`. Every target was
-re-validated from primary sources at the start of its own issue, as §11 requires.
+re-validated from primary sources at the start of its own issue, as §12 requires.
 
 ### What deliberately did not change
 
@@ -674,14 +674,28 @@ outcome — six consecutive times — not a failure. No tag and no release were 
 
 ---
 
-## 10. Next stage — Stage G
+## 10. Completed — Stage G (HOR-67, HOR-68)
 
-**Stage G is next and has not been started.** Its Linear issue does **not** exist.
+The pivot. Every earlier stage existed to de-risk this one: the **Nuxt framework major
+migration**, crossed in a single issue after its content-module gate was closed separately
+ahead of it.
 
-Scope, from the HOR-48 audit: the **Nuxt framework major migration** — the pivot of this
-plan. Every earlier stage exists to de-risk this one.
+### What changed
 
-### The content-module sub-migration is closed — HOR-67
+| Package | Outcome |
+|---|---|
+| `nuxt` | One major crossed — the framework the whole application runs on |
+| `vue-router` | One major crossed, required by the Nuxt target |
+| `unhead` | One major crossed **transitively**; never declared as a direct dependency |
+
+The build toolchain moved underneath the framework rather than by decision: the Vite major
+and the renamed Nitro server package arrived as part of the Nuxt release. Vue itself did
+**not** move.
+
+**The source diff is three lines across two files.** Everything else is `package.json` and
+`pnpm-lock.yaml`. For a framework major that is the point, not luck — see below.
+
+### The content-module sub-migration was closed first — HOR-67
 
 The audit expected a content-module sub-migration to travel with Stage G. **It does not.**
 It was resolved ahead of the stage, by removal rather than migration, in HOR-67.
@@ -694,42 +708,141 @@ anywhere in the application, and a direct dependency of this package and of noth
 was removed rather than migrated, because none of that infrastructure was worth introducing
 to serve zero documents.
 
-The durable consequences for Stage G:
-
-- **The content-module sub-migration is not in Stage G's scope.** It is done, and Stage G is
-  a framework migration only.
-- **Only one Unhead major remains.** `@nuxt/content` pulled `@vueuse/head@2.0.0` →
-  `@unhead/vue@1.11.20` → `unhead@1.11.20` alongside the copy Nuxt itself uses. The
-  duplicate left with the module, so Stage G's Unhead decision has one line to reason about
-  rather than two.
-- **`components/StripePeyment.vue` still imports `useHead` from a bare `"unhead"` specifier
-  it does not declare**, resolved only through pnpm hoisting. The removal was verified not to
-  break it, but the accidental resolution remains and is **Stage G's to settle**.
-- **ADR-007 needs no amendment.** `isModuleOwnedApiPath` reads the framework's own convention
-  that an underscore on the first `/api` segment marks a module-registered path. It is a
-  general rule, not a `@nuxt/content` exception, its behaviour is unchanged, and the
-  application still owns 44 `/api` routes, none underscore-prefixed.
+Three of its four durable consequences held exactly as recorded, and HOR-68 settled the
+fourth. The sub-migration stayed out of Stage G's scope; only one Unhead line remained to
+reason about; and ADR-007 needed no amendment, because `isModuleOwnedApiPath` reads a
+framework convention rather than a `@nuxt/content` exception. The outstanding item —
+`components/StripePeyment.vue` importing `useHead` from a bare `"unhead"` specifier it did
+not declare, resolved only through pnpm hoisting — was Stage G's to settle, and is settled
+below.
 
 The removal passed the ordinary gate, including the manual read-only `hbold` regression
 captured before and after. The two captures differed in exactly two lines: every page became
 ~1.3 kB smaller, and `/api/_content/query` began answering 404 instead of 200.
 
-Unlike Stage F, it is **not** a contained band. It moves the framework the entire
+### Why the framework major was still a small diff
+
+Unlike Stage F, Stage G is **not** a contained band. It moves the framework the entire
 application runs on, so its blast radius is the whole repository rather than one dependency
-line, and its ADR impact must be assessed before implementation rather than assumed to be
-none.
+line. What kept the diff to three source lines was not luck; it was the decision described
+below, plus an audit that ran **before** the version was changed rather than after the build
+broke.
 
-Target versions are deliberately not recorded here and are re-validated when the stage
-starts (§2). The numbers the audit captured are a snapshot of its own date.
+That audit classified every use of a changed API against the repository instead of against
+release notes. The result: no `definePageMeta`, no `useState`, no `__NUXT__` or payload
+access, and no deep mutation of `useFetch` data anywhere — so the Nuxt 4 change making that
+data a shared shallow ref had nothing in this codebase to break. The single non-composable
+router import in the application keeps its signature across the router major. The one
+build-time constant the audit initially missed was found only because the sweep was re-run
+**without** an extension filter, which is the durable lesson: a breaking-change sweep scoped
+by file extension is not a sweep.
 
-Its gate is the ordinary one: the automated gates *and* the manual `hbold` regression.
+### The one decision it required — ADR-008
 
-Creating the Stage G issue **requires Sammy's authorisation**. No agent starts it
-automatically, and finishing Stage F is not authorisation to begin (§11).
+The new framework major relocates application code by default. Adopting that default would
+have moved nearly every directory in the repository in the same change that swapped the
+framework.
+
+**It was refused, through supported configuration rather than a compatibility shim**, and
+the rule was made general in
+[ADR-008](../adr/ADR-008-flat-repository-structure-during-framework-majors.md): *a framework
+major migration never doubles as a repository directory reorganisation.*
+
+The reason is verification, not preference. A framework major is proven safe by comparing
+behaviour before and after, and that comparison is only meaningful when the file paths on
+both sides match. Move every directory at the same moment and a diff of hundreds of renames
+hides the handful of lines that actually changed the framework — and any regression becomes
+unattributable. Adopting the new layout remains legitimate work; it is **separate** work,
+with no version change in it.
+
+### The accidental dependency was removed, not declared
+
+`components/StripePeyment.vue` imported `useHead` from a bare `"unhead"` specifier the
+project never declared, which resolved only because pnpm hoists. The Unhead major made that
+line a decision rather than an oversight.
+
+**It was deleted.** `useHead` is a framework auto-import, so the correct number of direct
+Unhead dependencies is zero. Declaring the package to make the existing import legitimate
+would have written an accident into `package.json` permanently. The lockfile was checked
+afterwards to confirm Unhead appears only as a transitive resolution and never in the direct
+dependency block.
+
+### What deliberately did not change
+
+- **Vue was not moved.** A framework major is enough for one issue.
+- **No database, schema, migration or Prisma change of any kind.**
+  [ADR-003](../adr/ADR-003-prisma-schema-preservation.md) and
+  [ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md) were untouched and the
+  compatibility layer was verified still to hold.
+- **The repository structure stayed flat** — the whole point of ADR-008.
+- **The test tooling was not bumped.** The audit expected it might need to be; the full suite
+  passed unchanged, so it was left alone. A gate that passes is not an invitation to upgrade
+  something else.
+- **`nuxt.config.ts` acquired configuration, not workarounds.** No compatibility flag, no
+  legacy mode, no pinned sub-dependency.
+- **Pre-existing debt met along the way was recorded, not repaired** — including a build-time
+  constant in a composable with unrelated latent problems around it. Fixing them inside a
+  framework migration would have made the diff impossible to review *as a migration*.
+- **The lockfile was never hand-edited**, and every entry in its diff was attributed.
+
+### What was verified
+
+The full dependency-modernisation gate in
+[testing-strategy §11](../testing/testing-strategy.md), plus the manual `hbold` regression
+read-only **before and after**, compared capture against capture rather than merely observed
+to work.
+
+The test suite passed with **no reduction in file or test count** against its own pre-change
+baseline, and the production build succeeded on the new framework, builder and server.
+
+The runtime comparison is the interesting one. Every data-layer assertion is **identical**
+across the major: the ADR-007 access boundary still refuses what it must, and the pedigree,
+maternal-line, progeny and search responses match node for node. The `storehorse.status`
+error did not return, so ADR-006 compatibility held.
+
+**One difference appeared, and it was chased to a cause rather than accepted.** Every
+server-rendered page came back dramatically smaller. That looks exactly like server rendering
+having silently broken — so it was investigated as though it had: the markup was counted,
+the headings, navigation and images were confirmed present, and the linked stylesheet was
+fetched and measured. The framework major changed **how CSS is delivered**, from inlined in
+the server-rendered HTML to an external stylesheet, and the missing bytes are accounted for
+almost exactly by the sheet now served separately. No content was lost.
+
+It is recorded here because it is benign but **not invisible**: an external stylesheet is a
+render-blocking request on first paint where inlined CSS was not. That is a delivery
+characteristic to be aware of, not a regression, and tuning it was out of this issue's scope.
+
+### Release Please
+
+The change landed as a `chore`, which is not user-facing, so **no release Pull Request and no
+tag** were produced. That is the expected outcome, not a failure. No tag or release was
+created manually.
 
 ---
 
-## 11. Rules
+## 11. Next stage — Stage H
+
+**Stage H is next and has not been started.** Its Linear issue does **not** exist.
+
+Scope, from the HOR-48 audit: the **Tailwind CSS major migration**. It was deliberately
+sequenced after the framework, because the Tailwind major depends on the build tooling that
+the framework major brings with it — that tooling is now in place.
+
+Stage G's CSS-delivery finding is directly relevant context: this project now links its
+stylesheet rather than inlining it, so a CSS major's before/after comparison must fetch and
+measure the stylesheet, not merely diff the served HTML.
+
+Target versions are deliberately not recorded here and are re-validated when the stage starts
+(§2). The numbers the audit captured are a snapshot of its own date.
+
+Its gate is the ordinary one: the automated gates *and* the manual `hbold` regression.
+
+Creating the Stage H issue **requires Sammy's authorisation**. No agent starts it
+automatically, and finishing Stage G is not authorisation to begin (§12).
+
+---
+
+## 12. Rules
 
 Binding for every stage:
 
@@ -754,7 +867,7 @@ Binding for every stage:
 
 ---
 
-## 12. Updating this document
+## 13. Updating this document
 
 Update it when a stage **completes** — move the row to Done, add the summary section, and
 point the "next stage" section forward.
