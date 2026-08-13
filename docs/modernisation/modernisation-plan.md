@@ -92,14 +92,14 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **F** | Contained single-major library upgrades, split one issue per library | HOR-59, HOR-60, HOR-61, HOR-62, HOR-63, HOR-64 | **Done** |
 | **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and was not part of this stage (§10) | HOR-67, HOR-68 | **Done** |
 | **H** | Tailwind CSS major migration — depends on the build tooling that arrived with Stage G | HOR-69 | **Done** |
-| **I** | Stripe integration modernisation, including replacing the unmaintained module | Not created | **Next** |
-| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | Deferred |
+| **I** | Stripe integration modernisation, including replacing the unmaintained module | HOR-72 | **Done** |
+| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | **Next** |
 
 **Order rationale:** external tooling → runtime → hygiene → dead-weight removal → contained
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A, B, C, D, E, F, G and H have Linear issues.** Stages I and J are planned but
+**Only Stages A, B, C, D, E, F, G, H and I have Linear issues.** Stage J is planned but
 **not created**. Creating a stage issue requires Sammy's authorisation.
 
 ---
@@ -231,7 +231,7 @@ declarative only; it raises the floor rather than lowering it; it is not an upgr
 because the installed tree is untouched; and it crosses no major, so it belongs to no
 other stage. **No range change crossed a major boundary.**
 
-`engines.node` turns the LTS rule in §13 from documentation into something the toolchain
+`engines.node` turns the LTS rule in §14 from documentation into something the toolchain
 enforces. Its floor is the runtime Stage B adopted and CI verifies; its ceiling keeps the
 project on the **adopted Active LTS line**, so a *Current* release cannot creep in through
 a contributor's machine. Moving that line stays a future stage's job, with its own issue
@@ -260,7 +260,7 @@ and its own gates. The exact range lives in `package.json` and is not repeated h
   `hbold` reference database, `prisma/schema.prisma`, the Python extractor and CI were all
   untouched.
 - **No ADR was created or modified.** Stage C introduced no architecture decision:
-  `engines.node` is the executable form of a rule §13 had already approved.
+  `engines.node` is the executable form of a rule §14 had already approved.
 
 ### What was verified
 
@@ -361,7 +361,7 @@ and no reference to the removed package anywhere in the server output.
 All three promotion Pull Requests carried a **real, green `Test / Build`** triggered by the
 `pull_request` event.
 
-Manual `hbold` regression required by §13 and by
+Manual `hbold` regression required by §14 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only against the
 local reference database through the running application:
 
@@ -442,7 +442,7 @@ crossing is **Stage J** — deferred and ADR-gated. The major adopted here keeps
 `prisma-client-js` generator and needs no driver adapter, so the premise stays intact.
 
 Exact versions are not recorded here; they live in `package.json`. The target was
-re-validated from primary sources at stage start as §13 requires, and the current → target
+re-validated from primary sources at stage start as §14 requires, and the current → target
 justification and the full breaking-change classification are HOR-58's evidence.
 
 ### The audit expectation this stage closed by evidence
@@ -521,7 +521,7 @@ git diff --check                      clean
 `prisma validate` passed on both sides of the upgrade, and `prisma generate` regenerated the
 client successfully.
 
-Manual `hbold` regression, required by §13 and by
+Manual `hbold` regression, required by §14 and by
 [testing-strategy §11](../testing/testing-strategy.md), executed read-only **before and
 after** the upgrade with every counter compared:
 
@@ -618,7 +618,7 @@ re-validated when that stage starts.
 The other two upgraded libraries sit on their current stable line, so they carry no tail.
 
 Exact versions are not recorded here; they live in `package.json`. Every target was
-re-validated from primary sources at the start of its own issue, as §13 requires.
+re-validated from primary sources at the start of its own issue, as §14 requires.
 
 ### What deliberately did not change
 
@@ -843,7 +843,7 @@ for the same reason. Both decisions are recorded in
 
 There was no module-versus-plugin choice to make. The module's stable line pins the previous
 Tailwind major and cannot resolve the new one, so staying on the module meant staying on
-Tailwind 3; and its only newer artefacts are pre-releases, which §13 forbids.
+Tailwind 3; and its only newer artefacts are pre-releases, which §14 forbids.
 
 What the audit had to establish was the **cost of leaving it**, and the cost was nil. The
 project used no module option, no config exposure, no editor support, no module hook and no
@@ -896,7 +896,7 @@ be removed, and it has been — see *Follow-up outside the stage* below.
 **Adopting the new font stack and the OKLCH palette is independent visual work.** It needs a
 side-by-side comparison and a conscious decision, it was out of Stage H's scope, and **its issue
 was deliberately not created here** — recording the finding is not authorisation to act on it
-(§13). That issue was opened separately, as HOR-70.
+(§14). That issue was opened separately, as HOR-70.
 
 ### What deliberately did not change
 
@@ -975,26 +975,151 @@ exception to it: the design moved because Sammy moved it, deliberately, in an is
 
 ---
 
-## 12. Next stage — Stage I
+## 12. Completed — Stage I (HOR-72)
 
-**Stage I is next and has not been started.** Its Linear issue does **not** exist.
+### What changed
 
-Scope, from the HOR-48 audit: **Stripe integration modernisation, including replacing the
-unmaintained module**.
+```txt
+nuxt-stripe-module   3.2.0 -> removed
+stripe              17.7.0 -> 22.5.0
+@stripe/stripe-js   4.10.0 -> 9.13.0
+```
 
-Unlike Stages G and H, this one touches **payment behaviour**, not presentation or tooling.
-Its blast radius is a live commercial path, so the ordinary gate is a floor rather than a
-ceiling, and the verification approach needs to be settled before any version is changed.
+Plus the payment defect the audit found, corrected in the same issue because it determines
+what Stripe is actually charged: **the amount now comes from the server.**
 
-Target versions are deliberately not recorded here and are re-validated when the stage starts
-(§2). The numbers the audit captured are a snapshot of its own date.
+### Why the version work was the smaller half
 
-Creating the Stage I issue **requires Sammy's authorisation**. No agent starts it
-automatically, and finishing Stage H is not authorisation to begin (§13).
+The module was unmaintained and had **no runtime consumer**. Its only trace in the
+application was a `types` entry in `server/tsconfig.json` — the publishable key the payment
+component reads comes from an explicit `runtimeConfig` entry in `nuxt.config.ts`, not from
+the module. Removing it also removed the **second major of `@stripe/stripe-js`** it dragged
+in: the tree carried 1.54.2 alongside the declared 4.10.0.
+
+`pnpm why` is the measure that settled this. The directories that remain under
+`node_modules/.pnpm` are content-addressable store entries, not resolutions, and reading
+them as dependencies would have reported a problem that does not exist.
+
+### The defect that made this stage more than a version bump — ADR-010
+
+`server/api/create-payment-intent.post.ts` read `amount` and `currency` from the request
+body and passed both to Stripe unchecked. The price itself lived in the browser:
+`components/StripePeyment.vue` carried its own price table, stripped the `€`, multiplied by
+100 and posted the result. Every number in that chain was editable by whoever was running
+the page.
+
+The route is **Public** in [ADR-007](../adr/ADR-007-api-authentication-trust-boundary.md),
+correctly — an anonymous visitor has to be able to start a purchase. ADR-007 had already
+recorded this handler as a finding and states that defects *inside* a handler are fixed by
+their own issue rather than by moving the access classification. HOR-72 is that issue, and
+ADR-007 needed no amendment.
+
+The correction is structural, not a stricter check:
+[ADR-010](../adr/ADR-010-server-side-payment-amount-authority.md) makes the server the only
+source of a price. The client sends `{ tier, frequency }`; `server/utils/premiumPlans.ts`
+prices it. An `amount` sent by a caller is **ignored rather than sanitised**, because a
+value that is never read cannot be smuggled past a check.
+
+Three further faults in the same handler were fixed with it, each load-bearing for money:
+
+- **`payment_method: 'pm_card_visa'`** — a Stripe *test* token, which would have rejected
+  every real card the moment the deployment used a live key.
+- **The always-200 envelope** — every outcome, including failure, answered HTTP 200 with the
+  real result hidden in a JSON string. It now returns 400, 422 and 500 for real.
+- **The whole error object was logged.** `StripeError.raw` carries the full API response,
+  which for a `PaymentIntent` includes its client secret. Only `type`, `code` and
+  `requestId` are logged now.
+
+The Stripe API version is **pinned**. The SDK types `apiVersion` as a string literal equal
+to the version it ships against, so the next major that moves it **fails the build at that
+line** instead of quietly changing how a charge is constructed. That property cost nothing
+to adopt and is the reason this stage did not need a version-compatibility investigation of
+its own.
+
+### What deliberately did not change
+
+- **The one-time `PaymentIntent` model.** No Customer, no Subscription, no Checkout
+  Session, no webhook, no persistence. The pricing UI speaks of Monthly and Annually
+  subscriptions while nothing recurring exists and nothing records entitlement — a real
+  contradiction, tracked as **HOR-73**, requiring a product decision, its own ADR and
+  almost certainly a schema change. Resolving it by inference inside a dependency stage is
+  exactly what these stages must not do.
+- **The price displayed** by `components/payment.vue` and `components/PaymentCard.vue`.
+  Those tables are display duplication that predates this stage. The third copy — the one
+  that *computed the charge* — is the one that was removed.
+- **No idempotency key.** Real idempotency needs a client-supplied key; a server-generated
+  one protects nothing. Recorded in ADR-010 as a known limitation rather than an oversight.
+- **No database or schema change.** ADR-003 was not approached.
+- Payments stay **card-only**. Enabling further payment methods is a product decision.
+
+### What was verified
+
+The full dependency-modernisation gate in
+[testing-strategy §11](../testing/testing-strategy.md), plus verification proportionate to a
+commercial path.
+
+- `pnpm install --frozen-lockfile`, `pnpm test`, `pnpm build`. Tests went **62 → 100**; the
+  38 new ones are the catalogue and the resolver, driven RED → GREEN.
+- **Manual `hbold` regression**, read-only, against the built server: ERNE ALERT found
+  (`horse_id` 1003); its pedigree opened with 13 distinct ancestors; **sire ABLE ALBERT and
+  dam SPRINTER render**; maternal line returned 30 names; and the `storehorse.status` error
+  did not return — the ADR-006 compatibility path ran clean.
+- **Key handling audited by structure, never by value.** `SECRET_PRESENT=true`,
+  `PUBLISHABLE_PRESENT=true`, both `TEST` mode. The built client bundle was scanned across
+  263 files: **0 occurrences** of a secret key.
+- **The trust boundary was proven end to end, not argued.** A request carrying
+  `{tier: 1, frequency: "monthly", amount: 1, currency: "usd", planName: "free"}` produced a
+  charge of **4900 EUR minor units, Pro Access**. Read back from Stripe's own records, the
+  intents show the server's amounts, `payment_method_types: ["card"]`, plan metadata, and
+  `livemode=false` throughout.
+- Refusals were exercised against the running route: 400 for a malformed tier, 422 for an
+  uncatalogued tier, an unknown frequency, and the capitalised `"Monthly"` the component
+  used to default to.
+
+**All Stripe interaction was TEST mode.** No live key was used, no real card, no live
+charge, no refund. Client secrets were never logged or printed.
+
+**What this evidence is not.** No card was typed into Stripe Elements in a browser, so the
+final `confirmCardPayment` leg is covered by the unchanged client code and by Stripe's own
+test-mode acceptance of the intents, not by an end-to-end browser run. Said plainly rather
+than left to be assumed.
+
+**One check could not be run.** `.env.example` is unreadable in this environment by
+permission policy. Stage I introduces **no new environment variable** — `NUXT_STRIPE_SECRET_KEY`
+and `NUXT_STRIPE_PUBLIC_KEY` both predate it and are unchanged — so no edit is required, but
+the file's contents were not inspected and are not claimed to have been.
+
+### Release Please
+
+Unlike Stages G and H, this stage carries a `fix:` commit, so a release Pull Request **is**
+expected. It passes `Test / Build` like any other change and is **not merged without Sammy's
+authorisation**.
 
 ---
 
-## 13. Rules
+## 13. Next stage — Stage J
+
+**Stage J is next and has not been started.** Its Linear issue does **not** exist.
+
+Scope, from the HOR-48 audit: the **deferred and ADR-heavy tail** — the next Prisma major,
+the MariaDB LTS migration, the PrimeVue major, the router major, the Stage F libraries that
+remain below their current line (§9), dead-weight cleanup, the advisory sweep, and the
+Python patch.
+
+This is the band every earlier stage pushed work into, and the reason it was pushed there is
+unchanged: these items cross data-layer and architecture boundaries rather than tooling
+ones. Several will need an ADR **before** implementation, and the stage is very unlikely to
+be a single issue.
+
+Target versions are deliberately not recorded here and are re-validated when the stage
+starts (§2).
+
+Creating the Stage J issue **requires Sammy's authorisation**. No agent starts it
+automatically, and finishing Stage I is not authorisation to begin (§14).
+
+---
+
+## 14. Rules
 
 Binding for every stage:
 
@@ -1019,7 +1144,7 @@ Binding for every stage:
 
 ---
 
-## 14. Updating this document
+## 15. Updating this document
 
 Update it when a stage **completes** — move the row to Done, add the summary section, and
 point the "next stage" section forward.

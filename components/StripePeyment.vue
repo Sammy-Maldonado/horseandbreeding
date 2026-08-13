@@ -12,84 +12,93 @@
         @click="handleSubmit"
         class="w-full py-2 bg-blue-600 text-white font-semibold rounded-sm hover:bg-blue-700 transition duration-200"
       >
-        Pay {{ pricing.tiers[type].price[subscriptionType] }}
+        Pay
       </button>
       <app-message :message="paymentResult" :isError="isError" />
     </div>
   </div>
 </template>
-  
+
 <script setup>
 import { ref, onMounted } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
-// Define props
+
+/**
+ * Collects the card and confirms the payment the server priced.
+ *
+ * Authoritative decision:
+ * `docs/adr/ADR-010-server-side-payment-amount-authority.md`.
+ *
+ * This component used to hold its own copy of the price table, work out what the
+ * customer owed, and post that number to `/api/create-payment-intent`. It no
+ * longer knows any price. It sends the plan the customer chose and the server
+ * decides what that costs, which is the only arrangement in which the amount
+ * cannot be edited in a browser.
+ *
+ * The button therefore reads a plain "Pay": `PaymentCard.vue` renders the price
+ * beside this form on the same page, and a component that no longer knows the
+ * amount must not display one.
+ */
+
 const paymentResult = ref("");
-let stripe, cardElement;
 const isError = ref(false);
+let stripe, cardElement;
+
 const props = defineProps({
+  /** The plan's position in the premium catalogue, as it arrives in the URL. */
   type: {
     type: Number,
     default: 0,
   },
+  /**
+   * "monthly" or "annually" — lower case, matching the values
+   * `components/payment.vue` puts in the link and the server prices against.
+   * This defaulted to "Monthly", which no catalogue key has ever matched; the
+   * server now refuses that spelling outright rather than mispricing it.
+   */
   subscriptionType: {
     type: String,
-    default: "Monthly",
+    default: "monthly",
   },
 });
 
-// Pricing structure
-const pricing = {
-  tiers: [
-    { price: { monthly: "€19", annually: "€199" } },
-    { price: { monthly: "€49", annually: "€499" } },
-    { price: { monthly: "€99", annually: "€999" } },
-  ],
-};
-
 const config = useRuntimeConfig();
 const appId = config.public.appId;
-// Load the public key from environment variables
 
-// Load Stripe script with `useHead`
-useHead({
-  script: [
-    {
-      src: "https://js.stripe.com/v3/",
-      defer: true,
-    },
-  ],
-});
-let stripePublicKey = String(config.public.stripe.publishableKey);
-const stripePromise = loadStripe(stripePublicKey);
-// Initialize Stripe Elements on mount
+// `loadStripe` injects https://js.stripe.com/v3/ itself. A `useHead` script tag
+// used to load it a second time, from the same origin, on every render of this
+// page.
+const stripePromise = loadStripe(String(config.public.stripe.publishableKey));
+
 onMounted(async () => {
   stripe = await stripePromise;
   const elements = stripe.elements();
   cardElement = elements.create("card");
   cardElement.mount("#card-element");
 });
-// Function to handle form submission
+
 const handleSubmit = async () => {
   paymentResult.value = "";
-  let amount = pricing.tiers[props.type].price[props.subscriptionType];
 
   try {
-    // Call your server to create a PaymentIntent
-    const { data: client } = await useFetch("/api/create-payment-intent", {
+    // The body names the plan and nothing else. There is deliberately no
+    // `amount` and no `currency`: the server ignores both, and sending them
+    // would only imply they were worth something.
+    //
+    // `$fetch`, not `useFetch`: this runs on a click rather than in setup, and
+    // it must throw on a refusal. The route answers with real status codes now —
+    // 400, 422, 500 — where it previously replied 200 to every outcome and hid
+    // the real result in a JSON string inside the body.
+    const { clientSecret } = await $fetch("/api/create-payment-intent", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+      body: {
+        tier: props.type,
+        frequency: props.subscriptionType,
       },
-      body: JSON.stringify({
-        amount: parseFloat(amount.replace("€", "")) * 100,
-        currency: "eur",
-      }),
-      transform: (data) => JSON.parse(data.body),
     });
 
-    // Confirm the card payment
     const { paymentIntent, error } = await stripe.confirmCardPayment(
-      client.value.clientSecret,
+      clientSecret,
       { payment_method: { card: cardElement } }
     );
 
@@ -102,12 +111,14 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     isError.value = true;
-    paymentResult.value = `Error: ${error.message}`;
+    // A refusal from our own route arrives as a fetch error carrying the status
+    // message we chose; anything else falls back to its own.
+    paymentResult.value = `Error: ${error.data?.statusMessage ?? error.message}`;
   }
 };
 </script>
-  
-  <style scoped>
+
+<style scoped>
 #card-element {
   border: 1px solid #ccc;
   padding: 10px;
@@ -126,4 +137,3 @@ button:hover {
   background-color: #5469d4;
 }
 </style>
-  
