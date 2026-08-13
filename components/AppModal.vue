@@ -3,7 +3,7 @@
   <teleport to="body">
     <div
       v-if="isVisible"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       @click="close"
     >
       <div
@@ -13,7 +13,7 @@
         <header class="flex justify-between items-center">
           <slot name="header"> </slot>
           <button
-            class="text-gray-500 hover:text-gray-700 focus:outline-none ml-auto px-2"
+            class="text-gray-500 hover:text-gray-700 focus:outline-hidden ml-auto px-2"
             @click="close"
           >
             X

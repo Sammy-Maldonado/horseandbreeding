@@ -34,7 +34,7 @@
           </div>
         </div>
       </div>
-      <div class="ml-4 flex-shrink-0 sm:order-first sm:m-0 sm:mr-6">
+      <div class="ml-4 shrink-0 sm:order-first sm:m-0 sm:mr-6">
         <img
           :src="product.imageSrc"
           :alt="product.imageAlt"

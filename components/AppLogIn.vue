@@ -41,7 +41,7 @@
             v-model="email"
             type="email"
             id="email"
-            class="mt-2 appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+            class="mt-2 appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
             required
           />
         </div>
@@ -55,7 +55,7 @@
             v-model="password"
             type="password"
             id="password"
-            class="mt-2 appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-sm sm:text-sm focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
+            class="mt-2 appearance-none text-slate-900 bg-white rounded-md block w-full px-3 h-8 shadow-xs sm:text-sm focus:outline-hidden placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 ring-1 ring-slate-200"
           />
         </div>
         <button

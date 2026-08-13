@@ -5,7 +5,7 @@
     >
       <!-- Invoice summary -->
       <div class="lg:col-start-1 lg:row-end-1">
-        <div class="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5 p-6">
+        <div class="rounded-lg bg-gray-50 shadow-xs ring-1 ring-gray-900/5 p-6">
           <dl class="flex flex-wrap">
             <div class="flex-auto">
               <dt class="text-sm font-semibold leading-6 text-gray-900">
@@ -106,7 +106,7 @@
 
       <!-- Invoice -->
       <div
-        class="px-4 py-8 shadow-sm ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 xl:px-16 xl:pb-20 xl:pt-16"
+        class="px-4 py-8 shadow-xs ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 xl:px-16 xl:pb-20 xl:pt-16"
       >
         <h2 class="text-base font-semibold leading-6 text-gray-900">
           Morningside Stud

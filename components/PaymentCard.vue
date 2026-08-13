@@ -41,7 +41,7 @@
               :aria-describedby="tier.id"
               :class="[
                 tier.featured
-                  ? 'bg-sky-950 shadow-sm hover:bg-sky-800 focus-visible:outline-sky-800'
+                  ? 'bg-sky-950 shadow-xs hover:bg-sky-800 focus-visible:outline-sky-800'
                   : 'bg-sky-800 hover:bg-sky-700 focus-visible:outline-sky-800',
                 'rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
               ]"

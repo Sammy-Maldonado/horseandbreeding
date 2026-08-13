@@ -1,5 +1,6 @@
 // nuxt.config.ts
 import Components from "unplugin-vue-components/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { PrimeVueResolver } from "@primevue/auto-import-resolver";
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
@@ -20,15 +21,12 @@ export default defineNuxtConfig({
     global: true
   },
   plugins: ["~/plugins/regenerator-runtime.client.ts"],
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {}
-    }
-  },
-  // Remove buildModules and include in modules
+
+  // Tailwind 4 is a Vite plugin, not a PostCSS plugin, so there is no `postcss`
+  // block here any more. Nuxt's own Vite builder already applies `autoprefixer`
+  // and `cssnano` by default, which is what the removed block was duplicating.
+  // See ADR-009.
   modules: [
-    "@nuxtjs/tailwindcss",
     "@vee-validate/nuxt", // Add any other modules here as needed
     "nuxt-file-storage"
     // "@primevue/nuxt-module"
@@ -65,7 +63,12 @@ export default defineNuxtConfig({
     plugins: [
       Components({
         resolvers: [PrimeVueResolver()]
-      })
+      }),
+      // Tailwind 4's official integration. It replaces `@nuxtjs/tailwindcss`,
+      // which cannot resolve Tailwind 4 and still depends on a Nuxt 3 kit.
+      // Appended to the existing plugins — this array is not Tailwind's.
+      // See ADR-009.
+      tailwindcss()
     ]
   }
 });

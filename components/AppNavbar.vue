@@ -57,7 +57,7 @@
           <div class="text-right">
             <button
               @click="goToLogin('/login')"
-              class="w-full rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              class="w-full rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
               Login
             </button>
@@ -67,7 +67,7 @@
             <button
               type="button"
               @click="goToLogin('/register')"
-              class="w-full rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              class="w-full rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
               Join now
             </button>
@@ -82,7 +82,7 @@
     >
       <div class="relative flex h-16 items-center justify-between">
         <div class="flex items-center lg:px-0">
-          <div class="flex-shrink-0 hidden p-2 lg:block">
+          <div class="shrink-0 hidden p-2 lg:block">
             <div class="flex space-x-4">
               <NuxtLink
                 v-for="(item, index) in nav"
@@ -130,7 +130,7 @@
           <button
             type="button"
             @click="goToPage(1)"
-            class="rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            class="rounded-md bg-sky-950 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
             Search
           </button>
@@ -139,7 +139,7 @@
           <!-- Mobile menu button -->
           <client-only>
             <DisclosureButton
-              class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-sky-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-sky-700 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-white"
             >
               <span class="absolute -inset-0.5" />
               <span class="sr-only">Open main menu</span>
