@@ -13,7 +13,7 @@ datasource db {
 model approvedby {
   id         Int     @id @default(autoincrement())
   approvedby String? @db.VarChar(45)
-  breed_code String  @default(dbgenerated("()")) @db.VarChar(10)
+  breed_code String  @default("") @db.VarChar(10)
 
   storehorse_has_approvedby storehorse_has_approvedby[]
 }
@@ -38,7 +38,7 @@ model breeder {
   notes            Bytes?       @db.Blob
   twitterid        String?      @db.VarChar(255)
   facebookurl      String?      @db.VarChar(255)
-  farmname         String?      @default(dbgenerated("(Farm Name)")) @db.VarChar(255)
+  farmname         String?      @default("Farm Name") @db.VarChar(255)
   userId           Int          @unique(map: "userId") @default(0)
   storehorses      storehorse[]
 }
@@ -46,14 +46,14 @@ model breeder {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model comments {
   id      Int    @id @default(autoincrement())
-  email   String @default(dbgenerated("()")) @db.VarChar(255)
-  title   String @default(dbgenerated("()")) @db.VarChar(255)
-  details String @default(dbgenerated("()")) @db.VarChar(255)
+  email   String @default("") @db.VarChar(255)
+  title   String @default("") @db.VarChar(255)
+  details String @default("") @db.VarChar(255)
 }
 
 model counties {
   id     Int    @id @default(autoincrement()) @db.TinyInt
-  county String @default(dbgenerated("()")) @db.VarChar(50)
+  county String @default("") @db.VarChar(50)
 }
 
 model countries {
@@ -84,13 +84,13 @@ model diciplinevalues {
 model events {
   id       Int    @id @default(autoincrement())
   type     Int    @default(0)
-  title    String @default(dbgenerated("()")) @db.VarChar(255)
+  title    String @default("") @db.VarChar(255)
   body     String @db.Text
-  link     String @default(dbgenerated("()")) @db.VarChar(255)
-  location String @default(dbgenerated("()")) @db.VarChar(255)
-  date     String @default(dbgenerated("()")) @db.VarChar(255)
-  time     String @default(dbgenerated("()")) @db.VarChar(255)
-  user     String @default(dbgenerated("()")) @db.VarChar(255)
+  link     String @default("") @db.VarChar(255)
+  location String @default("") @db.VarChar(255)
+  date     String @default("") @db.VarChar(255)
+  time     String @default("") @db.VarChar(255)
+  user     String @default("") @db.VarChar(255)
   active   Int    @default(1)
 }
 
@@ -98,10 +98,10 @@ model events {
 model forum_answer {
   question_id Int    @default(0)
   a_id        Int    @default(0)
-  a_name      String @default(dbgenerated("()")) @db.VarChar(65)
-  a_email     String @default(dbgenerated("()")) @db.VarChar(65)
+  a_name      String @default("") @db.VarChar(65)
+  a_email     String @default("") @db.VarChar(65)
   a_answer    String @db.LongText
-  a_datetime  String @default(dbgenerated("()")) @db.VarChar(25)
+  a_datetime  String @default("") @db.VarChar(25)
 
   @@index([a_id], map: "a_id")
   @@ignore
@@ -109,11 +109,11 @@ model forum_answer {
 
 model forum_question {
   id       Int    @id @default(autoincrement())
-  topic    String @default(dbgenerated("()")) @db.VarChar(255)
+  topic    String @default("") @db.VarChar(255)
   detail   String @db.LongText
-  name     String @default(dbgenerated("()")) @db.VarChar(65)
-  email    String @default(dbgenerated("()")) @db.VarChar(65)
-  datetime String @default(dbgenerated("()")) @db.VarChar(25)
+  name     String @default("") @db.VarChar(65)
+  email    String @default("") @db.VarChar(65)
+  datetime String @default("") @db.VarChar(25)
   view     Int    @default(0)
   reply    Int    @default(0)
 }
@@ -122,9 +122,9 @@ model forum_question {
 model gallery {
   user_id       Int         @default(0)
   horse_id      Int         @default(0)
-  photo_id      String      @default(dbgenerated("()")) @db.VarChar(100)
-  title         String      @default(dbgenerated("()")) @db.VarChar(100)
-  description   String      @default(dbgenerated("()")) @db.VarChar(255)
+  photo_id      String      @default("") @db.VarChar(100)
+  title         String      @default("") @db.VarChar(100)
+  description   String      @default("") @db.VarChar(255)
   type          Int         @default(0)
   cover         Boolean     @default(false)
   uploaded_date DateTime    @default(now()) // Set default to the current timestamp
@@ -138,7 +138,7 @@ model gallery {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model horse_class {
   id    Int    @id @default(autoincrement())
-  class String @default(dbgenerated("()")) @db.VarChar(255)
+  class String @default("") @db.VarChar(255)
 }
 
 model horse_details {
@@ -158,44 +158,44 @@ model horse_details {
 model marcustest {
   id          Int       @id @default(autoincrement())
   horsename   String?   @db.VarChar(255)
-  dob         DateTime? @default(dbgenerated("(0000-00-00 00:00:00)")) @db.DateTime(0)
+  dob         DateTime? @db.DateTime(0)
   sexe        Int?      @default(0)
   comment     Bytes?    @db.Blob
-  foalingdate DateTime? @default(dbgenerated("(0000-00-00 00:00:00)")) @db.DateTime(0)
+  foalingdate DateTime? @db.DateTime(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model photos {
   id       Int    @id @default(autoincrement())
   horse_id Int    @default(0)
-  photo    String @default(dbgenerated("()")) @db.VarChar(255)
+  photo    String @default("") @db.VarChar(255)
 }
 
 model sexe {
   idsexe     Int          @id @default(0)
-  type       String       @default(dbgenerated("()")) @db.VarChar(45)
+  type       String       @default("") @db.VarChar(45)
   storehorse storehorse[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model storehorse {
   horse_id              Int                              @id @default(autoincrement())
-  name                  String                           @default(dbgenerated("()")) @db.VarChar(100)
+  name                  String                           @default("") @db.VarChar(100)
   birthyear             Int                              @default(0)
-  regnr                 String                           @default(dbgenerated("(0)")) @db.VarChar(20)
-  predicates            String                           @default(dbgenerated("()")) @db.VarChar(100)
-  color                 String                           @default(dbgenerated("()")) @db.VarChar(20)
-  height                String                           @default(dbgenerated("(0)")) @db.VarChar(12)
+  regnr                 String                           @default("0") @db.VarChar(20)
+  predicates            String                           @default("") @db.VarChar(100)
+  color                 String                           @default("") @db.VarChar(20)
+  height                String                           @default("0") @db.VarChar(12)
   sell_price            Float?                           @db.Float
   sell_price_type       Int?
-  alias                 String                           @default(dbgenerated("()")) @db.VarChar(100)
-  breeding_way          String                           @default(dbgenerated("()")) @db.VarChar(25)
+  alias                 String                           @default("") @db.VarChar(100)
+  breeding_way          String                           @default("") @db.VarChar(25)
   sire_id               Int                              @default(0)
   dam_id                Int?                             @default(0)
   sexe                  Int                              @default(1)
   remarks_short         String?                          @db.VarChar(30)
   remarks               String?                          @db.Text
-  horse_type            String                           @default(dbgenerated("()")) @db.VarChar(45)
+  horse_type            String                           @default("") @db.VarChar(45)
   comments              String?                          @db.Text
   forsale               Int?                             @default(0)
   entered               Int                              @default(0)
@@ -238,10 +238,10 @@ model storehorse {
 
 model areas {
   id        Int    @id @default(autoincrement())
-  name      String @default(dbgenerated("()")) @db.VarChar(100)
-  full_name String @default(dbgenerated("()")) @db.VarChar(100)
-  county    String @default(dbgenerated("()")) @db.VarChar(100)
-  type      String @default(dbgenerated("()")) @db.VarChar(100)
+  name      String @default("") @db.VarChar(100)
+  full_name String @default("") @db.VarChar(100)
+  county    String @default("") @db.VarChar(100)
+  type      String @default("") @db.VarChar(100)
   latitude  Int    @default(0)
   longitude Int    @default(0)
   county_id Int    @default(0)
@@ -277,30 +277,30 @@ model storehorse_has_diciplinevalues {
 model storehorse_has_media {
   id         Int    @id @default(autoincrement())
   horse_id   Int    @default(0)
-  media_type String @default(dbgenerated("()")) @db.Char(1)
-  media      String @default(dbgenerated("()")) @db.VarChar(60)
+  media_type String @default("") @db.Char(1)
+  media      String @default("") @db.VarChar(60)
   deleted    Int    @default(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model storehorse_new {
   horse_id              Int     @id @default(autoincrement())
-  name                  String  @default(dbgenerated("()")) @db.VarChar(100)
+  name                  String  @default("") @db.VarChar(100)
   birthyear             Int     @default(0)
-  regnr                 String  @default(dbgenerated("(0)")) @db.VarChar(20)
-  predicates            String  @default(dbgenerated("()")) @db.VarChar(100)
-  color                 String  @default(dbgenerated("()")) @db.VarChar(20)
-  height                String  @default(dbgenerated("(0)")) @db.VarChar(4)
+  regnr                 String  @default("0") @db.VarChar(20)
+  predicates            String  @default("") @db.VarChar(100)
+  color                 String  @default("") @db.VarChar(20)
+  height                String  @default("0") @db.VarChar(4)
   sell_price            Float?  @db.Float
   sell_price_type       Int?
-  alias                 String  @default(dbgenerated("()")) @db.VarChar(100)
-  breeding_way          String  @default(dbgenerated("()")) @db.VarChar(25)
+  alias                 String  @default("") @db.VarChar(100)
+  breeding_way          String  @default("") @db.VarChar(25)
   sire_id               Int     @default(0)
   dam_id                Int     @default(0)
   sexe                  Int     @default(1)
-  remarks_short         String  @default(dbgenerated("()")) @db.VarChar(30)
+  remarks_short         String  @default("") @db.VarChar(30)
   remarks               String? @db.Text
-  horse_type            String  @default(dbgenerated("()")) @db.VarChar(45)
+  horse_type            String  @default("") @db.VarChar(45)
   comments              String? @db.Text
   forsale               Int?    @default(0)
   entered               Int     @default(0)
@@ -324,8 +324,8 @@ model storehorse_new {
 
 model studbook {
   id                      Int                       @id @default(autoincrement())
-  name                    String                    @default(dbgenerated("()")) @db.VarChar(45)
-  abbr                    String                    @default(dbgenerated("()")) @db.VarChar(6)
+  name                    String                    @default("") @db.VarChar(45)
+  abbr                    String                    @default("") @db.VarChar(6)
   studbook_has_storehorse studbook_has_storehorse[]
 }
 
@@ -359,30 +359,30 @@ model userlog {
   raiseddate  DateTime? @db.DateTime(0)
   description String?   @db.VarChar(255)
   comment     Bytes?    @db.Blob
-  userid      String?   @default(dbgenerated("(0)")) @db.VarChar(45)
+  userid      String?   @default("0") @db.VarChar(45)
   horseid     Int?      @default(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
   email                String                 @unique
-  first_name           String                 @default(dbgenerated("()")) @db.VarChar(50)
-  last_name            String                 @default(dbgenerated("()")) @db.VarChar(50)
-  town                 String                 @default(dbgenerated("()")) @db.VarChar(50)
+  first_name           String                 @default("") @db.VarChar(50)
+  last_name            String                 @default("") @db.VarChar(50)
+  town                 String                 @default("") @db.VarChar(50)
   countyId             Int                    @default(0) @db.TinyInt
-  password             String                 @default(dbgenerated("()")) @db.VarChar(100)
+  password             String                 @default("") @db.VarChar(100)
   id                   Int                    @id @default(autoincrement())
-  question             String                 @default(dbgenerated("()")) @db.VarChar(254)
-  answer               String?                @default(dbgenerated("()")) @db.VarChar(200)
+  question             String                 @default("") @db.VarChar(254)
+  answer               String?                @default("") @db.VarChar(200)
   user_type            Int                    @default(0)
   address              String                 @default("") @db.Text
-  telephone            String                 @default(dbgenerated("()")) @db.VarChar(20)
-  mobile               String                 @default(dbgenerated("()")) @db.VarChar(45)
-  website              String                 @default(dbgenerated("()")) @db.VarChar(45)
-  googlemap            String                 @default(dbgenerated("()")) @db.VarChar(255)
-  farmname             String                 @default(dbgenerated("()")) @db.VarChar(255)
+  telephone            String                 @default("") @db.VarChar(20)
+  mobile               String                 @default("") @db.VarChar(45)
+  website              String                 @default("") @db.VarChar(45)
+  googlemap            String                 @default("") @db.VarChar(255)
+  farmname             String                 @default("") @db.VarChar(255)
   welcome              String                 @default("") @db.Text
-  logo                 String                 @default(dbgenerated("()")) @db.VarChar(255)
+  logo                 String                 @default("") @db.VarChar(255)
   news                 String                 @default("") @db.Text
   status               Int?                   @default(0)
   is_breeder           Int?                   @default(0)
@@ -502,9 +502,9 @@ model horse_views {
 
 model sellers {
   id         Int          @id @default(autoincrement()) // Unique identifier for each seller (Primary Key)
-  full_name  String       @default(dbgenerated("()")) @db.VarChar(255)
-  mobile     String       @default(dbgenerated("()")) @db.VarChar(20)
-  email      String       @default(dbgenerated("()")) @db.VarChar(100)
+  full_name  String       @default("") @db.VarChar(255)
+  mobile     String       @default("") @db.VarChar(20)
+  email      String       @default("") @db.VarChar(100)
   location   String? // Seller's location (optional)
   user       users?       @relation(fields: [user_id], references: [id]) // Foreign key linking to the Users table
   user_id    Int? // Foreign key field to link with User
