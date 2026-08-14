@@ -271,6 +271,37 @@ Binding rules for tests:
   (for example `currency`, `age`, `ad_title`, `seller_id`) is **not** silently folded into
   the existing compatibility layer or its tests. It gets its own issue.
 
+### The Prisma schema is verified through the SQL it generates
+
+**`prisma validate` exiting `0` does not mean the schema generates valid SQL.** It checks
+that the *Prisma* syntax is well formed, and nothing more. HOR-80 proved the gap: 68
+`@default(dbgenerated("..."))` declarations carried corrupted literals, `dbgenerated`
+copied each argument verbatim into the generated DDL, and MariaDB rejected the result with
+`ERROR 1064` on the first `CREATE TABLE` — while `prisma validate` had exited `0` the whole
+time.
+
+Binding rules for any change to `prisma/schema.prisma`:
+
+- **Assert on the generated artifact, not on the schema text.** A source-text search for
+  `dbgenerated` would not have caught HOR-80, because the defect was never the function —
+  it was what the function emitted. Generate the migration SQL and assert on that.
+- **`prisma validate` alone is never sufficient evidence.** Neither is `prisma generate`.
+  Both can succeed against a schema that produces unusable SQL.
+- **Use `prisma migrate diff --from-empty --to-schema-datamodel`** to produce that SQL. It
+  needs **no database connection**, which is what makes it usable as an ordinary `node`
+  test rather than an integration test.
+- **Point `DATABASE_URL` at a deliberately unreachable address in such a test.** If a
+  regression ever makes the diff require a live connection, the test must fail rather than
+  silently start depending on a developer's local MariaDB.
+- **Prove the gate fails.** Restore the previous schema and confirm the test goes RED. A
+  gate that has never failed is not known to protect anything (section 13).
+- **Applying generated SQL for verification targets a disposable database only.** Never
+  `hbold`, and never as part of `pnpm test` — the automated gate asserts on the SQL, and
+  execution against a throwaway database is issue evidence recorded in Linear.
+
+The current implementation of this gate is
+[prisma/schema-defaults.test.ts](../../prisma/schema-defaults.test.ts).
+
 ---
 
 ## 9. Required local gates
@@ -405,6 +436,7 @@ private data.
 | Dependency update | complete automated gates **plus** relevant manual regression (section 11) |
 | Styling, theme or CSS-tooling update | everything a dependency update requires **plus** the presentation regression (section 11) |
 | Documentation-only change | `pnpm test` and `pnpm build` stay green; **no artificial RED test** |
+| `prisma/schema.prisma` change | `node` assertions on the **generated migration SQL**, not on the schema text (section 8); `prisma validate` alone is not evidence |
 | Future database migration | dedicated Linear issue, migration plan, rollback plan, and integration evidence |
 
 ---
