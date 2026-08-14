@@ -27,6 +27,12 @@ const declaredRouteFiles = () =>
   new Set(
     readdirSync(apiDirectory)
       .filter((file) => file.endsWith(".ts"))
+      // Nuxt excludes `*.test.ts` and `*.spec.ts` from server route scanning, so
+      // a test sitting beside the handler it protects is never served. Verified
+      // for HOR-74: the built `.output/` contains no route for the test file.
+      // Without this the policy would demand a classification for something
+      // Nitro has never registered.
+      .filter((file) => !/\.(test|spec)\.ts$/.test(file))
       .map((file) => file.replace(/(\.(get|post|put|patch|delete))?\.ts$/, ""))
   );
 
