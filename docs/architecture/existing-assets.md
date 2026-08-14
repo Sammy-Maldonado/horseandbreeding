@@ -99,6 +99,13 @@ not authorisation to delete anything. Schema removal is governed by
 Schema drift against the local reference database is documented in
 [hbold-baseline.md](../data/hbold-baseline.md).
 
+Eleven of the forty-one models exist in code but not in the reference database. They are
+**not** cleanup candidates: each has been classified with evidence as active, partially
+implemented, or planned-future in
+[hbold-baseline.md](../data/hbold-baseline.md) §3.5. Read that section before assuming a
+model without a runtime consumer is disposable — "not used today" does not mean "safe to
+delete".
+
 ---
 
 ## 7. Word extractor

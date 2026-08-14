@@ -80,7 +80,8 @@ user_roles
 vendor
 ```
 
-These back the application's authentication, sellers and analytics features.
+What each of the eleven actually is — measured rather than assumed — is classified in
+§3.5.
 
 ### 3.1 Interpretation — binding
 
@@ -163,6 +164,102 @@ pnpm exec prisma db pull --print
 or point `--schema` at a throwaway file containing only `generator` and `datasource`
 blocks.
 
+### 3.5 Model intent classification
+
+§3.1 rules that the eleven code-only models are not obsolete. This section records what
+each one **is**, so that a future migration author never has to guess. Measured under
+HOR-81.
+
+#### The decisive evidence
+
+`prisma/migrations/20241010194110_y/migration.sql` is **never applied in any known
+environment** and is **not executable** — it emits `DEFAULT ()`, which is not valid SQL,
+and it carries no `ENGINE=` clause anywhere, so it would silently create the whole
+database as InnoDB/utf8mb4. It is nevertheless dated, in-repo, authored **intent**, and
+that is what makes it evidence.
+
+It creates **40 tables and 27 foreign keys**. Its table order is the signature of models
+hand-added to the Prisma schema *after* the legacy database was introspected:
+
+```txt
+positions  1–17   legacy tables, approvedby … storehorse
+position   18     areas                       <- inserted
+positions 19–30   legacy tables, storehorse_has_approvedby … videos
+positions 31–40   vendor, clients, authorization_codes, access_tokens,
+                  refresh_tokens, scopes, user_roles, horse_views,
+                  sellers, user_role_scope    <- appended
+```
+
+The previous developer therefore **deliberately designed every one of the eleven**,
+wrote the SQL to create them, and never ran it. None of them is an accident, and none
+of them is abandoned residue.
+
+#### Classification
+
+| Model | Class | Evidence |
+|---|---|---|
+| `access_tokens` | **ACTIVE** | `login.post.ts:48`, `refresh-token.post.ts:50` — written and never read; see the closing note below |
+| `refresh_tokens` | **ACTIVE** | `login.post.ts:60`, `refresh-token.post.ts:14` (read and write) |
+| `scopes` | **ACTIVE** | `sign-up.post.ts:79`, `user.post.ts:79`, `user-info.post.ts:62,69` |
+| `user_roles` | **ACTIVE** | `sign-up.post.ts:69`, `user.post.ts:69`, `user-info.post.ts:77`, `middleware/auth.ts:18` |
+| `user_role_scope` | **ACTIVE** | `sign-up.post.ts:89`, `user.post.ts:89` |
+| `areas` | **ACTIVE** | `server/api/areas.post.ts:11`, consumed by `pages/sell.vue:415`; public in `apiAccessPolicy.ts:54`; FK target of `users_has_storehorse.area_id` |
+| `vendor` | **ACTIVE** | `server/api/vendor.post.ts:11`, consumed by `pages/vendor.vue:163`; public in `apiAccessPolicy.ts:48`; listed as an anonymous submission form in [ADR-007](../adr/ADR-007-api-authentication-trust-boundary.md) |
+| `clients` | **PARTIALLY IMPLEMENTED** | Designed as the OAuth client registry; FK target of all three token tables. No server consumer exists |
+| `authorization_codes` | **PARTIALLY IMPLEMENTED** | `pages/callback.vue` is a complete authorization-code callback, but the endpoint it calls does not exist |
+| `sellers` | **PLANNED-FUTURE** | Designed with a `users` FK and referenced by `storehorse.seller_id`; carries hand-written developer comments in `schema.prisma`; no consumer |
+| `horse_views` | **PLANNED-FUTURE** | Designed with a `storehorse` FK and a hand-written comment; no consumer |
+
+No model is classified OBSOLETE. No model is classified UNKNOWN.
+
+Two models flagged elsewhere as cleanup candidates, `marcustest` and `storehorse_new`,
+are **not** part of this set — both exist in `_legacy/hbold_backup.sql` and therefore in
+the baseline. They remain governed by
+[existing-assets.md](../architecture/existing-assets.md) §6.
+
+#### The drifted columns are part of the same plan
+
+§3.2 lists `storehorse.seller_id` and `users_has_storehorse.area_id` as declared in code
+and absent from `hbold`. They are absent for the same reason the models are: the
+historical migration introduces **both the columns and their foreign keys** —
+`storehorse.seller_id → sellers.id` and `users_has_storehorse.area_id → areas.id`. They
+are planned columns, not lost legacy columns, and a modernisation migration must treat
+the column and its target table as one unit.
+
+#### Runtime consequence — open finding
+
+`areas` and `vendor` are **live, public, unauthenticated endpoints querying tables that
+exist in no environment**. Measured directly against the local reference database with
+Prisma 6.19.3:
+
+| Call | Result |
+|---|---|
+| `prisma.areas.findMany(...)` | `P2021` — table does not exist |
+| `prisma.vendor.findMany(...)` | `P2021` — table does not exist |
+| `prisma.sellers.findMany(...)` | `P2021` — table does not exist |
+| `prisma.horse_views.findMany(...)` | `P2021` — table does not exist |
+| `prisma.clients.findMany(...)` | `P2021` — table does not exist |
+
+Both endpoints swallow the error in a generic `catch` and return **HTTP 200** carrying an
+error code inside the JSON body — `statusCode: 400` for `areas`, `status: 500` for
+`vendor`. The county dropdown in `pages/sell.vue` therefore fails silently rather than
+reporting a fault. This is the behaviour §7 of `CLAUDE.md` prohibits, and it predates
+this audit; it is recorded here, not fixed here.
+
+`sellers`, `horse_views`, `clients` and `authorization_codes` have no consumer, so their
+absence produces no runtime failure today.
+
+#### Binding consequence for the migration history
+
+Because all eleven are ACTIVE, PARTIALLY IMPLEMENTED, or PLANNED-FUTURE, the
+modernisation migration history **creates all eleven**. None is dropped, and none is
+created merely because it appears in an old schema — each is created because the evidence
+above says it was intended.
+
+`access_tokens` is the single exception in shape, not in existence: it is written and
+never read, so its **persistence design** is superseded by the modern authentication
+work. The model's fate is decided by that work, not by this audit.
+
 ---
 
 ## 4. Content gaps
@@ -198,10 +295,14 @@ Last verification pass: 2026-08-14, against the running local `hb-mysql` contain
 | Item | Status |
 |---|---|
 | Prisma model count (41) | **Verified** — counted `model` declarations in `prisma/schema.prisma` |
-| `hbold` table count (30) | **Verified** — live introspection |
+| `hbold` table count (30) | **Verified** — 2026-08-14, by restoring `_legacy/hbold_backup.sql` into a disposable database. The figure describes a **clean restore**. The running local `hbold` may hold more, because provisional `db/patches/` work adds tables to it; always measure the baseline from a clean restore, never from the running copy |
 | The eleven code-only model names | **Verified** — live introspection |
 | `storehorse` count of 59,903 | **Verified** — 2026-08-14, live read-only `COUNT(*)` |
 | Column-level drift table (§3.2) | **Verified** — live introspection compared against the committed schema |
+| Model intent classification (§3.5) | **Verified** — 2026-08-14, against `prisma/migrations/20241010194110_y/migration.sql`, the committed schema, and a repository-wide consumer sweep |
+| `P2021` runtime results (§3.5) | **Verified** — 2026-08-14, read-only Prisma probe against the live local database |
+| Business-domain evidence in `_legacy/` (§3.5) | **Searched, nothing found** — no PHP-era reference to `sellers`, `horse_views`, `authorization_codes` or OAuth. Classification rests on the migration and the current codebase, not on the legacy site |
+| Git provenance of the eleven models | **No discrimination available** — every `git log -S` search resolves to the initial baseline commit, so history cannot date them relative to one another |
 | `users.password` capacity drift (§3.3) | **Verified** — 2026-08-14, live introspection before and after the HOR-74 patch |
 | Completeness of the capacity-drift table (§3.3) | **Not established** — only the one column that caused a failure was compared |
 | `competition_history` and `remarks` figures | **Not revalidated** — carried forward from earlier analysis |
