@@ -107,6 +107,33 @@ docker exec -i hb-mysql \
 
 Restore only into an empty or newly created local database.
 
+### 5.1 Post-restore compatibility patches — required
+
+**A restore is not finished until the patches in [`db/patches/`](../../db/patches/) have
+been applied.** The dump reflects the legacy PHP application, and in places it is behind
+the shape the versioned Prisma schema declares. Restoring it alone reintroduces defects
+that were already fixed.
+
+Apply every patch, in filename order:
+
+```bash
+docker exec -i hb-mysql \
+  mariadb -uroot -p<local-password> hbold \
+  < db/patches/001-HOR-74-users-password-varchar100.sql
+```
+
+Each patch prints the resulting column shape, so you can read the outcome directly. Every
+patch is idempotent, so re-running the directory against an already-patched database is
+safe and is the quickest way to confirm the environment is current.
+
+Skipping this step reproduces HOR-74: `users.password` stays `varchar(50)`, a
+60-character bcrypt hash does not fit, and **every registration fails** with
+`The provided value for the column is too long for the column's type. Column: password`.
+
+What may and may not be reconciled this way is governed by
+[ADR-011](../adr/ADR-011-database-capacity-drift-reconciliation.md). The convention is
+documented in [db/patches/README.md](../../db/patches/README.md).
+
 ---
 
 ## 6. Sanity Checks
@@ -286,6 +313,21 @@ Grammar reference: [writeup-grammar.md](../domain/writeup-grammar.md).
 - Add a regression test.
 - Prefer an explicit minimal query projection when justified.
 - **Do not add columns or delete Prisma fields as an ad-hoc fix.**
+
+### A write fails with "the provided value ... is too long for the column's type"
+
+The column exists but is narrower in `hbold` than the versioned schema declares — capacity
+drift, not presence drift.
+
+- Confirm the declared width in `prisma/schema.prisma` and in `prisma/migrations/`.
+- Compare it against the live column with
+  `SHOW COLUMNS FROM <table> LIKE '<column>';`.
+- Check whether a patch in [`db/patches/`](../../db/patches/) already covers it and was
+  simply not applied after the last restore — see §5.1.
+- If none does, this needs a Linear issue and
+  [ADR-011](../adr/ADR-011-database-capacity-drift-reconciliation.md)'s five conditions
+  satisfied before a new patch is written.
+- **Do not** widen the column with an ad-hoc `ALTER`; the next restore undoes it.
 
 ### Prisma introspection differs from the committed schema
 

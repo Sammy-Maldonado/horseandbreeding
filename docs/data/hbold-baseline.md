@@ -124,7 +124,34 @@ The compatibility strategy is recorded in
 The remaining drifted columns affect marketplace endpoints only and are tracked
 separately.
 
-### 3.3 Introspection safety
+### 3.3 Capacity drift — columns present but too narrow
+
+Drift is not only about columns that are missing. A column can exist in `hbold` and still
+be the wrong shape, because the restore source `_legacy/hbold_backup.sql` carries the
+legacy PHP application's definitions.
+
+| Model.column | `hbold` as restored | Declared by the repository | Effect |
+|---|---|---|---|
+| `users.password` | `varchar(50)` | `varchar(100)` — in `prisma/schema.prisma` **and** `prisma/migrations/20241010194110_y/migration.sql` | A 60-character bcrypt digest does not fit; **every registration failed** (HOR-74) |
+
+This is a different class from §3.2 and takes the opposite response. Where a column is
+**absent**, the target shape is unknown and the answer is a runtime compatibility layer
+([ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md)). Where a column is
+**present but too narrow**, the repository already declares the correct shape, so the
+reference database is reconciled with an idempotent versioned patch under
+[`db/patches/`](../../db/patches/). The rule and its five conditions are
+[ADR-011](../adr/ADR-011-database-capacity-drift-reconciliation.md).
+
+`users.password` is reconciled by
+[`db/patches/001-HOR-74-users-password-varchar100.sql`](../../db/patches/001-HOR-74-users-password-varchar100.sql),
+which must be applied after every restore — see
+[local-development.md](../runbooks/local-development.md) §5.1. A freshly restored `hbold`
+that has not been patched still carries `varchar(50)`.
+
+No other capacity drift has been measured. The comparison has only been made where a
+failure pointed at it, so this table is **not** a complete inventory.
+
+### 3.4 Introspection safety
 
 Never run `prisma db pull` against the versioned schema — it rewrites the file in place
 and would drop the eleven code-only models. Use:
@@ -166,15 +193,17 @@ for historical write-ups. See [writeup-grammar.md](../domain/writeup-grammar.md)
 
 ## 6. Verification status of this document
 
-Last verification pass: 2026-07-21, against the running local `hb-mysql` container.
+Last verification pass: 2026-08-14, against the running local `hb-mysql` container.
 
 | Item | Status |
 |---|---|
 | Prisma model count (41) | **Verified** — counted `model` declarations in `prisma/schema.prisma` |
 | `hbold` table count (30) | **Verified** — live introspection |
 | The eleven code-only model names | **Verified** — live introspection |
-| `storehorse` count of 59,903 | **Verified** — live read-only `COUNT(*)` |
+| `storehorse` count of 59,903 | **Verified** — 2026-08-14, live read-only `COUNT(*)` |
 | Column-level drift table (§3.2) | **Verified** — live introspection compared against the committed schema |
+| `users.password` capacity drift (§3.3) | **Verified** — 2026-08-14, live introspection before and after the HOR-74 patch |
+| Completeness of the capacity-drift table (§3.3) | **Not established** — only the one column that caused a failure was compared |
 | `competition_history` and `remarks` figures | **Not revalidated** — carried forward from earlier analysis |
 
 Read-only verification is described in
