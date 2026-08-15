@@ -1,0 +1,66 @@
+-- HOR-82: Reconcile the drifted `storehorse`.`height` column capacity.
+--
+-- Capacity drift, not presence drift. The column exists in every database;
+-- it is simply narrower than the shape the repository already declares.
+-- Classification and response rule: ADR-011. Mechanism: ADR-012 §Decision 1,
+-- which makes Prisma Migrate the single versioned mechanism for schema
+-- evolution and names this widening as the deferral owned by HOR-82.
+--
+-- Measured drift (2026-08-15, read-only, before any change):
+--
+--   prisma/schema.prisma (storehorse.height)              @db.VarChar(12)
+--   prisma/migrations-archive/20241010194110_y:204        VARCHAR(12)   (never applied)
+--   prisma/migrations/0_init (faithful legacy baseline)   varchar(4)
+--   local reference `hbold`                               varchar(4)
+--   _legacy/hbold_backup.sql                              varchar(4)    (source of the drift)
+--
+-- `0_init` is deliberately NOT edited. `varchar(4)` is what the pre-Migrate
+-- database actually contained, and the baseline must stay faithful to it.
+-- The widening belongs here, on top of the baseline.
+--
+-- Why the target is 12 and not another width:
+--   * `prisma/schema.prisma` and the previous developer's archived migration
+--     both declare 12 for `storehorse` while declaring 4 for `storehorse_new`
+--     in the same file — a deliberate, differentiated choice, not an accident.
+--   * `pages/sell.vue` offers height as a fixed `<select>`. Every one of its
+--     13 option values is 10 or 11 characters ("Under 12.0", "12.0 - 12.2",
+--     … "Above 17.2"). 11 is the longest, so 12 is the declared width that
+--     fits the widget with one character of headroom.
+--
+-- Reachability — measured, not assumed:
+--   `pages/sell.vue` -> POST /api/addHorse (`server/api/addHorse.post.ts`)
+--   -> `prisma.storehorse.create({ data: { height } })`. Against `varchar(4)`
+--   MariaDB answers `ERROR 1406 (22001) Data too long for column 'height'`,
+--   which Prisma surfaces as P2000 — the identical failure mode HOR-74
+--   reported for `users.password`. Because every option is 10-11 characters,
+--   no height choice on that form can be stored at all.
+--
+-- Data safety — measured on the reference `hbold` before this migration:
+--   59,903 rows; 0 NULL; 32,707 empty string; 128 distinct values;
+--   length distribution 0:32,707  1:19,195  2:6  3:7,609  4:386;
+--   MAX(CHAR_LENGTH(height)) = 4, and 0 rows exceed 4 characters.
+--   Widening a `varchar` cannot truncate, and no stored value is near the
+--   old limit, so no business value can be rewritten by this change.
+--
+-- Scope: capacity only. `NOT NULL`, the `'0'` default, ordinal position 7,
+-- `latin1` / `latin1_swedish_ci` and the MyISAM engine are all preserved.
+-- `MODIFY` (not `CHANGE`) keeps the column name and position. The table's
+-- default charset is already `latin1`, so the column charset and collation
+-- are unchanged by the inherited default.
+--
+-- Deliberately EXCLUDED — these remain owned by their own issues/waves and
+-- are the documented ADR-012 §7.1 deferrals, unchanged by this migration:
+--   * `storehorse_new`.`height` — already consistent at `varchar(4)` in the
+--     schema and in every database. It must not be touched.
+--   * Composite primary keys on `storehorse_has_approvedby` and
+--     `studbook_has_storehorse` — blocked by duplicate pairs.
+--   * Every foreign key with a MyISAM table on either side.
+--   * Engine, charset and collation conversion — later modernisation waves.
+--
+-- Statement below is taken verbatim from
+-- `prisma migrate diff --from-migrations ./prisma/migrations
+--  --to-schema-datamodel ./prisma/schema.prisma --script`, whose residual
+-- output before this migration was exactly the 20 documented deferrals.
+
+-- AlterTable
+ALTER TABLE `storehorse` MODIFY `height` VARCHAR(12) NOT NULL DEFAULT '0';
