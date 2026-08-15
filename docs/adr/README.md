@@ -19,6 +19,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-009](ADR-009-tailwind-vite-plugin-and-v3-compatibility-layer.md) | Integrate Tailwind CSS through its official Vite plugin, and hold the Tailwind 3 appearance behind a temporary compatibility layer | Accepted — reviewed 2026-08-13; the layer is withdrawn and the appearance is Tailwind 4 native |
 | [ADR-010](ADR-010-server-side-payment-amount-authority.md) | The server owns the payment amount, and the Stripe API version is pinned | Accepted |
 | [ADR-011](ADR-011-database-capacity-drift-reconciliation.md) | Reconcile capacity drift in `hbold` with versioned SQL patches, distinct from the presence drift ADR-006 governs | Accepted |
+| [ADR-012](ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md) | Version schema evolution with a faithful Prisma Migrate baseline and modernise engines in staged InnoDB waves | Accepted |
 
 ## Writing a new ADR
 
