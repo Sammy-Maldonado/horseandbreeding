@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { defineEventHandler } from "h3";
 
+import { toPublicErrorResponse, ValidationError } from "../utils/publicError";
 import { registerUser } from "../utils/registration";
 
 const prisma = new PrismaClient();
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
     } = await readBody(event);
 
     if (password !== confirm_password || password?.length < 8) {
-      throw new Error(
+      throw new ValidationError(
         "Passwords do not match or must be at least 8 characters long. Please check and try again."
       );
     }
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
       where: { email: email }
     });
     if (findUser) {
-      throw new Error(
+      throw new ValidationError(
         "An account with this email already exists in the registry."
       );
     }
@@ -71,21 +72,9 @@ export default defineEventHandler(async (event) => {
       // user:JSON.stringify(user),
     };
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Login failed:", error);
-      return {
-        statusCode: 400,
-        message: "Internal server error..!",
-        statusMessage: error.message // Now safe to access message
-      };
-    } else {
-      // Handle case where error is not an instance of Error
-      console.error("Unknown error:", error);
-      return {
-        statusCode: 400,
-        message: "Internal server error..!",
-        statusMessage: "Unknown error" // Default error message
-      };
-    }
+    // Full detail stays server-side; the client only ever sees the intended
+    // validation messages or the fixed generic one.
+    console.error("Sign-up failed:", error);
+    return toPublicErrorResponse(error);
   }
 });
