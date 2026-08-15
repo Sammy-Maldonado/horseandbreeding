@@ -2,7 +2,13 @@
 
 **Status:** Active — reference baseline
 **Scope:** The restored local `hbold` reference database and its relationship to the versioned Prisma schema
-**Related:** [ADR-003](../adr/ADR-003-prisma-schema-preservation.md) · [ADR-002](../adr/ADR-002-mysql-mariadb-and-table-names.md) · [local-development.md](../runbooks/local-development.md)
+**Related:** [ADR-003](../adr/ADR-003-prisma-schema-preservation.md) · [ADR-002](../adr/ADR-002-mysql-mariadb-and-table-names.md) · [ADR-012](../adr/ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md) · [local-development.md](../runbooks/local-development.md)
+
+> **Reading note (HOR-79).** Sections 2–5 describe the **legacy baseline** — a clean
+> restore of `_legacy/hbold_backup.sql`. That description remains correct for the
+> baseline and for `prisma/migrations/0_init/`. The **running local `hbold`**, however,
+> now carries the versioned migration history on top of it — see §7 for the reconciled
+> state and the measured residual drift.
 
 ---
 
@@ -310,3 +316,51 @@ Last verification pass: 2026-08-14, against the running local `hb-mysql` contain
 Read-only verification is described in
 [local-development.md](../runbooks/local-development.md). It does not require, and must
 not trigger, another restore.
+
+---
+
+## 7. HOR-79 reconciliation — `hbold` carries the migration history
+
+Reconciled 2026-08-15 under HOR-79, governed by
+[ADR-012](../adr/ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md).
+The full pre-reconciliation copy (35 tables including patch/test pollution, 670 `users`
+rows) was backed up and restore-verified before the rebuild.
+
+Procedure: drop/recreate → clean restore of `_legacy/hbold_backup.sql` →
+`prisma migrate resolve --applied 0_init` → `prisma migrate deploy`. The result is
+structurally identical to a `migrate deploy` against an empty database (verified by
+byte-identical structure signatures).
+
+Measured state of the reconciled `hbold`:
+
+| Item | Value |
+|---|---|
+| Base tables | **42** — 30 legacy + 11 code-only models + `_prisma_migrations` |
+| `users` | InnoDB, 661 rows (ids 1–728), content fingerprint identical before/after |
+| `users.password` | `varchar(100)` — via versioned migration; the HOR-74 patch `db/patches/001` is **no longer required after a migrated rebuild** (it remains required for a bare legacy restore that is not migrated) |
+| `storehorse` | 59,903 rows; `height` still `varchar(4)` (owned by HOR-82) |
+| The eleven code-only models (§3.5) | **All created** — InnoDB, `utf8mb4`, with 10 enforced foreign keys |
+
+Consequences for earlier sections:
+
+- **§3 / §3.2 drift tables** describe the *baseline versus schema* relationship. On the
+  migrated `hbold` the listed models and columns now exist; on a clean unmigrated
+  restore the tables remain accurate.
+- **§3.5 runtime consequence**: `P2021` no longer reproduces on the migrated `hbold` —
+  the tables exist (empty). The swallowed-error behaviour of `areas`/`vendor` endpoints
+  is a code defect and remains open.
+
+### 7.1 Residual drift — deliberate, bounded, measured
+
+After the full migration chain, `prisma migrate diff` between the database and
+`prisma/schema.prisma` reports **exactly 20 statements**, all deferred with evidence
+(see ADR-012):
+
+| Deferral | Count | Blocker |
+|---|---|---|
+| Foreign keys touching MyISAM tables | 17 | MyISAM cannot enforce them; 2 would hard-fail (InnoDB child → MyISAM parent) |
+| Composite primary keys | 2 | `storehorse_has_approvedby` (52 duplicate pairs), `studbook_has_storehorse` (16,696 duplicate pairs) — deduplication is an unauthorised destructive decision |
+| `storehorse.height` widening to `varchar(12)` | 1 | Owned by HOR-82 |
+
+Anything outside this list appearing in the residual diff is a defect, not an accepted
+drift.

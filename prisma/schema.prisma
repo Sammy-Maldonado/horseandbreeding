@@ -453,8 +453,11 @@ model authorization_codes {
   client      clients  @relation(fields: [client_id], references: [client_id])
 }
 
+// Row identity is a surrogate key; the credential itself is never stored.
+// `token_hash` is SHA-256 of the credential — see ADR-012.
 model access_tokens {
-  token      String   @id
+  id         Int      @id @default(autoincrement())
+  token_hash Bytes    @unique @db.Binary(32)
   client_id  String
   user_id    Int
   scope      String
@@ -464,8 +467,13 @@ model access_tokens {
   client     clients  @relation(fields: [client_id], references: [client_id])
 }
 
+// Opaque cryptographically-random refresh credential, persisted only as its
+// SHA-256 digest. Rotation replaces the row; a digest miss is a replay and is
+// rejected. The historical table name `refresh_tokens` is kept deliberately —
+// see ADR-012.
 model refresh_tokens {
-  token      String   @id
+  id         Int      @id @default(autoincrement())
+  token_hash Bytes    @unique @db.Binary(32)
   client_id  String
   user_id    Int
   created_at DateTime @default(now())
@@ -484,11 +492,14 @@ model scopes {
 model user_roles {
   id              Int               @id @default(autoincrement())
   user_id         Int
-  role_name       String            @unique
+  role_name       String
   user            users             @relation(fields: [user_id], references: [id])
   user_role_scope user_role_scope[]
 
-  @@unique([role_name, user_id]) // Add a composite unique constraint
+  // A role name is shared across users; it is unique only per user. A global
+  // unique on `role_name` would let exactly one user ever hold the "User"
+  // role and block every subsequent registration.
+  @@unique([role_name, user_id])
 }
 
 model horse_views {
@@ -539,7 +550,7 @@ model competition_history {
   placed_in_competition String?   @db.VarChar(50)
   detail                String?   @db.VarChar(255)
   status                Boolean   @default(true)
-  created               DateTime  @default(now()) @db.Timestamp
+  created               DateTime  @default(now()) @db.Timestamp(0)
   storehorse            storehorse? @relation(fields: [storehorse_id], references: [horse_id])
   @@index([storehorse_id])
   @@map("competition_history")
