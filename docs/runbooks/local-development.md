@@ -107,7 +107,27 @@ docker exec -i hb-mysql \
 
 Restore only into an empty or newly created local database.
 
-### 5.1 Post-restore compatibility patches — required
+### 5.0 Since HOR-79 — restore is followed by the migration history
+
+Since HOR-79
+([ADR-012](../adr/ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md)),
+the local `hbold` carries the versioned Prisma Migrate history. A rebuild is no longer
+"restore + patches"; it is:
+
+```bash
+# 1. Clean restore of the legacy dump into a fresh database (as above), then:
+DATABASE_URL=<local-hbold-url> pnpm exec prisma migrate resolve --applied 0_init
+DATABASE_URL=<local-hbold-url> pnpm exec prisma migrate deploy
+```
+
+`0_init` is a faithful baseline of the legacy dump, so it is marked applied — never
+executed — on a restored database. On an **empty** database, skip the `resolve` and run
+`migrate deploy` alone; both paths produce the identical schema.
+
+A migrated `hbold` already has `users.password varchar(100)`, so §5.1 below applies
+only to a bare legacy restore that has not been migrated.
+
+### 5.1 Post-restore compatibility patches — required on unmigrated restores only
 
 **A restore is not finished until the patches in [`db/patches/`](../../db/patches/) have
 been applied.** The dump reflects the legacy PHP application, and in places it is behind
