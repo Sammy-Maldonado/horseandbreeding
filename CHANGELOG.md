@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.3.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.2.1...v1.3.0) (2026-08-15)
+
+
+### Features
+
+* **auth:** HOR-76 modern access JWTs and rotating digest-only refresh sessions ([c4a094d](https://github.com/Sammy-Maldonado/horseandbreeding/commit/c4a094d93c7514e7f92663a609b1717b8b422c0b))
+* **auth:** HOR-76 modern access JWTs and rotating digest-only refresh sessions ([8db61af](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8db61afcf4f8e8c938a2a83f2521fb5085a59521))
+* **prisma:** HOR-79 adopt a faithful Prisma Migrate baseline ([d847da2](https://github.com/Sammy-Maldonado/horseandbreeding/commit/d847da2e1e3c82711fc98876fa03952c9ded197a))
+* **prisma:** HOR-79 InnoDB authentication database foundation ([3208257](https://github.com/Sammy-Maldonado/horseandbreeding/commit/320825761ba372d72f0ccdeebc93bca93ec1be5d))
+* **prisma:** HOR-79 users InnoDB conversion and auth foundation ([1d8a180](https://github.com/Sammy-Maldonado/horseandbreeding/commit/1d8a180f01cd57a11b5b968c05b0897df19ef7a8))
+
+
+### Bug Fixes
+
+* **auth:** HOR-77 make user registration atomic ([da8f35c](https://github.com/Sammy-Maldonado/horseandbreeding/commit/da8f35c208eb6b1c460b7e0e4c089543dda457b7))
+* **auth:** HOR-77 make user registration atomic ([bab5554](https://github.com/Sammy-Maldonado/horseandbreeding/commit/bab555406834a7e5077ced48adf07ee0d55a9386))
+* **auth:** HOR-78 stop sign-up returning raw internal errors to the client ([8e2f084](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8e2f0847a046581e9ffc6eb483210456178b09e1))
+* **auth:** HOR-78 stop sign-up returning raw internal errors to the client ([8c0a8e3](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8c0a8e357c7799ab3bc42fe5d903b4ac40812d40))
+* **db:** HOR-74 promote the users.password column reconciliation to main ([a54d595](https://github.com/Sammy-Maldonado/horseandbreeding/commit/a54d595e8c224887a9800c804cda824bd0434806))
+* **db:** HOR-74 promote the users.password column reconciliation to QA ([abefac2](https://github.com/Sammy-Maldonado/horseandbreeding/commit/abefac246016a6864ac69a3a1887659602013640))
+* **db:** HOR-74 reconcile the drifted users.password column ([d13a235](https://github.com/Sammy-Maldonado/horseandbreeding/commit/d13a235fe66f176e81e75d5d49377492d5468899))
+* **db:** HOR-74 reconcile the drifted users.password column ([3a0dee5](https://github.com/Sammy-Maldonado/horseandbreeding/commit/3a0dee59b2ae050a254d91a6c579c7af1e1439ce))
+* **prisma:** HOR-80 normalise the invalid database-generated defaults ([f35e08d](https://github.com/Sammy-Maldonado/horseandbreeding/commit/f35e08dc46577079fea649028042f42fda8e6bf2))
+* **prisma:** HOR-80 normalise the invalid database-generated defaults ([e057055](https://github.com/Sammy-Maldonado/horseandbreeding/commit/e057055794385030eef80b15a2d0930ae2a04af6))
+* **prisma:** HOR-80 promote the database-generated default normalisation to QA ([bd9b490](https://github.com/Sammy-Maldonado/horseandbreeding/commit/bd9b490766f907f2f6176b674d50a42487fbdaf7))
+* **prisma:** HOR-80 release the database-generated default normalisation ([3996e23](https://github.com/Sammy-Maldonado/horseandbreeding/commit/3996e233de8aaf0b835ac542c9f8abfb2f576be5))
+
 ## [1.2.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.2.0...v1.2.1) (2026-08-13)
 
 
