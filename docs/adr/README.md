@@ -20,6 +20,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-010](ADR-010-server-side-payment-amount-authority.md) | The server owns the payment amount, and the Stripe API version is pinned | Accepted |
 | [ADR-011](ADR-011-database-capacity-drift-reconciliation.md) | Reconcile capacity drift in `hbold` with versioned SQL patches, distinct from the presence drift ADR-006 governs | Accepted |
 | [ADR-012](ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md) | Version schema evolution with a faithful Prisma Migrate baseline and modernise engines in staged InnoDB waves | Accepted |
+| [ADR-013](ADR-013-modern-authentication-architecture.md) | Stateless short-lived access JWTs and rotating digest-only refresh sessions; drop the write-only `access_tokens` store | Accepted |
 
 ## Writing a new ADR
 
