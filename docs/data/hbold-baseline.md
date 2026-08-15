@@ -139,24 +139,42 @@ legacy PHP application's definitions.
 
 | Model.column | `hbold` as restored | Declared by the repository | Effect |
 |---|---|---|---|
-| `users.password` | `varchar(50)` | `varchar(100)` — in `prisma/schema.prisma` **and** `prisma/migrations/20241010194110_y/migration.sql` | A 60-character bcrypt digest does not fit; **every registration failed** (HOR-74) |
+| `users.password` | `varchar(50)` | `varchar(100)` — in `prisma/schema.prisma` **and** `prisma/migrations-archive/20241010194110_y/migration.sql` | A 60-character bcrypt digest does not fit; **every registration failed** (HOR-74) |
+| `storehorse.height` | `varchar(4)` | `varchar(12)` — in `prisma/schema.prisma` **and** the same archived migration, which declares `varchar(4)` for `storehorse_new` in the same file | Every height option `pages/sell.vue` offers is 10–11 characters; **no height choice on that form could be stored** (HOR-82) |
 
 This is a different class from §3.2 and takes the opposite response. Where a column is
 **absent**, the target shape is unknown and the answer is a runtime compatibility layer
 ([ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md)). Where a column is
 **present but too narrow**, the repository already declares the correct shape, so the
-reference database is reconciled with an idempotent versioned patch under
-[`db/patches/`](../../db/patches/). The rule and its five conditions are
+reference database is reconciled with the declared width. The classification rule and its
+five conditions are
 [ADR-011](../adr/ADR-011-database-capacity-drift-reconciliation.md).
 
-`users.password` is reconciled by
-[`db/patches/001-HOR-74-users-password-varchar100.sql`](../../db/patches/001-HOR-74-users-password-varchar100.sql),
-which must be applied after every restore — see
-[local-development.md](../runbooks/local-development.md) §5.1. A freshly restored `hbold`
-that has not been patched still carries `varchar(50)`.
+**The mechanism changed with the migration baseline.** ADR-011 prescribed idempotent
+patches under [`db/patches/`](../../db/patches/) because at the time no migration chain
+existed. Since HOR-79,
+[ADR-012](../adr/ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md)
+§Decision 1 makes Prisma Migrate the single versioned mechanism for schema evolution.
+ADR-011's *classification* still governs the decision; ADR-012 owns *how* it is applied.
 
-No other capacity drift has been measured. The comparison has only been made where a
-failure pointed at it, so this table is **not** a complete inventory.
+- `users.password` predates the baseline. Its patch
+  [`db/patches/001-HOR-74-users-password-varchar100.sql`](../../db/patches/001-HOR-74-users-password-varchar100.sql)
+  is still required after a bare legacy restore that is not migrated — see
+  [local-development.md](../runbooks/local-development.md) §5.1 — and is redundant after a
+  migrated rebuild (§7).
+- `storehorse.height` was reconciled under HOR-82 by the formal migration
+  `prisma/migrations/20260815161716_storehorse_height_varchar12`, **not** by a new patch.
+  It is capacity-only: `MODIFY` preserves the column name, ordinal position 7, `NOT NULL`,
+  the `'0'` default, `latin1`/`latin1_swedish_ci` and the MyISAM engine. `storehorse_new`
+  stays at `varchar(4)`. Measured on 59,903 rows before the change: 0 rows longer than 4
+  characters, so widening provably could not rewrite a stored value — confirmed by
+  identical row-count, length-distribution and CRC32 fingerprints before and after.
+
+`0_init` still declares `varchar(4)`. That is what the pre-Migrate database actually
+contained, and the baseline records history rather than correcting it.
+
+The comparison has only been made where a failure pointed at it, so this table is **not**
+a complete inventory.
 
 ### 3.4 Introspection safety
 
@@ -346,7 +364,7 @@ Measured state of the reconciled `hbold`:
 | Base tables | **42** — 30 legacy + 11 code-only models + `_prisma_migrations` |
 | `users` | InnoDB, 661 rows (ids 1–728), content fingerprint identical before/after |
 | `users.password` | `varchar(100)` — via versioned migration; the HOR-74 patch `db/patches/001` is **no longer required after a migrated rebuild** (it remains required for a bare legacy restore that is not migrated) |
-| `storehorse` | 59,903 rows; `height` still `varchar(4)` (owned by HOR-82) |
+| `storehorse` | 59,903 rows; MyISAM, `latin1`; `height` reconciled to `varchar(12)` under HOR-82 (§3.3), content fingerprint identical before/after |
 | The eleven code-only models (§3.5) | **All created** — InnoDB, `utf8mb4`, with 10 enforced foreign keys |
 
 Consequences for earlier sections:
@@ -361,14 +379,17 @@ Consequences for earlier sections:
 ### 7.1 Residual drift — deliberate, bounded, measured
 
 After the full migration chain, `prisma migrate diff` between the database and
-`prisma/schema.prisma` reports **exactly 20 statements**, all deferred with evidence
+`prisma/schema.prisma` reports **exactly 19 statements**, all deferred with evidence
 (see ADR-012):
 
 | Deferral | Count | Blocker |
 |---|---|---|
 | Foreign keys touching MyISAM tables | 17 | MyISAM cannot enforce them; 2 would hard-fail (InnoDB child → MyISAM parent) |
 | Composite primary keys | 2 | `storehorse_has_approvedby` (52 duplicate pairs), `studbook_has_storehorse` (16,696 duplicate pairs) — deduplication is an unauthorised destructive decision |
-| `storehorse.height` widening to `varchar(12)` | 1 | Owned by HOR-82 |
+
+The count was **20** until HOR-82 landed the `storehorse.height` widening (§3.3), which
+removed the one remaining capacity statement. The two categories above are structural and
+are not resolved by widening a column.
 
 Anything outside this list appearing in the residual diff is a defect, not an accepted
 drift.
