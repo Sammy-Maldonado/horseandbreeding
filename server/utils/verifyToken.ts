@@ -1,7 +1,11 @@
 import jwt from "jsonwebtoken";
 
+import { requireJwtSecret } from "./jwtSecret";
+
 export const verifyToken = (accessToken: string) => {
-  const secret = process.env.VITE_JWT_SECRET || "your_jwt_secret";
+  // Hard failure when the secret is missing or the historical placeholder:
+  // verification against a guessable key would be worse than rejecting.
+  const secret = requireJwtSecret();
 
   // Check if the token is provided
   if (!accessToken) {

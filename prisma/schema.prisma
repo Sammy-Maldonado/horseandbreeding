@@ -390,7 +390,6 @@ model users {
   is_stud              Int?                   @default(0)
   zip_code             String?                @db.VarChar(50)
   roles                user_roles[]
-  tokens               access_tokens[]
   refresh_tokens       refresh_tokens[]
   authorization_codes  authorization_codes[]
   users_has_storehorse users_has_storehorse[]
@@ -439,8 +438,6 @@ model clients {
   created_at          DateTime              @default(now())
   updated_at          DateTime              @updatedAt
   authorization_codes authorization_codes[]
-  access_tokens       access_tokens[]
-  refresh_tokens      refresh_tokens[]
 }
 
 model authorization_codes {
@@ -453,33 +450,24 @@ model authorization_codes {
   client      clients  @relation(fields: [client_id], references: [client_id])
 }
 
-// Row identity is a surrogate key; the credential itself is never stored.
-// `token_hash` is SHA-256 of the credential — see ADR-012.
-model access_tokens {
-  id         Int      @id @default(autoincrement())
-  token_hash Bytes    @unique @db.Binary(32)
-  client_id  String
-  user_id    Int
-  scope      String
-  created_at DateTime @default(now())
-  expires_at DateTime
-  user       users    @relation(fields: [user_id], references: [id])
-  client     clients  @relation(fields: [client_id], references: [client_id])
-}
+// The historical `access_tokens` table is gone: access tokens are short-lived
+// JWTs verified statelessly and never persisted. The removal evidence and the
+// modern design live in docs/adr/ADR-013-modern-authentication-architecture.md.
 
-// Opaque cryptographically-random refresh credential, persisted only as its
-// SHA-256 digest. Rotation replaces the row; a digest miss is a replay and is
+// One row per active refresh session. The credential is opaque and
+// cryptographically random; only its SHA-256 digest is persisted. Rotation
+// replaces the row inside one transaction; a digest miss is a replay and is
 // rejected. The historical table name `refresh_tokens` is kept deliberately —
-// see ADR-012.
+// see ADR-013. The session belongs to the user alone: the legacy OAuth
+// `client_id` column was removed with the rest of the unused OAuth token
+// bookkeeping.
 model refresh_tokens {
   id         Int      @id @default(autoincrement())
   token_hash Bytes    @unique @db.Binary(32)
-  client_id  String
   user_id    Int
   created_at DateTime @default(now())
   expires_at DateTime
   user       users    @relation(fields: [user_id], references: [id])
-  client     clients  @relation(fields: [client_id], references: [client_id])
 }
 
 model scopes {

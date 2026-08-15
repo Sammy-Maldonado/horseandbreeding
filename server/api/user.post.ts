@@ -65,9 +65,10 @@ export default defineEventHandler(async (event) => {
       }
     });
 
-    // Step 2: Connect or create the scope
+    // Step 2: Connect or create the role. The role is unique per user, not
+    // globally — the selector is the compound @@unique([role_name, user_id]).
     const userRole = await prisma.user_roles.upsert({
-      where: { role_name: "User", user_id: user.id },
+      where: { role_name_user_id: { role_name: "User", user_id: user.id } },
       update: {}, // If the scope already exists, no updates needed
       create: {
         role_name: "User",
