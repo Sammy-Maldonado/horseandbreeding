@@ -266,6 +266,14 @@ above says it was intended.
 never read, so its **persistence design** is superseded by the modern authentication
 work. The model's fate is decided by that work, not by this audit.
 
+> **Resolved 2026-08-15 (HOR-76):** the modern authentication work decided the fate of
+> `access_tokens` — access tokens are now stateless JWTs that are never persisted, and
+> the table was dropped under the safe-deletion gate by migration
+> `20260815101514_modern_auth_sessions`. The same migration removed
+> `refresh_tokens.client_id`; refresh sessions are user-scoped and store only a SHA-256
+> digest. See [ADR-013](../adr/ADR-013-modern-authentication-architecture.md). The
+> classification above is preserved as the audit's historical finding.
+
 ---
 
 ## 4. Content gaps
