@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.0...v1.3.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **prisma:** widen storehorse.height to varchar(12) (HOR-82) ([bcd7b87](https://github.com/Sammy-Maldonado/horseandbreeding/commit/bcd7b87d86774a6381d7c3bfac6dcb7990287eef))
+* **prisma:** widen storehorse.height to varchar(12) (HOR-82) ([c6ca6cd](https://github.com/Sammy-Maldonado/horseandbreeding/commit/c6ca6cd854783da6d5926ace915e57bbffda8e32))
+
 ## [1.3.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.2.1...v1.3.0) (2026-08-15)
 
 
