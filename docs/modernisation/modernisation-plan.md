@@ -93,14 +93,15 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and was not part of this stage (§10) | HOR-67, HOR-68 | **Done** |
 | **H** | Tailwind CSS major migration — depends on the build tooling that arrived with Stage G | HOR-69 | **Done** |
 | **I** | Stripe integration modernisation, including replacing the unmaintained module | HOR-72 | **Done** |
-| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, router major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | Not created | **Next** |
+| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | HOR-83 | **In progress** |
 
 **Order rationale:** external tooling → runtime → hygiene → dead-weight removal → contained
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
 ADR-heavy. Each earlier stage de-risks the next.
 
-**Only Stages A, B, C, D, E, F, G, H and I have Linear issues.** Stage J is planned but
-**not created**. Creating a stage issue requires Sammy's authorisation.
+**Every stage now has a Linear issue.** Stage J was authorised by Sammy and created on
+2026-08-17 as the HOR-83 umbrella (§13). Creating a stage issue requires Sammy's
+authorisation.
 
 ---
 
@@ -1097,25 +1098,33 @@ authorisation**.
 
 ---
 
-## 13. Next stage — Stage J
+## 13. Current stage — Stage J (in progress)
 
-**Stage J is next and has not been started.** Its Linear issue does **not** exist.
+**Stage J started on 2026-08-17**, authorised by Sammy after the v1.3.1 release cycle
+closed. **HOR-83** (US-088) is the stage umbrella; it owns the refreshed audit matrix, the
+re-validated target versions and the staged execution order. One child issue exists per
+library or concern (US-089–US-098); Linear owns their detailed execution record.
 
-Scope, from the HOR-48 audit: the **deferred and ADR-heavy tail** — the next Prisma major,
-the MariaDB LTS migration, the PrimeVue major, the router major, the Stage F libraries that
-remain below their current line (§9), dead-weight cleanup, the advisory sweep, and the
-Python patch.
+Scope, from the HOR-48 audit confirmed by the 2026-08-17 re-validation: the **deferred and
+ADR-heavy tail** — the dead-weight removals (html2pdf/html2pdf.js, quill/vue3-quill, the
+legacy polyfill band), nodemailer, uuid, the PrimeVue major, the crypto-js replacement,
+the next Prisma major (**ADR required**), the MariaDB LTS migration (**ADR required**;
+Sammy chooses the target), and the final advisory and minor/patch sweep. The historical
+"router major" item was dropped: vue-router 5 is already the current line.
 
-This is the band every earlier stage pushed work into, and the reason it was pushed there is
-unchanged: these items cross data-layer and architecture boundaries rather than tooling
-ones. Several will need an ADR **before** implementation, and the stage is very unlikely to
-be a single issue.
+Progress:
 
-Target versions are deliberately not recorded here and are re-validated when the stage
+- **US-089 (HOR-84) — complete.** nodemailer 7.0.13 → 9.0.5 in `main`.
+- **US-090 (HOR-85) — complete.** Removed the unused `html2pdf` 0.0.11 and `html2pdf.js`
+  0.10.3 (zero consumers ever, per full-tree and Git-history audit). Their transitive
+  `jspdf` chain carried 2 critical, 7 high and 3 moderate advisories on 2026-08-18; all
+  disappeared with the removal. The live export path — native `window.print()` plus the
+  `html-docx-js-typescript`/`file-saver` DOCX export — never depended on them.
+- Later children are **not started**. Sammy authorises each child individually; finishing
+  one child is not authorisation to begin the next (§14).
+
+Remaining target versions live in the HOR-83 matrix and are re-validated when each child
 starts (§2).
-
-Creating the Stage J issue **requires Sammy's authorisation**. No agent starts it
-automatically, and finishing Stage I is not authorisation to begin (§14).
 
 ---
 
