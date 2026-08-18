@@ -1120,6 +1120,13 @@ Progress:
   `jspdf` chain carried 2 critical, 7 high and 3 moderate advisories on 2026-08-18; all
   disappeared with the removal. The live export path — native `window.print()` plus the
   `html-docx-js-typescript`/`file-saver` DOCX export — never depended on them.
+- **US-091 (HOR-86) — complete.** Removed the unused `quill` 2.0.3 and `vue3-quill` 0.3.1
+  (zero consumers ever — dead on arrival in the baseline commit, per full-tree,
+  generated-output and Git-history audit). Their advisories (one moderate, one low)
+  disappeared with the removal; the lockfile lost exactly the 31-entry quill closure and
+  nothing else. The rich-text **capability** was never Quill-backed: the write path is a
+  plain input/textarea, the read path renders stored HTML, and no persisted content holds
+  Quill Delta JSON or `ql-` classes, so no business capability was lost.
 - Later children are **not started**. Sammy authorises each child individually; finishing
   one child is not authorisation to begin the next (§14).
 
