@@ -221,7 +221,7 @@ model storehorse {
   lineage_dam           storehorse[]                     @relation("HorseToDam", map: "dam_id_relation") // Add this to represent the lineage
   sire                  storehorse?                      @relation("HorseToSire", fields: [sire_id], references: [horse_id], map: "sire_id_relation")
   lineage_sire          storehorse[]                     @relation("HorseToSire", map: "sire_id_relation") // Add this to represent the lineage
-  status                Int?
+  status                Int                              @default(1)
   currency              String?                          @db.VarChar(1)
   age                   String?                          @db.VarChar(10)
   ad_title              String?                          @db.VarChar(100)

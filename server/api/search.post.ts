@@ -1,8 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import {
-  activeHorseFilter,
-  storehorseSupportsStatus,
-} from "../utils/storehorse-compat";
+import { activeHorseFilter } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
@@ -53,15 +50,13 @@ const searchHorses = async (select: any, name: string, offSet: any) => {
     conditions.push({ name: { contains: name } }); // Removed `mode: 'insensitive'`
   }
 
-  const supportsStatus = await storehorseSupportsStatus(prisma);
-
   const result = await prisma.storehorse.findMany({
     select: select,
     where: {
       // If there are any conditions, add them to OR
       ...(conditions.length > 0 && { OR: conditions }),
-      // Ensure status is 1, where the database has the column
-      ...activeHorseFilter(supportsStatus)
+      // Ensure status is 1
+      ...activeHorseFilter()
     },
     orderBy: {
       name: "asc"
