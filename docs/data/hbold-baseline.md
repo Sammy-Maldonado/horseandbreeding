@@ -125,8 +125,15 @@ initial repository baseline commit, so it arrived with the adopted application.
 
 `storehorse.status` is the only drifted column that breaks a user-facing path: the
 application filters `status = 1` to mean "active horse" across the pedigree pipeline.
-The compatibility strategy is recorded in
-[ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md).
+The original runtime compatibility strategy is recorded in
+[ADR-006](../adr/ADR-006-storehorse-column-compatibility-layer.md); it applied to the
+**unmigrated baseline only**. On the migrated `hbold` the column exists, and its state
+went through two phases: HOR-79 added it as `INTEGER NULL` with no backfill — which
+left all 59,903 legacy rows `NULL` and emptied every `status = 1` query — and HOR-94
+backfilled it and hardened it to `NOT NULL DEFAULT 1` with defined semantics
+(`1` active, `-1` marketplace listing). See §7 and
+[ADR-014](../adr/ADR-014-storehorse-status-backfill-and-probe-retirement.md), which
+supersedes ADR-006.
 
 The remaining drifted columns affect marketplace endpoints only and are tracked
 separately.
@@ -365,6 +372,7 @@ Measured state of the reconciled `hbold`:
 | `users` | InnoDB, 661 rows (ids 1–728), content fingerprint identical before/after |
 | `users.password` | `varchar(100)` — via versioned migration; the HOR-74 patch `db/patches/001` is **no longer required after a migrated rebuild** (it remains required for a bare legacy restore that is not migrated) |
 | `storehorse` | 59,903 rows; MyISAM, `latin1`; `height` reconciled to `varchar(12)` under HOR-82 (§3.3), content fingerprint identical before/after |
+| `storehorse.status` | `INTEGER NOT NULL DEFAULT 1` — HOR-79 added it as `INTEGER NULL` with no backfill (all 59,903 legacy rows `NULL`, emptying every `status = 1` query); HOR-94's migration `20260819120000_storehorse_status_active_backfill` backfilled `NULL → 1` and removed nullability. Semantics: `1` active, `-1` marketplace listing ([ADR-014](../adr/ADR-014-storehorse-status-backfill-and-probe-retirement.md)) |
 | The eleven code-only models (§3.5) | **All created** — InnoDB, `utf8mb4`, with 10 enforced foreign keys |
 
 Consequences for earlier sections:
