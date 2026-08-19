@@ -1,6 +1,6 @@
 # ADR-006: Compatibility Layer for Drifted `storehorse` Columns
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-014](ADR-014-storehorse-status-backfill-and-probe-retirement.md) — 2026-08-19. The review trigger "an approved migration adds the column" fired: HOR-79 added `storehorse.status` to the migrated rebuild path, HOR-94 backfilled it and retired the runtime probe.
 **Date:** 2026-07-21
 **Deciders:** Sammy Maldonado
 

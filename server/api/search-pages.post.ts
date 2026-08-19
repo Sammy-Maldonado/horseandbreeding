@@ -1,9 +1,9 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { activeHorseFilter, storehorseSupportsStatus } from "../utils/storehorse-compat";
+import { activeHorseFilter } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
-const searchHorses = async (name:string, supportsStatus: boolean ) => {
+const searchHorses = async (name:string ) => {
     const conditions: Prisma.storehorseWhereInput[] = [];
   
     // Add name condition if provided
@@ -15,8 +15,8 @@ const searchHorses = async (name:string, supportsStatus: boolean ) => {
       where: {
         // If there are any conditions, add them to OR
         ...(conditions.length > 0 && { OR: conditions }),
-        // Ensure status is 1, where the database has the column
-        ...activeHorseFilter(supportsStatus),
+        // Ensure status is 1
+        ...activeHorseFilter(),
       },
     });
   
@@ -36,8 +36,7 @@ export default defineEventHandler(async (event) => {
       };
     } 
     let search=body.search;
-    const supportsStatus = await storehorseSupportsStatus(prisma);
-    const count = await searchHorses(search, supportsStatus);
+    const count = await searchHorses(search);
     return {
         statusCode: 200,
         data:JSON.stringify({

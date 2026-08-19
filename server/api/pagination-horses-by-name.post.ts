@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { activeHorseFilter, storehorseSupportsStatus } from "../utils/storehorse-compat";
+import { activeHorseFilter } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
@@ -16,15 +16,14 @@ export default defineEventHandler(async (event) => {
       };
     } 
     let search=body.search;
-    const supportsStatus = await storehorseSupportsStatus(prisma);
 
     const count  = await prisma.storehorse.count({
         where: {
             name: {
                 contains: search, // Partial match for name
             },
-            // Ensure status is 1, where the database has the column
-            ...activeHorseFilter(supportsStatus)
+            // Ensure status is 1
+            ...activeHorseFilter()
         }
     });
     return {
