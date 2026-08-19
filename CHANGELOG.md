@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.1...v1.3.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* backfill storehorse.status and retire the capability probe (HOR-94) ([750278c](https://github.com/Sammy-Maldonado/horseandbreeding/commit/750278c0daa288d0fd7360187eb4b7eedfac1a28))
+
 ## [1.3.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.0...v1.3.1) (2026-08-15)
 
 
