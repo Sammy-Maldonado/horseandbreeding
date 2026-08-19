@@ -1,97 +1,33 @@
 /**
- * Compatibility layer for `storehorse.status`.
+ * Single owner of the `storehorse.status` active-horse semantics.
  *
- * The application schema declares `storehorse.status`, but the legacy `hbold`
- * reference database has never contained that column: it belongs to a
- * marketplace feature set the previous developer built in code and never
- * shipped to this dataset. Queries that filter on it fail outright against
- * `hbold`.
+ * Model: `1` means the horse is active and visible to the pedigree pipeline
+ * (the default, and the state of every historical row); `-1` means a
+ * marketplace listing created by the public sell form; NULL is not a valid
+ * state — the `*_storehorse_status_active_backfill` migration backfilled the
+ * historical rows and hardened the column to `NOT NULL DEFAULT 1`.
  *
- * The column is NOT removed from the schema and NOT added to the database.
- * See ADR-006 and docs/data/hbold-baseline.md.
+ * The runtime capability probe that once suppressed the filter on databases
+ * without the column (ADR-006) is retired: every database in the supported
+ * rebuild path carries the column, so the branch it guarded no longer
+ * describes any real environment. See ADR-014.
  */
 
 /** Value the application uses to mean "this horse is active". */
 export const ACTIVE_HORSE_STATUS = 1;
 
 /**
- * Builds the `status` fragment of a `storehorse` projection.
- *
- * Spread it into a select object. When the column is unavailable this
- * contributes nothing, so the projection names only columns that exist.
- */
-export function horseStatusSelect(
-  supportsStatus: boolean
-): { status?: true } {
-  return supportsStatus ? { status: true } : {};
-}
-
-/** The narrowest client surface the detector needs. */
-export interface StatusProbeClient {
-  $queryRaw: (
-    query: TemplateStringsArray,
-    ...values: unknown[]
-  ) => Promise<unknown>;
-}
-
-/**
  * Builds the "active horse" fragment of a `storehorse` where clause.
- *
- * Spread it into a where object. When the column is unavailable this
- * contributes nothing, leaving sibling conditions untouched rather than
- * narrowing the result set.
+ * Spread it into a where object alongside sibling conditions.
  */
-export function activeHorseFilter(
-  supportsStatus: boolean
-): { status?: number } {
-  return supportsStatus ? { status: ACTIVE_HORSE_STATUS } : {};
+export function activeHorseFilter(): { status: number } {
+  return { status: ACTIVE_HORSE_STATUS };
 }
 
 /**
- * Asks the connected database whether `storehorse.status` exists.
- *
- * Errors propagate deliberately: a failed probe means the database could not
- * be reached, and guessing would silently leave every query unfiltered.
+ * Builds the `status` fragment of a `storehorse` projection.
+ * Spread it into a select object.
  */
-export async function detectStorehorseStatusColumn(
-  client: StatusProbeClient
-): Promise<boolean> {
-  const rows = (await client.$queryRaw`
-    SELECT COLUMN_NAME
-    FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'storehorse'
-      AND COLUMN_NAME = 'status'
-    LIMIT 1
-  `) as unknown[];
-
-  return Array.isArray(rows) && rows.length > 0;
-}
-
-/**
- * Cached probe result. Holds the in-flight promise so concurrent callers share
- * one query, and is cleared on failure so a transient outage can recover.
- */
-let statusSupport: Promise<boolean> | null = null;
-
-/**
- * Resolves — once per process — whether the connected database supports
- * `storehorse.status`.
- */
-export function storehorseSupportsStatus(
-  client: StatusProbeClient
-): Promise<boolean> {
-  if (!statusSupport) {
-    statusSupport = detectStorehorseStatusColumn(client).catch((error) => {
-      statusSupport = null;
-      throw error;
-    });
-  }
-
-  return statusSupport;
-}
-
-/** Clears the cached probe result. Intended for tests. */
-export function resetStorehorseStatusCache(): void {
-  statusSupport = null;
+export function horseStatusSelect(): { status: true } {
+  return { status: true };
 }

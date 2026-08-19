@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { activeHorseFilter, storehorseSupportsStatus } from "../utils/storehorse-compat";
+import { activeHorseFilter } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
@@ -17,7 +17,6 @@ export default defineEventHandler(async (event) => {
     } 
     let search=body.search;
     let page = body.page? body.page:0;
-    const supportsStatus = await storehorseSupportsStatus(prisma);
     const data  = await prisma.storehorse.findMany({
         select:{
             horse_id:true,
@@ -29,8 +28,8 @@ export default defineEventHandler(async (event) => {
                     name:true
                 },
                 where:{
-                    // Ensure status is 1, where the database has the column
-                    ...activeHorseFilter(supportsStatus)
+                    // Ensure status is 1
+                    ...activeHorseFilter()
                 }
             },
             sire:{
@@ -38,8 +37,8 @@ export default defineEventHandler(async (event) => {
                     name:true
                 },
                 where:{
-                    // Ensure status is 1, where the database has the column
-                    ...activeHorseFilter(supportsStatus)
+                    // Ensure status is 1
+                    ...activeHorseFilter()
                 }
             },
         },
@@ -47,8 +46,8 @@ export default defineEventHandler(async (event) => {
             name: {
                 contains: search, // Partial match for name
             }, 
-            // Ensure status is 1, where the database has the column
-            ...activeHorseFilter(supportsStatus)
+            // Ensure status is 1
+            ...activeHorseFilter()
         },
         orderBy:{
           name:"asc",
