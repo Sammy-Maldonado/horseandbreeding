@@ -1,16 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import {
   activeHorseFilter,
-  horseStatusSelect,
-  storehorseSupportsStatus
+  horseStatusSelect
 } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
 
 const buildSelect = (
   level: any,
-  topLevel: any,
-  supportsStatus: boolean
+  topLevel: any
 ): any => {
   if (level === 0) {
     if (topLevel === 0) {
@@ -109,7 +107,7 @@ const buildSelect = (
         }
       },
       where: {
-        ...activeHorseFilter(supportsStatus)
+        ...activeHorseFilter()
       }
     };
   }
@@ -183,13 +181,13 @@ const buildSelect = (
         },
         take: 1
       },
-      sire: buildSelect(level - 1, topLevel, supportsStatus),
-      dam: buildSelect(level - 1, topLevel, supportsStatus)
+      sire: buildSelect(level - 1, topLevel),
+      dam: buildSelect(level - 1, topLevel)
     };
   } else {
     return {
       select: {
-        ...horseStatusSelect(supportsStatus),
+        ...horseStatusSelect(),
         name: true,
         horse_id: true,
         remarks_short: true,
@@ -258,12 +256,12 @@ const buildSelect = (
           },
           take: 1
         },
-        sire: buildSelect(level - 1, topLevel, supportsStatus),
+        sire: buildSelect(level - 1, topLevel),
 
-        dam: buildSelect(level - 1, topLevel, supportsStatus)
+        dam: buildSelect(level - 1, topLevel)
       },
       where: {
-        ...activeHorseFilter(supportsStatus)
+        ...activeHorseFilter()
       }
     };
   }
@@ -283,14 +281,13 @@ export default defineEventHandler(async (event) => {
     }
     const level = Number(body.level);
     let id = Number(body.id);
-    const supportsStatus = await storehorseSupportsStatus(prisma);
-    let select = buildSelect(level, level, supportsStatus);
+    let select = buildSelect(level, level);
 
     const data = await prisma.storehorse.findMany({
       select: select,
       where: {
         horse_id: id,
-        ...activeHorseFilter(supportsStatus)
+        ...activeHorseFilter()
       }
     });
     return {
