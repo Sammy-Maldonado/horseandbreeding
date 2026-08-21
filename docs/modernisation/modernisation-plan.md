@@ -1127,6 +1127,23 @@ Progress:
   nothing else. The rich-text **capability** was never Quill-backed: the write path is a
   plain input/textarea, the read path renders stored HTML, and no persisted content holds
   Quill Delta JSON or `ql-` classes, so no business capability was lost.
+- **US-092 (HOR-87) — complete.** Removed the legacy runtime polyfill layer: `node-fetch`
+  3.3.2, `core-js` 3.49.0 and `regenerator-runtime` 0.14.1. Each was audited and proven
+  independently rather than as a band. Node 24 supplies `fetch`, `Headers`, `Request`,
+  `Response`, `FormData`, `Blob` and `AbortController` natively, and no application file
+  ever imported `node-fetch`; no Babel `preset-env` pipeline exists, so nothing consumed
+  `core-js` (`core-js-compat` was absent and `@babel/core` is present only for the Vue
+  JSX and TypeScript syntax plugins); and the emitted client bundles proved
+  `regenerator-runtime` obsolete — before removal exactly one chunk contained
+  `regeneratorRuntime`, consisting solely of the polyfill registering itself, with zero
+  chunks calling it and zero `_asyncToGenerator`/`asyncGeneratorStep` transforms, because
+  esbuild emits native `async`/`await` for the current targets. The only source change was
+  deleting the client plugin that loaded the polyfill and its `nuxt.config.ts`
+  registration; no wrapper, shim or replacement was introduced. The lockfile lost exactly
+  the eight-entry closure of the three packages. **`node-fetch` 2.7.0 remains in the tree
+  as a legitimate transitive of the Nuxt build toolchain** (`@mapbox/node-pre-gyp` ←
+  `@vercel/nft` ← `nitropack` ← `nuxt`), and Nitro's own `node-fetch-native` is unrelated
+  to the removed package — neither is ours to remove. No advisory was fixed or introduced.
 - Later children are **not started**. Sammy authorises each child individually; finishing
   one child is not authorisation to begin the next (§14).
 
