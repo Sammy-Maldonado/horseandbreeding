@@ -5,7 +5,6 @@
 
 ### Bug Fixes
 
-* **auth:** HOR-95 return 401 and 403 from role and scope authorization ([f04f4ca](https://github.com/Sammy-Maldonado/horseandbreeding/commit/f04f4ca01e172548fdda6a40c527fa81ccbf269e))
 * **auth:** HOR-95 return 401 and 403 from role and scope authorization ([2e6cc53](https://github.com/Sammy-Maldonado/horseandbreeding/commit/2e6cc5360fe8fe93d1865797db1f0a7aa3b13777))
 
 ## [1.3.2](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.1...v1.3.2) (2026-08-19)
