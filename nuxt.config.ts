@@ -20,7 +20,6 @@ export default defineNuxtConfig({
   imports: {
     global: true
   },
-  plugins: ["~/plugins/regenerator-runtime.client.ts"],
 
   // Tailwind 4 is a Vite plugin, not a PostCSS plugin, so there is no `postcss`
   // block here any more. Nuxt's own Vite builder already applies `autoprefixer`
