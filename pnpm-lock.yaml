@@ -72,8 +72,8 @@ importers:
         specifier: ^22.5.0
         version: 22.5.0(@types/node@26.1.1)
       uuid:
-        specifier: ^12.0.1
-        version: 12.0.1
+        specifier: ^14.0.2
+        version: 14.0.2
       vue:
         specifier: ^3.5.40
         version: 3.5.40
@@ -4153,8 +4153,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  uuid@12.0.1:
-    resolution: {integrity: sha512-9obBF8sMIHJWNQaO6IGOG8giGa/jUpKX34bz6o4whVs8M0WAvhID2tNxYp6A2XEBJPuZSX8wsS/6TEKfIDc+nw==}
+  uuid@14.0.2:
+    resolution: {integrity: sha512-xZe/16rV4aa+HGSOCiY2YeLT1OybRLrrkL/Rqaq7p7GMVXjFh+6wN4oMYgjFmnSnhY8t6Xpdl2l9qmnHYuMHwQ==}
     hasBin: true
 
   vee-validate@4.15.1:
@@ -8830,7 +8830,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  uuid@12.0.1: {}
+  uuid@14.0.2: {}
 
   vee-validate@4.15.1(vue@3.5.40):
     dependencies:
