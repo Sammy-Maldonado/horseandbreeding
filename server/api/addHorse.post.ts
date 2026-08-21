@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { defineEventHandler, readBody } from "h3";
-import type { UserData } from "../utils/types"; // Adjust this import as needed
-import { ensureHasRoleAndScope } from "../utils/authorization"; // Adjust the path based on your structure
+import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 const prisma = new PrismaClient();
 const validateFields = (data: any) => {
   const {
@@ -43,12 +42,14 @@ const validateFields = (data: any) => {
 };
 
 export default defineEventHandler(async (event) => {
-  const userInfo: UserData = event.context.user; // Get the user info from the context
-  // Check if the user has the required scope to update horses
-  ensureHasRoleAndScope(userInfo, ["Admin", "Seller"], "create_horses");
-  if (!userInfo) {
-    return { statusCode: 401, message: "Unauthorized" }; // User not authenticated
-  }
+  // Refuses the caller before any work is done: 401 when the request carries
+  // no verifiable token, 403 when the user lacks the role or the scope.
+  const userInfo = ensureHasRoleAndScope(
+    event.context.user,
+    ["Admin", "Seller"],
+    "create_horses"
+  );
+
   try {
     const {
       ad_title,
