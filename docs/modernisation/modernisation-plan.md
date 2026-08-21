@@ -1144,6 +1144,28 @@ Progress:
   as a legitimate transitive of the Nuxt build toolchain** (`@mapbox/node-pre-gyp` ←
   `@vercel/nft` ← `nitropack` ← `nuxt`), and Nitro's own `node-fetch-native` is unrelated
   to the removed package — neither is ours to remove. No advisory was fixed or introduced.
+- **US-093 (HOR-88) — complete.** `uuid` 12.0.1 → 14.0.2 (the matrix named 14.0.1;
+  14.0.2 was the highest stable release on the current major when the child started). The
+  package has exactly one consumer, `server/api/uploadImages.post.ts`, which calls `v4()`
+  with no arguments and concatenates the result with a file extension, so no application
+  source changed. The UUID produced by `server/utils/accessToken.ts` comes from
+  `randomUUID` in `node:crypto`, not from this package, which keeps the authentication
+  `jti` outside the upgrade's blast radius entirely. The reachable breaking change was
+  v13's export-map inversion: uuid 12 exposed a `browser` condition with the Node build
+  under `default`, while uuid 14 exposes a `node` condition with the browser build under
+  `default`, moving the resolved file from `dist/` to `dist-node/`. That resolution was
+  proven against the real build artefact rather than assumed — Nitro traced only
+  `dist-node/`, with `dist/` absent, the exact mirror of the HOR-61 evidence for uuid 12.
+  v14's global-`crypto` requirement is satisfied by Node 24, its `engines` floor is below
+  the pinned `^24.19.0`, its TypeScript floor is moot because TypeScript is absent from
+  the dependency tree, and its new `RangeError` on an invalid buffer offset is unreachable
+  from a call site that passes no buffer and uses none of `v3()`, `v5()` or `v6()`.
+  **Persisted identifiers were neither reformatted nor reinterpreted:** generated values
+  remain canonical lowercase 36-character UUIDv4 strings, and every consumer of the stored
+  `gallery.photo_id` concatenates it into an image URL — nothing parses, validates or
+  version-checks it — so no schema change, migration or data rewrite was involved. The
+  generated-identifier contract had no test protecting it, so one was added beside the
+  consumer. No advisory was fixed or introduced; the `uuid` path carries none.
 - Later children are **not started**. Sammy authorises each child individually; finishing
   one child is not authorisation to begin the next (§14).
 
