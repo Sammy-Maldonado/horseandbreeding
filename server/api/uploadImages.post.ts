@@ -4,7 +4,7 @@ import multiparty from "multiparty";
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
-import { ensureHasRoleAndScope } from "../utils/authorization"; // Adjust the path based on your structure
+import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -28,9 +28,13 @@ const configGallery = (photos: any, user_id: any, cover: any, horseId: any) => {
 };
 
 export default defineEventHandler(async (event) => {
-  // Check if the user has the required scope to update horses
-  const userInfo = event.context.user; // Get the user info from the context
-  ensureHasRoleAndScope(userInfo, ["Admin", "Seller"], "create_horses");
+  // Refuses the caller before any work is done: 401 when the request carries
+  // no verifiable token, 403 when the user lacks the role or the scope.
+  const userInfo = ensureHasRoleAndScope(
+    event.context.user,
+    ["Admin", "Seller"],
+    "create_horses"
+  );
 
   try {
     // Ensure the uploadImages directory exists

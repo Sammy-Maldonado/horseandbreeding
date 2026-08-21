@@ -2,18 +2,18 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { defineEventHandler } from "h3";
-import type { UserData } from "../utils/types"; // Adjust this import as needed
-import { ensureHasRoleAndScope } from "../utils/authorization"; // Adjust the path based on your structure
+import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
-  const userInfo: UserData = event.context.user; // Get the user info from the context
-  // Check if the user has the required scope to update horses
-  ensureHasRoleAndScope(userInfo, ["Admin", "Seller"], "create_horses");
+  // Refuses the caller before any work is done: 401 when the request carries
+  // no verifiable token, 403 when the user lacks the role or the scope.
+  const userInfo = ensureHasRoleAndScope(
+    event.context.user,
+    ["Admin", "Seller"],
+    "create_horses"
+  );
 
-  if (!userInfo) {
-    return { statusCode: 401, message: "Unauthorized" }; // User not authenticated
-  }
   // return userInfo;
   try {
     const user = await prisma.users.findUnique({
