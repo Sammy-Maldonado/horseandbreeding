@@ -1,387 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { createError, isError } from "h3";
 import {
+  buildSelect,
+  isValidPedigreeLevel,
+  MAX_PEDIGREE_LEVEL
+} from "../utils/pedigreeSelect";
+import {
   activeHorseFilter,
   horseStatusSelect
 } from "../utils/storehorse-compat";
 
 const prisma = new PrismaClient();
-
-const buildSelect = (
-  level: any,
-  topLevel: any
-): any => {
-  if (level === 0) {
-    if (topLevel == 0) {
-      return {
-        horse_id: true,
-        name: true,
-        birthyear: true,
-        color: true,
-        predicates: true,
-        remarks: true,
-        remarks_short: true,
-
-        has_disciplines: {
-          select: {
-            disciplines: {
-              select: {
-                value: true,
-                priority: true,
-                short: true
-              }
-            } // This will include the related disciplinesvalues
-          }
-        },
-        lineage_dam: true,
-        breederid: true,
-        breeders: true
-      };
-    }
-    return {
-      select: {
-        horse_id: true,
-        name: true,
-        birthyear: true,
-        color: true,
-        predicates: true,
-        remarks: true,
-        remarks_short: true,
-
-        has_disciplines: {
-          select: {
-            disciplines: {
-              select: {
-                value: true,
-                priority: true,
-                short: true
-              }
-            } // This will include the related disciplinesvalues
-          }
-        },
-        sire: {
-          select: {
-            name: true
-          }
-        },
-        breeders: {
-          select: {
-            id: true,
-            breedername: true,
-            addr1: true,
-            tel: true,
-            email: true,
-            website: true,
-            mapref: true,
-            logo: true,
-            farmname: true
-          }
-        },
-        lineage_dam: {
-          select: {
-            horse_id: true,
-            name: true,
-            birthyear: true,
-            color: true,
-            predicates: true,
-            remarks: true,
-            remarks_short: true,
-
-            has_disciplines: {
-              select: {
-                disciplines: {
-                  select: {
-                    value: true,
-                    priority: true,
-                    short: true
-                  }
-                } // This will include the related disciplinesvalues
-              }
-            },
-            dam_id: true,
-            sire: {
-              select: {
-                name: true
-              }
-            },
-            breeders: {
-              select: {
-                id: true,
-                breedername: true,
-                addr1: true,
-                tel: true,
-                email: true,
-                website: true,
-                mapref: true,
-                logo: true,
-                farmname: true
-              }
-            },
-            lineage_dam: {
-              select: {
-                horse_id: true,
-                name: true,
-                birthyear: true,
-                color: true,
-                predicates: true,
-                remarks: true,
-                remarks_short: true,
-
-                has_disciplines: {
-                  select: {
-                    disciplines: {
-                      select: {
-                        value: true,
-                        priority: true,
-                        short: true
-                      }
-                    } // This will include the related disciplinesvalues
-                  }
-                },
-                dam_id: true,
-                sire: {
-                  select: {
-                    name: true
-                  }
-                },
-                breeders: {
-                  select: {
-                    id: true,
-                    breedername: true,
-                    addr1: true,
-                    tel: true,
-                    email: true,
-                    website: true,
-                    mapref: true,
-                    logo: true,
-                    farmname: true
-                  }
-                },
-                lineage_dam: {
-                  select: {
-                    horse_id: true,
-                    name: true,
-                    birthyear: true,
-                    color: true,
-                    predicates: true,
-                    remarks: true,
-                    remarks_short: true,
-
-                    has_disciplines: {
-                      select: {
-                        disciplines: {
-                          select: {
-                            value: true,
-                            priority: true,
-                            short: true
-                          }
-                        } // This will include the related disciplinesvalues
-                      }
-                    },
-                    dam_id: true,
-                    sire: {
-                      select: {
-                        name: true
-                      }
-                    },
-                    breeders: {
-                      select: {
-                        id: true,
-                        breedername: true,
-                        addr1: true,
-                        tel: true,
-                        email: true,
-                        website: true,
-                        mapref: true,
-                        logo: true,
-                        farmname: true
-                      }
-                    },
-                    lineage_dam: {
-                      select: {
-                        horse_id: true,
-                        name: true,
-                        birthyear: true,
-                        color: true,
-                        predicates: true,
-                        remarks: true,
-                        remarks_short: true,
-
-                        has_disciplines: {
-                          select: {
-                            disciplines: {
-                              select: {
-                                value: true,
-                                priority: true,
-                                short: true
-                              }
-                            } // This will include the related disciplinesvalues
-                          }
-                        },
-                        dam_id: true,
-                        sire: {
-                          select: {
-                            name: true
-                          }
-                        },
-                        breeders: {
-                          select: {
-                            id: true,
-                            breedername: true,
-                            addr1: true,
-                            tel: true,
-                            email: true,
-                            website: true,
-                            mapref: true,
-                            logo: true,
-                            farmname: true
-                          }
-                        },
-                        lineage_dam: {
-                          select: {
-                            horse_id: true,
-                            name: true,
-                            birthyear: true,
-                            color: true,
-                            predicates: true,
-                            remarks: true,
-                            remarks_short: true,
-
-                            has_disciplines: {
-                              select: {
-                                disciplines: {
-                                  select: {
-                                    value: true,
-                                    priority: true,
-                                    short: true
-                                  }
-                                } // This will include the related disciplinesvalues
-                              }
-                            },
-                            dam_id: true,
-                            sire: {
-                              select: {
-                                name: true
-                              }
-                            },
-                            breeders: {
-                              select: {
-                                id: true,
-                                breedername: true,
-                                addr1: true,
-                                tel: true,
-                                email: true,
-                                website: true,
-                                mapref: true,
-                                logo: true,
-                                farmname: true
-                              }
-                            }
-                          },
-                          where: {
-                            ...activeHorseFilter()
-                          },
-                          orderBy: {
-                            birthyear: "asc"
-                          }
-                        }
-                      },
-                      where: {
-                        ...activeHorseFilter()
-                      },
-                      orderBy: {
-                        birthyear: "asc"
-                      }
-                    }
-                  },
-                  where: {
-                    ...activeHorseFilter()
-                  },
-                  orderBy: {
-                    birthyear: "asc"
-                  }
-                }
-              },
-              where: {
-                ...activeHorseFilter()
-              },
-              orderBy: {
-                birthyear: "asc"
-              }
-            }
-          },
-          where: {
-            ...activeHorseFilter()
-          },
-          orderBy: {
-            birthyear: "asc"
-          }
-        },
-        breederid: true
-      }
-    };
-  }
-  if (level === topLevel) {
-    return {
-      name: true,
-      birthyear: true,
-      color: true,
-      predicates: true,
-      remarks: true,
-      remarks_short: true,
-
-      has_disciplines: {
-        select: {
-          disciplines: {
-            select: {
-              value: true,
-              priority: true,
-              short: true
-            }
-          } // This will include the related disciplinesvalues
-        }
-      },
-      horse_id: true,
-      breederid: true,
-      sire: {
-        select: {
-          name: true
-        }
-      },
-      dam: buildSelect(level - 1, topLevel)
-    };
-  } else {
-    return {
-      select: {
-        horse_id: true,
-        name: true,
-        birthyear: true,
-        color: true,
-        predicates: true,
-        remarks: true,
-        remarks_short: true,
-
-        has_disciplines: {
-          select: {
-            disciplines: {
-              select: {
-                value: true,
-                priority: true,
-                short: true
-              }
-            } // This will include the related disciplinesvalues
-          }
-        },
-        sire: {
-          select: {
-            name: true
-          }
-        },
-        dam: buildSelect(level - 1, topLevel)
-      }
-    };
-  }
-};
 
 async function findFirstAncestor(
   id: any,
@@ -416,13 +45,16 @@ async function findFirstAncestor(
       ...activeHorseFilter()
     }
   });
-  // Check if the horse has a dam (parent)
+  // No active horse matches this id, so there is no maternal line to measure.
+  // This used to `return --level`, which produced -1 from the initial level of
+  // 0 and drove `buildSelect` past its base case (HOR-107). Absence is reported
+  // as absence; the caller decides what to do with it.
   if (!storeHorse) {
-    return --level;
+    return null;
   }
 
   // Validate the dam_id
-  if (storeHorse?.dam === null || level == 4) {
+  if (storeHorse?.dam === null || level >= MAX_PEDIGREE_LEVEL) {
     return level; // Found the top-level dam (first ancestor)
   }
 
@@ -462,7 +94,17 @@ export default defineEventHandler(async (event) => {
     const data = [];
     for (let i = 0; i < ids.length; i++) {
       const level = await findFirstAncestor(ids[i]);
-      let select = buildSelect(level, level);
+
+      // `findFirstAncestor` found no active horse for this id. Its lookup uses
+      // the same filter as the query below, so that query would return nothing
+      // anyway: report the empty result for this id explicitly instead of
+      // building a select for a depth that does not exist.
+      if (!isValidPedigreeLevel(level)) {
+        data.push([]);
+        continue;
+      }
+
+      const select = buildSelect(level, level);
       const apiResponse = await prisma.storehorse.findMany({
         select: select,
         where: {
