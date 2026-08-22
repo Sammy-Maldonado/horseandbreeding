@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.3...v1.3.4) (2026-08-22)
+
+
+### Bug Fixes
+
+* **api:** HOR-96 return truthful HTTP status codes for failed requests ([672e60d](https://github.com/Sammy-Maldonado/horseandbreeding/commit/672e60dabe440c64c3e75d86dc92579d5244470b))
+
 ## [1.3.3](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.2...v1.3.3) (2026-08-21)
 
 
