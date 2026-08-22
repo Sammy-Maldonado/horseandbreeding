@@ -277,6 +277,19 @@ error code inside the JSON body — `statusCode: 400` for `areas`, `status: 500`
 reporting a fault. This is the behaviour §7 of `CLAUDE.md` prohibits, and it predates
 this audit; it is recorded here, not fixed here.
 
+> **Partially resolved 2026-08-22 (HOR-96):** the *transport* half of this finding is
+> closed. Both handlers now `throw createError(...)`, so a failed call answers with a real
+> HTTP status instead of `200` — `areas` answers `400` when no county is supplied and `500`
+> when the table is missing, `vendor` answers `500`. **The rest of this finding stands.**
+> The tables are untouched: `areas` and `vendor` still query tables that exist in no
+> environment, so the calls still fail. And the county dropdown still fails *silently* —
+> `fetchAreas` in `pages/sell.vue` goes through `fetchDataMethodPost`, which uses native
+> `fetch` and so does not reject on a `4xx`/`5xx`; it reads `statusCode` off the parsed
+> body and simply leaves `areas` empty. What changed is that the failure is now visible to
+> every layer above the handler — a proxy, a probe or an error tracker can see it. Making
+> the dropdown *report* the fault is a separate frontend change. The classification above
+> is preserved as the audit's historical finding.
+
 `sellers`, `horse_views`, `clients` and `authorization_codes` have no consumer, so their
 absence produces no runtime failure today.
 
