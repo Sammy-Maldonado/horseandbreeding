@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, isError, readBody } from "h3";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 const prisma = new PrismaClient();
 
@@ -13,7 +13,14 @@ export default defineEventHandler(async (event) => {
   );
 
   try {
-    const { data } = await readBody(event);
+    const { data } = await readBody(event).catch(() => ({ data: null }));
+    if (!data?.horse) {
+      throw createError({
+        statusCode: 400,
+        message: "Error produssing",
+        statusMessage: "Horse details are required."
+      });
+    }
     const horseId = data?.horse_id ? data?.horse_id : -1;
     data.horse.remarks = data?.horse?.remarks
       ? data?.horse?.remarks?.replace(/(&nbsp;)+/g, "")
@@ -97,11 +104,16 @@ export default defineEventHandler(async (event) => {
     };
   } catch (error) {
     console.log("Error produssing", error);
-    return {
-      statusCode: 400,
+    // The request itself was well formed; the failure happened on our side, so
+    // it is a 500 and not a 400 (CLAUDE.md §7).
+    if (isError(error)) {
+      throw error;
+    }
+    throw createError({
+      statusCode: 500,
       message: "Error produssing",
       statusMessage:
         "An error occurred while adding or editing horses in your request."
-    };
+    });
   }
 });

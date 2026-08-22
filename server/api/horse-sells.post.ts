@@ -1,4 +1,5 @@
 import {  PrismaClient } from "@prisma/client";
+import { createError, isError } from "h3";
 
 const prisma = new PrismaClient();
 // @ts-ignore
@@ -61,11 +62,18 @@ export default defineEventHandler( async (event) =>{
             body: JSON.stringify(apiResponse)
         }
     } catch (error) {
-        console.error("Error fetching data:", error);
-        return {
-        status: 500,
-        body: JSON.stringify({ error: "Internal Server Error" }),
-        };
+      // A deliberate HTTP error keeps the status it was raised with;
+      // anything else failed on our side, so it is a 500 and the raw
+      // error stays in the log (CLAUDE.md §7).
+      if (isError(error)) {
+        throw error;
+      }
+      console.error("Error fetching data:", error);
+      throw createError({
+        statusCode: 500,
+        statusMessage: "Internal Server Error",
+        message: "Internal Server Error"
+      });
     } finally {
         await prisma.$disconnect();
     }

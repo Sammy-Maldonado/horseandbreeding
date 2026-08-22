@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { title } from "process";
+import { createError, isError } from "h3";
 
 const prisma = new PrismaClient();
 
@@ -92,10 +93,13 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
 
     if (!body.id) {
-      return {
-        status: 500,
-        body: JSON.stringify({ error: "Error the data define" }),
-      };
+      // A required field is missing or too short: the caller's mistake,
+      // not a server failure (HOR-96).
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        message: "Error the data define"
+      });
     } 
     let id = Number(body.id) ;
     let filter = buildSelect();
@@ -112,11 +116,18 @@ export default defineEventHandler(async (event) => {
       body: JSON.stringify(apiResponse),
     };
   } catch (error) {
+    // The guard above raises its own 400; anything that reaches here
+    // failed on our side, and the raw error never leaves the server
+    // (CLAUDE.md §7).
+    if (isError(error)) {
+      throw error;
+    }
     console.error("Error fetching data:", error);
-    return {
-      status: 500,
-      body: JSON.stringify({ error: error }),
-    };
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+      message: "Internal Server Error"
+    });
   } finally {
     await prisma.$disconnect();
   }

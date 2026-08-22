@@ -152,31 +152,29 @@ async function fetchHorse() {
       },
     };
     const response = await fetchWithToken("/api/report-horses-ids", options);
-    if (response.ok) {
-      const data = await response.json();
-      message.value = data.statusMessage;
-      if (data.statusCode == 200) {
-        _competitionHistory.value = JSON.parse(data.body);
-        setTimeout(() => {
-          isError.value = -1;
-        }, 5000);
-        isError.value = 0; // Set error state
-      } else {
-        isError.value = 1; // Set error state
-        if (data.statusCode == 401) {
-          openModal();
-        }
-      }
-    } else {
-      if (response.status === 500) {
-        message.value =
-          " It looks like you're not logged in. Log in to get started on creating your horse!";
-        isError.value = 1; // Set error st
+    // The endpoint now answers with a real HTTP status, so the reason lives in
+    // the status line and the body is read the same way either way (HOR-96).
+    const data = await response.json().catch(() => ({}));
 
-        setTimeout(() => {
-          openModal();
-        }, 3000);
-      }
+    if (response.ok && data.statusCode == 200) {
+      message.value = data.statusMessage;
+      _competitionHistory.value = JSON.parse(data.body);
+      setTimeout(() => {
+        isError.value = -1;
+      }, 5000);
+      isError.value = 0; // Set error state
+    } else if (response.status === 401 || response.status === 403) {
+      message.value =
+        " It looks like you're not logged in. Log in to get started on creating your horse!";
+      isError.value = 1; // Set error st
+
+      setTimeout(() => {
+        openModal();
+      }, 3000);
+    } else {
+      message.value =
+        data.statusMessage ?? " Something went wrong. Please try again.";
+      isError.value = 1; // Set error state
     }
   } catch (err) {
     console.log("Error horse competition history", err);
@@ -197,7 +195,10 @@ const fetchPedigree = async () => {
       },
       transform: (data) => JSON.parse(data.body),
     });
-    pedigrees.value = fetchData.value;
+    // A failed pedigree lookup now leaves the payload null instead of the
+    // error-shaped object the fake 200 carried, and the template indexes this
+    // list directly. An empty list keeps that lookup safe (HOR-96).
+    pedigrees.value = fetchData.value ?? [];
   } catch (error) {
     console.error("Error fetching pedigree:", error);
   }

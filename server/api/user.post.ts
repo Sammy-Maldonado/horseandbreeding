@@ -1,7 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { defineEventHandler } from "h3";
+import { createError, defineEventHandler } from "h3";
+
+import {
+  PublicError,
+  toPublicErrorResponse,
+  ValidationError
+} from "../utils/publicError";
+
 const prisma = new PrismaClient();
 // Function to hash a password
 const saltRounds = 10; // Determines the complexity of the hashing
@@ -32,7 +39,7 @@ export default defineEventHandler(async (event) => {
     } = await readBody(event);
 
     if (password !== confirm_password || password?.length < 8) {
-      throw new Error(
+      throw new ValidationError(
         "Passwords do not match or must be at least 8 characters long. Please check and try again."
       );
     }
@@ -40,8 +47,11 @@ export default defineEventHandler(async (event) => {
       where: { email: email }
     });
     if (findUser) {
-      throw new Error(
-        "An account with this email already exists in the registry."
+      // The request was well formed; it clashes with a registration that
+      // already exists, which is what 409 is for.
+      throw new PublicError(
+        "An account with this email already exists in the registry.",
+        409
       );
     }
     // Step 1: Hash the new password using bcrypt
@@ -105,20 +115,9 @@ export default defineEventHandler(async (event) => {
       // user:JSON.stringify(user),
     };
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Login failed:", error);
-      return {
-        statusCode: 400,
-        message: "Internal server error..!",
-        statusMessage: error.message // Now it's safe to access error.message
-      };
-    } else {
-      console.error("Unknown error:", error);
-      return {
-        statusCode: 400,
-        message: "Internal server error..!",
-        statusMessage: "Unknown error occurred"
-      };
-    }
+    // The raw message used to be echoed here, which handed the client whatever
+    // Prisma had to say about the schema (CLAUDE.md §7).
+    console.error("Creating the user failed:", error);
+    throw createError(toPublicErrorResponse(error));
   }
 });

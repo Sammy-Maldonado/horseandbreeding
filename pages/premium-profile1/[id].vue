@@ -30,7 +30,7 @@ const route = useRoute();
 const id = decryptNumber(route.params.id, import.meta.env.VITE_ENCRYPT_KEY);
 // Send data to breeder profile
 
-const { data: _storehorses } = await useFetch("/api/storehorses", {
+const { data: breederHorses } = await useFetch("/api/storehorses", {
   method: "POST",
   body: JSON.stringify({ breederId: id }),
   headers: {
@@ -38,5 +38,10 @@ const { data: _storehorses } = await useFetch("/api/storehorses", {
   },
   transform: (storehorses) => JSON.parse(storehorses.body),
 });
+
+// A real HTTP error leaves the payload null instead of the error-shaped object
+// the fake 200 used to carry. An empty list renders exactly the page the app
+// already shows for a breeder with no horses (HOR-96).
+const _storehorses = computed(() => breederHorses.value ?? []);
 </script>
   

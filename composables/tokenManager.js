@@ -83,7 +83,10 @@ export async function fetchWithToken(url, options = {}) {
     headers,
   });
 
-  if (response.statusCode === 401) {
+  // A `Response` carries `status`, not `statusCode`, so this never matched and
+  // the refresh-and-retry never ran. Now that the API answers 401 at transport
+  // level, reading the right property is what makes the retry work (HOR-96).
+  if (response.status === 401) {
     await refreshAccessToken(); // Refresh the token
 
     if (accessToken.value) {

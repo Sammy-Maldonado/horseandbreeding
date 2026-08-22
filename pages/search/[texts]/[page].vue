@@ -5,7 +5,7 @@
       <search-list
         :data="data"
         :searchTexts="searchText"
-        :total="pagination.total"
+        :total="pagination?.total"
       />
       <horse-search-pagination
         :total="pagination?.pages"

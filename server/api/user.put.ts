@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { defineEventHandler } from "h3";
+import { createError, defineEventHandler, isError } from "h3";
+
+import { toPublicErrorResponse } from "../utils/publicError";
 const prisma = new PrismaClient();
 // Function to hash a password
 const saltRounds = 10; // Determines the complexity of the hashing
@@ -17,27 +19,31 @@ async function hashPassword(password: any) {
 export default defineEventHandler(async (event) => {
   try {
     // @ts-ignore1
-    const { userData, userInfo } = await readBody(event);
+    const body = await readBody(event).catch(() => null);
+    const userData = body?.userData;
+    const userInfo = body?.userInfo;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const email =
-      typeof userInfo.email === "string" ? userInfo.email : undefined;
-    if (!email || !userInfo.password) {
-      return {
+      typeof userInfo?.email === "string" ? userInfo.email : undefined;
+    if (!email || !userInfo?.password) {
+      throw createError({
         statusCode: 400,
         statusMessage: "Email and password are required."
-      };
+      });
     }
     if (!email || !emailRegex.test(email)) {
-      return {
+      throw createError({
         statusCode: 400,
         statusMessage: `Invalid email <b>${userInfo.email}</b> format.`
-      };
+      });
     }
     if (userInfo.password?.length < 8) {
-      return {
+      // The password itself is never quoted back to the caller (CLAUDE.md §7).
+      throw createError({
         statusCode: 400,
-        statusMessage: `Password <b>"${userInfo.password}"</b> must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.`
-      };
+        statusMessage:
+          "Your password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+      });
     }
     const findUser = await prisma.users.findUnique({
       where: { email: userInfo.email }
@@ -56,10 +62,10 @@ export default defineEventHandler(async (event) => {
         message = `The user account for <b>${userInfo.email}</b> has been successfully updated. Welcome back!`;
       } else {
         message = `The user account for <b>${userInfo.email}</b> could not be updated due to an incorrect password. Please try again with the correct password.`;
-        return {
+        throw createError({
           statusCode: 401,
           statusMessage: message
-        };
+        });
       }
     }
 
@@ -82,20 +88,13 @@ export default defineEventHandler(async (event) => {
       user: user
     };
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Login failed:", error);
-      return {
-        statusCode: 400,
-        message: "Internal server error..!",
-        statusMessage: error.message // Now it's safe to access error.message
-      };
-    } else {
-      console.error("Unknown error:", error);
-      return {
-        statusCode: 400,
-        message: "Internal server error..!",
-        statusMessage: "Unknown error occurred"
-      };
+    if (isError(error)) {
+      // 400 and 401 above are deliberate answers and keep their status.
+      throw error;
     }
+    // The raw message used to be echoed here, which handed the client whatever
+    // Prisma had to say about the schema (CLAUDE.md §7).
+    console.error("Updating the user failed:", error);
+    throw createError(toPublicErrorResponse(error));
   }
 });

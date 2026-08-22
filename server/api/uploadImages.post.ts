@@ -1,9 +1,10 @@
 // server/api/uploadImages.js
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, readBody } from "h3";
 import multiparty from "multiparty";
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { PublicError, toPublicErrorResponse } from "../utils/publicError";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 import { PrismaClient } from "@prisma/client";
 
@@ -60,27 +61,22 @@ export default defineEventHandler(async (event) => {
 
     // Validate horse_id
     if (horse_id < 0) {
-      return {
-        statusMessage: "Horse ID is required and cannot be empty.",
-        statusCode: 400,
-        horse_id: horse_id
-      };
+      throw new PublicError("Horse ID is required and cannot be empty.", 400);
     } else {
       const horse = await prisma.storehorse.findUnique({
         where: { horse_id: horse_id }
       });
       if (!horse?.horse_id) {
-        return {
-          statusMessage: "Horse ID is required, not valid.",
-          statusCode: 401,
-          horse_id: horse_id
-        };
+        // The caller is authenticated and allowed here — the horse simply is
+        // not in the catalogue. Reusing 401 for that would contradict the
+        // authentication contract HOR-95 established.
+        throw new PublicError("Horse ID is required, not valid.", 404);
       }
     }
 
     // Check if files.files is an array
     if (!files || !files.files || !Array.isArray(files.files)) {
-      throw new Error("Files is not an array");
+      throw new PublicError("Please choose at least one photo to upload.", 400);
     }
 
     const allowedExtensions = [".png", ".jpg", ".jpeg", ".gif"];
@@ -99,7 +95,10 @@ export default defineEventHandler(async (event) => {
         !allowedMimeTypes.includes(mimeType)
       ) {
         fs.unlinkSync(tempPath); // Delete the temp file if invalid
-        throw new Error(`Invalid file type: ${file.originalFilename}`);
+        throw new PublicError(
+          `Invalid file type: ${file.originalFilename}`,
+          400
+        );
       }
 
       // Generate a unique filename using uuid
@@ -128,10 +127,6 @@ export default defineEventHandler(async (event) => {
     };
   } catch (error) {
     console.error("Error processing files:", error);
-    return {
-      statusCode: 400,
-      statusMessage: "Bad Request",
-      message: "Error processing files"
-    };
+    throw createError(toPublicErrorResponse(error));
   }
 });

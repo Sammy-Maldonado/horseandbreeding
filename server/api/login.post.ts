@@ -1,16 +1,31 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, readBody } from "h3";
 
 import { ACCESS_TOKEN_TTL_SECONDS, issueAccessToken } from "../utils/accessToken";
+import { PublicError, toPublicErrorResponse } from "../utils/publicError";
 import { createRefreshSession } from "../utils/refreshSession";
 
 const prisma = new PrismaClient();
 
+// One message for both "no such email" and "wrong password", so a caller
+// cannot use the response to discover which addresses are registered.
+const INVALID_CREDENTIALS = "Invalid email or password.";
+
 export default defineEventHandler(async (event) => {
-  const { email, password } = await readBody(event);
+  const body = await readBody(event).catch(() => null);
+  const email = body?.email;
+  const password = body?.password;
 
   try {
+    // Prisma reads `where: { email: undefined }` as "no filter", so a missing
+    // field matched the first user in the table and only failed later inside
+    // bcrypt — reported as a 500. A missing credential is the caller's mistake,
+    // and it is answered before any lookup runs (HOR-96).
+    if (typeof email !== "string" || typeof password !== "string") {
+      throw new PublicError("Email and password are required.", 400);
+    }
+
     // 1. Find the user by email.
     const user = await prisma.users.findFirst({
       select: {
@@ -22,13 +37,13 @@ export default defineEventHandler(async (event) => {
       where: { email: email }
     });
     if (!user) {
-      throw new Error("Invalid email or password");
+      throw new PublicError(INVALID_CREDENTIALS, 401);
     }
 
     // 2. Validate the password.
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      throw new PublicError(INVALID_CREDENTIALS, 401);
     }
 
     // 3. Access token: short-lived stateless JWT with a unique jti. It is
@@ -47,11 +62,9 @@ export default defineEventHandler(async (event) => {
       expires_in: ACCESS_TOKEN_TTL_SECONDS
     };
   } catch (error) {
+    // A rejected credential is a 401 the caller can act on; anything else is
+    // our failure and stays a 500 with no internal detail (HOR-96).
     console.error("Login failed:", error);
-    return {
-      statusCode: 400,
-      message: "Internal server error..!",
-      statusMessage: "Bad request"
-    };
+    throw createError(toPublicErrorResponse(error));
   }
 });
