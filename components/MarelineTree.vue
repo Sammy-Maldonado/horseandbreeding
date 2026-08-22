@@ -71,11 +71,7 @@
 </template>
   
   <script setup>
-import {
-  convertUpCase,
-  encryptData,
-  shortJumpingInt,
-} from "/assets/js/functions";
+import { convertUpCase, shortJumpingInt } from "/assets/js/functions";
 const highJump130 = 1.3;
 const highJump140 = 1.4;
 const props = defineProps({
@@ -102,7 +98,7 @@ const addUpperCaseFontBold = (short) => {
 const goTo = (id) => {
   // Assuming /horseDetail is the route for horseDetail.vue
   if (id) {
-    return `${encryptData(id, import.meta.env.VITE_ENCRYPT_KEY)}`;
+    return `${id}`;
   }
   return "#";
 };

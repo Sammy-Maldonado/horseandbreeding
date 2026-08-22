@@ -1170,6 +1170,42 @@ Progress:
   version-checks it — so no schema change, migration or data rewrite was involved. The
   generated-identifier contract had no test protecting it, so one was added beside the
   consumer. No advisory was fixed or introduced; the `uuid` path carries none.
+- **US-095 (HOR-90) — complete.** Removed `crypto-js` 4.2.0 outright. The audit had named
+  this item a *replacement*; the child proved there was nothing to replace. The library's
+  entire responsibility was AES-obfuscating numeric `horse_id` and breeder `id` values
+  inside URL path segments, and the passphrase reached it as
+  `import.meta.env.VITE_ENCRYPT_KEY` — a `VITE_`-prefixed variable that Vite **statically
+  inlines into the public browser bundle**. The key therefore travelled to every visitor
+  alongside the ciphertext it was meant to protect, which is the same defect class HOR-56
+  removed for the shared api-key: **security theatre, not a security boundary.** The
+  ciphertext was not a stable identifier either — crypto-js passphrase mode derives its key
+  with EVP_BytesToKey (MD5) over a fresh random 8-byte salt per call and emits the OpenSSL
+  `Salted__` envelope, so the same `horse_id` produced a different URL on every render.
+  Sammy resolved the persisted-data gate with verified product context: **the application
+  has never been deployed publicly or hosted outside a local machine**, so the encrypted
+  routes never formed a public URL contract — no production users, bookmarks, search-engine
+  indexes or external backlinks, no persisted ciphertext, and no business data keyed to the
+  format. Nothing therefore required compatibility, and **no legacy decoder, redirect,
+  dual-format or temporary compatibility layer was built.** The canonical URL contract is
+  now the **plain numeric public id** — `/pedigree/erne-alert/1003`. Thirteen URL producers
+  dropped their `encryptData(...)` call and now emit the id directly; nine route consumers
+  replaced `decryptNumber(...)` with a new `parseRouteId`, which validates the caller-
+  controlled route parameter against a canonical positive decimal (`/^[1-9][0-9]*$/`) plus
+  `Number.isSafeInteger` rather than coercing it — closing the `parseInt("12abc") === 12`
+  hole the old decoder's `parseInt` fallback carried. **Its invalid sentinel is still `-1`,
+  byte-identical to what `decryptNumber` returned on any failure**, so every page kept its
+  existing not-found handling and no consumer logic changed. `encryptData`, `decryptNumber`
+  and the `CryptoJS` import are gone; the now-dead `VITE_ENCRYPT_KEY` entry was removed from
+  `runtimeConfig` after confirming no server code ever read it. **No replacement crypto or
+  obfuscation dependency was introduced** — not Web Crypto, not base64url. The emitted
+  artefacts prove the removal: zero occurrences of `VITE_ENCRYPT_KEY`, `CryptoJS`,
+  `Salted__`, `encryptData` or `decryptNumber` across the 261 files of `.output/public` and
+  across `.output/server`, and the lockfile lost the whole `crypto-js` entry. Plain numeric
+  ids are **identifiers, not authorisation** — access control stays at the API and auth
+  boundary, where HOR-95's role-scoped enforcement is unchanged. No advisory was fixed or
+  introduced; the `crypto-js` path carried none.
+- **US-094 (HOR-89) remains PAUSED.** US-095 was authorised and completed ahead of it at
+  Sammy's direction; Stage J children are not strictly sequential.
 - Later children are **not started**. Sammy authorises each child individually; finishing
   one child is not authorisation to begin the next (§14).
 

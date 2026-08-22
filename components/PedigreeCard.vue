@@ -114,7 +114,6 @@
 <script setup>
 import {
   convertUpCaseSireOrDam,
-  encryptData,
   shortJumpingInt,
   getColorDescription,
 } from "/assets/js/functions";
@@ -147,7 +146,7 @@ const addUpperCaseFontBold = (short) => {
 const goTo = (id) => {
   // Assuming /horseDetailDetail is the route for horseDetailDetail.vue
   if (id) {
-    return `${encryptData(id, import.meta.env.VITE_ENCRYPT_KEY)}`;
+    return `${id}`;
   }
   return "#";
 };

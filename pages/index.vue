@@ -48,13 +48,11 @@
 </template>
 
 <script setup>
-import { encryptData } from "/assets/js/functions";
 const products = [
   {
     id: 1,
     name: "Marcus ODonnell",
-    href:
-      "./premium-profile/" + encryptData(14, import.meta.env.VITE_ENCRYPT_KEY),
+    href: "./premium-profile/14",
     imageSrc: "/img/horse.jpg",
     imageAlt: "Front of Breeder 14 in black.",
     level: "Ballinvalley House, Woodenbridge, Co Wicklow",
@@ -63,8 +61,7 @@ const products = [
   {
     id: 2,
     name: "Breeder Connolly Stud Farm",
-    href:
-      "./premium-profile/" + encryptData(29, import.meta.env.VITE_ENCRYPT_KEY),
+    href: "./premium-profile/29",
     imageSrc: "/img/horse.jpg",
     imageAlt: "Front of Breeder Connolly Stud Farm in black.",
     level: "Connolly Stud Farm",
@@ -73,8 +70,7 @@ const products = [
   {
     id: 3,
     name: "Marcus ODonnell",
-    href:
-      "./premium-profile1/" + encryptData(14, import.meta.env.VITE_ENCRYPT_KEY),
+    href: "./premium-profile1/14",
     imageSrc: "/img/horse.jpg",
     imageAlt: "Front of Breeder 14 in black.",
     level: "Ballinvalley House, Woodenbridge, Co Wicklow",
@@ -83,8 +79,7 @@ const products = [
   {
     id: 4,
     name: "Breeder Connolly Stud Farm",
-    href:
-      "./premium-profile/" + encryptData(29, import.meta.env.VITE_ENCRYPT_KEY),
+    href: "./premium-profile/29",
     imageSrc: "/img/horse.jpg",
     imageAlt: "Front of Breeder 29 in black.",
     level: "Connolly Stud Farm",
