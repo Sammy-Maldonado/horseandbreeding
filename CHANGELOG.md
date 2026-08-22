@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.6](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.5...v1.3.6) (2026-08-22)
+
+
+### Bug Fixes
+
+* **security:** render API status messages as text, not HTML (HOR-99) ([56c3491](https://github.com/Sammy-Maldonado/horseandbreeding/commit/56c34912b6030f7172875f96e16bb731a11d3205))
+
 ## [1.3.5](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.4...v1.3.5) (2026-08-22)
 
 
