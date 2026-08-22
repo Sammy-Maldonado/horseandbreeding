@@ -117,6 +117,25 @@ export function authorizeRoleAndScope(
 }
 
 /**
+ * Decides whether a caller may act, requiring only that they are identified.
+ *
+ * This is the "authenticated" level of ADR-007: identity without any role or
+ * scope. Introduced for the profile read behind the premium wizard (HOR-98),
+ * where any signed-in user may fetch their own data. The refusal is the same
+ * UNAUTHENTICATED constant the role-scoped paths use, so a caller cannot map
+ * which endpoints demand roles by comparing denial bodies.
+ */
+export function authorizeAuthenticated(
+  userInfo: AuthContext
+): AuthorizationOutcome {
+  if (!isAuthenticated(userInfo)) {
+    return { granted: false, denial: UNAUTHENTICATED };
+  }
+
+  return { granted: true, user: userInfo };
+}
+
+/**
  * Decides whether a caller may act, requiring `requiredScope` under any role.
  */
 export function authorizeScope(

@@ -44,9 +44,14 @@ export const API_ACCESS_POLICY: Readonly<Record<string, ApiAccessLevel>> = {
   // the flow the route exists to serve.
   "sign-up": "public",
   user: "public",
-  "user-by-email-pass": "public",
   vendor: "public",
   "create-payment-intent": "public",
+
+  // --- Authenticated: identity required, any role ----------------------------
+  // The premium wizard's prefill read (HOR-98): a signed-in user fetches their
+  // own profile with the access token /api/login issued. The handler enforces
+  // the 401 via `ensureAuthenticated`.
+  "user-profile": "authenticated",
 
   // --- Public: reference and catalogue reads --------------------------------
   // Pedigree, horse and reference data the public site renders for anonymous

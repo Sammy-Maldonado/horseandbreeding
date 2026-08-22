@@ -98,7 +98,9 @@ are recorded as findings in the issue and addressed by their own issues.
 
 ## The classification matrix
 
-All 45 routes in `server/api/`, classified from observed behaviour and observed callers.
+All 44 routes in `server/api/`, classified from observed behaviour and observed callers.
+The matrix was recorded at 45 routes; HOR-98 removed `user-by-email-pass.get` and
+`user.post` and added `user-profile.get`, the first occupant of the Authenticated level.
 
 ### Role-scoped — 5 routes, enforcement unchanged
 
@@ -119,7 +121,7 @@ These authenticate their own caller by construction and cannot require a prior c
 | `login.post` | Exchanges email and password for tokens |
 | `refresh-token.post` | Exchanges a refresh token for an access token |
 
-### Public — self-service account and submission flows, 6 routes
+### Public — self-service account and submission flows, 4 routes
 
 Each is reached from a page that has no login step. Requiring a JWT would break the flow
 it exists to serve.
@@ -127,11 +129,14 @@ it exists to serve.
 | Route | Client caller | Note |
 |---|---|---|
 | `sign-up.post` | `pages/register.vue` | Account creation |
-| `user.post` | `components/RegisterUser.vue` | Account creation, premium flow |
 | `user.put` | `components/RegisterUser.vue` | Verifies the existing password itself before updating |
-| `user-by-email-pass.get` | `components/RegisterUser.vue` | Finding: takes credentials in the query string and returns the stored password hash |
 | `vendor.post` | `pages/vendor.vue` | Anonymous vendor submission form |
 | `create-payment-intent.post` | `components/StripePeyment.vue` | Finding: accepts `amount` and `currency` from the client |
+
+Two routes recorded here originally were removed by HOR-98: `user-by-email-pass.get`
+(took credentials in the query string and returned the stored password hash — the premium
+wizard now signs in through `login.post` and prefills from `user-profile.get`) and
+`user.post` (an uncalled, non-atomic duplicate of `sign-up.post`).
 
 ### Public — reference and catalogue reads, 30 routes
 
@@ -163,10 +168,14 @@ Not reachable from the browser. Neither has any client caller in the repository.
 | `send-email.post` | Sends mail from the project's SMTP account using `to`, `subject` and `text` taken from the request body. Reachable from the browser it is an open mail relay. |
 | `events.post` | Echoes the request body and logs it. A debug endpoint with no caller. |
 
-### Authenticated — 0 routes
+### Authenticated — 1 route
 
-The level is defined because the model needs it, and because a future route may sit
-between "anyone" and "a specific role". No current route belongs here.
+The level was defined empty because the model needed it; HOR-98 populated it through the
+review trigger below ("a per-user data surface").
+
+| Route | Client caller | Note |
+|---|---|---|
+| `user-profile.get` | `components/RegisterUser.vue` | Returns the caller's own profile, looked up by the access token's `userId`. The handler enforces the 401 via `ensureAuthenticated`; the selected columns are fixed by `USER_PROFILE_SELECT` and never include a credential. |
 
 ---
 
@@ -254,8 +263,9 @@ Revisit this decision when:
   credential becomes meaningful;
 - any route classified **Public** starts returning data that is not intended for anonymous
   visitors;
-- user accounts gain a per-user data surface, which would populate the currently empty
-  **Authenticated** level;
+- user accounts gain a per-user data surface, which would populate the
+  **Authenticated** level — this fired with HOR-98, which added `user-profile.get` as its
+  first occupant; it fires again for each further route considered for the level;
 - rate limiting or abuse protection is introduced, since the public surface is the natural
   place for it;
 - the Automation MVP introduces endpoints that handle client documents, which are private
