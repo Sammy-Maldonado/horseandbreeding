@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { createError, defineEventHandler, isError } from "h3";
 
 import { toPublicErrorResponse } from "../utils/publicError";
@@ -71,7 +70,7 @@ export default defineEventHandler(async (event) => {
 
     const hashedPassword = await await hashPassword(userInfo.password);
     // First, find or create the user
-    const user = await prisma.users.upsert({
+    await prisma.users.upsert({
       where: { email: userInfo.email },
       update: updateData, // No update needed for user when updateData is {}
       create: {
@@ -80,12 +79,11 @@ export default defineEventHandler(async (event) => {
         password: hashedPassword
       }
     });
-    // 7. Return the tokens to the client
+    // The full row is never returned: it carries the bcrypt password hash,
+    // and the wizard only ever reads the status and message (HOR-98).
     return {
       statusCode: 200,
-      statusMessage: message,
-      // user:JSON.stringify(user),
-      user: user
+      statusMessage: message
     };
   } catch (error: unknown) {
     if (isError(error)) {

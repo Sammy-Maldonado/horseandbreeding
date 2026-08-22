@@ -1,6 +1,10 @@
 import { createError } from "h3";
 
-import { authorizeRoleAndScope, authorizeScope } from "./authorization";
+import {
+  authorizeAuthenticated,
+  authorizeRoleAndScope,
+  authorizeScope
+} from "./authorization";
 import type { AuthContext, UserData } from "./types";
 
 /**
@@ -40,6 +44,16 @@ export function ensureHasScope(
   requiredScope: string
 ): UserData {
   const outcome = authorizeScope(userInfo, requiredScope);
+
+  if (!outcome.granted) {
+    throw createError(outcome.denial);
+  }
+
+  return outcome.user;
+}
+
+export function ensureAuthenticated(userInfo: AuthContext): UserData {
+  const outcome = authorizeAuthenticated(userInfo);
 
   if (!outcome.granted) {
     throw createError(outcome.denial);

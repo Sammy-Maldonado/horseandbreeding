@@ -168,60 +168,73 @@ const fetchCounties = async () => {
 
 onMounted(fetchCounties);
 
-const fetchUser = async () => {
-  // `onResponse` runs for every response, success or failure. `onResponseError`
-  // runs *in addition* when the response is a failure, so once the endpoint
-  // started answering with real 401/404 statuses it would overwrite the answer
-  // the server had just given — including the 404 that means "this address is
-  // free, go ahead and register". It now only speaks when nothing else did.
-  let answered = false;
+// Signs an existing customer in through the one password boundary the API has
+// (POST /api/login, credentials in the body — never in a URL) and prefills the
+// contact form from the authenticated profile read. The access token lives in
+// this call and nowhere else: the wizard's final PUT authenticates with the
+// password again, so nothing needs to be stored (HOR-98).
+const signInAndPrefill = async () => {
+  let login;
   try {
-    await useFetch("/api/user-by-email-pass", {
-      method: "GET",
-      params: {
+    login = await $fetch("/api/login", {
+      method: "POST",
+      body: {
         email: userInfo.value.email,
         password: userInfo.value.password,
       },
-      headers: {
-        "Content-Type": "application/json",
-      },
-      transform: (user) => user,
-      onResponse({ response }) {
-        const _data = response._data;
-        if (typeof _data?.statusCode !== "number") {
-          return;
-        }
-        answered = true;
-        // 404 is not a failure here: it is the answer the wizard asked for.
-        let next =
-          _data.statusCode === 200 || _data.statusCode === 404 ? true : false;
-        if (_data.statusCode === 200) {
-          const userDetail = JSON.parse(_data.body);
-          form.data = userDetail;
-        }
-
-        emit(
-          "getStatus",
-          {
-            statusCode: _data.statusCode,
-            message: _data.statusMessage,
-          },
-          next
-        );
-        // setTimeout(() => {}, 1500);
-      },
-      onResponseError() {
-        if (answered) {
-          return;
-        }
-        let message = "An unexpected error occurred. Please try again later.";
-        emit("getStatus", { statusCode: 500, message: message }, false);
-      },
     });
   } catch (err) {
-    console.error("Error logging in:", err);
-    let message = "An unexpected error occurred. Please try again later.";
-    emit("getStatus", { statusCode: 500, message: message }, false);
+    if (err?.statusCode === 401 || err?.statusCode === 400) {
+      // The server's own words: "Invalid email or password." — the same
+      // answer whether the address is unknown or the password wrong.
+      emit(
+        "getStatus",
+        {
+          statusCode: err.statusCode,
+          message: err.data?.statusMessage ?? "Invalid email or password.",
+        },
+        false
+      );
+      return;
+    }
+    console.error("Signing in failed with status:", err?.statusCode);
+    emit(
+      "getStatus",
+      {
+        statusCode: 500,
+        message: "An unexpected error occurred. Please try again later.",
+      },
+      false
+    );
+    return;
+  }
+
+  try {
+    const response = await $fetch("/api/user-profile", {
+      headers: {
+        Authorization: `Bearer ${login.accessToken}`,
+      },
+    });
+    form.data = { ...form.data, ...response.profile };
+    emit(
+      "getStatus",
+      {
+        statusCode: 200,
+        message: "Welcome back! Your details have been filled in for you.",
+      },
+      true
+    );
+  } catch (err) {
+    // The sign-in itself succeeded; a failed prefill only costs some typing.
+    console.error("Prefilling the profile failed with status:", err?.statusCode);
+    emit(
+      "getStatus",
+      {
+        statusCode: 200,
+        message: "You are signed in. Please fill in your contact details.",
+      },
+      true
+    );
   }
 };
 
@@ -232,7 +245,20 @@ watch(
     if (newVal) {
       userInfo.value = newVal ?? {};
       if (userInfo.value?.email) {
-        fetchUser();
+        if (userInfo.value.mode === "new") {
+          // A new customer: no account to check against. Any duplicate email
+          // is answered by the final save itself, not by a pre-check.
+          emit(
+            "getStatus",
+            {
+              statusCode: 200,
+              message: "Please fill in your contact details.",
+            },
+            true
+          );
+        } else {
+          signInAndPrefill();
+        }
       }
     }
   },
@@ -246,7 +272,15 @@ const registerUser = async () => {
   try {
     await useFetch("/api/user", {
       method: "PUT",
-      body: JSON.stringify({ userData: form.data, userInfo: userInfo.value }),
+      body: JSON.stringify({
+        userData: form.data,
+        // Only what the endpoint reads — the wizard's account-mode choice is
+        // client state and stays out of the request.
+        userInfo: {
+          email: userInfo.value.email,
+          password: userInfo.value.password,
+        },
+      }),
       headers: {
         "Content-Type": "application/json",
       },

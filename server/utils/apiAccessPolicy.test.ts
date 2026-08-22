@@ -111,6 +111,12 @@ describe("classifyApiRoute", () => {
     }
   });
 
+  it("treats the authenticated profile read as authenticated", () => {
+    // HOR-98: the first occupant of ADR-007's "authenticated" level. The
+    // middleware lets it through; the handler itself enforces the 401.
+    expect(classifyApiRoute("/api/user-profile")).toBe("authenticated");
+  });
+
   it("treats send-email as server-only so it cannot be used as a mail relay", () => {
     expect(classifyApiRoute("/api/send-email")).toBe("server-only");
   });
@@ -194,6 +200,10 @@ describe("apiAccessDenial", () => {
     expect(apiAccessDenial("/api/refresh-token")).toBeNull();
   });
 
+  it("lets the authenticated profile read through to its handler", () => {
+    expect(apiAccessDenial("/api/user-profile")).toBeNull();
+  });
+
   it("lets every non-API request through untouched", () => {
     expect(apiAccessDenial("/")).toBeNull();
     expect(apiAccessDenial("/pedigree/some-horse/1003")).toBeNull();
@@ -226,6 +236,29 @@ describe("apiAccessDenial", () => {
 
   it("decides from the path alone and reads no credential", () => {
     expect(apiAccessDenial.length).toBe(1);
+  });
+});
+
+describe("the GET credential endpoint is gone (HOR-98)", () => {
+  it("no longer classifies user-by-email-pass at all", () => {
+    // The route was removed completely — no alias, no deprecated stub. An
+    // entry reappearing here would mean someone revived it.
+    expect(API_ACCESS_POLICY).not.toHaveProperty("user-by-email-pass");
+  });
+
+  it("denies the old URL like any unknown route, confirming nothing", () => {
+    expect(apiAccessDenial("/api/user-by-email-pass")).toEqual({
+      statusCode: 404,
+      statusMessage: "Not Found",
+    });
+  });
+
+  it("denies the old URL even when credentials ride the query string", () => {
+    expect(
+      apiAccessDenial(
+        "/api/user-by-email-pass?email=someone@example.test&password=x"
+      )?.statusCode
+    ).toBe(404);
   });
 });
 

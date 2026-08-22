@@ -119,11 +119,13 @@ function backTab() {
 const user = ref({
   email: "",
   password: "",
+  mode: "existing",
 });
 // Method for handling login form submission
 const getUserInfo = (userInfo) => {
   user.value.email = userInfo.email;
   user.value.password = userInfo.password;
+  user.value.mode = userInfo.mode;
 };
 
 const isError = ref(false); // To track if it's an error message
