@@ -62,3 +62,71 @@ describe("POST /api/horse — HTTP semantics", () => {
     expect(routeSource).toMatch(/message:\s*"Internal Server Error"/);
   });
 });
+
+/**
+ * HOR-103 — the route must decide the id before Prisma ever sees it.
+ *
+ * The pure grammar is proven in `server/utils/horseIds.test.ts`. What is left
+ * here is the wiring: that the route uses that parser, that it refuses a bad
+ * id with the caller's 400 rather than the server's 500, and — the property
+ * the defect was really about — that nothing malformed can reach the database
+ * because the guard sits before the first Prisma call in the handler.
+ */
+describe("POST /api/horse — a malformed id never reaches Prisma", () => {
+  it("parses the id with the shared parser instead of a private helper", () => {
+    expect(routeCode).toMatch(/parseHorseIds\s*\(\s*body\.id\s*\)/);
+    expect(routeCode).not.toMatch(/function\s+convertToArray/);
+    expect(routeCode).not.toMatch(/\.split\(","\)\.map/);
+  });
+
+  it("imports the parser from the shared util rather than redefining it", () => {
+    expect(routeSource).toMatch(
+      /import\s*\{[^}]*parseHorseIds[^}]*\}\s*from\s*"\.\.\/utils\/horseIds"/
+    );
+  });
+
+  // Case A — the guard has to sit between the parser and the first query.
+  it("rejects the request before the first Prisma call", () => {
+    const parse = routeCode.indexOf("parseHorseIds(body.id)");
+    const guard = routeCode.indexOf("parsed.ok");
+    // `findFirstAncestor` is *declared* above the handler, so its declaration
+    // is not the thing to measure against. The call the loop makes is the
+    // first point an id can reach Prisma, and that is what the guard precedes.
+    const firstIdReachesPrisma = routeCode.indexOf("findFirstAncestor(ids[i])");
+
+    expect(parse).toBeGreaterThan(-1);
+    expect(firstIdReachesPrisma).toBeGreaterThan(-1);
+    expect(guard).toBeGreaterThan(parse);
+    expect(guard).toBeLessThan(firstIdReachesPrisma);
+  });
+
+  // The ids the loop queries with are the parser's output and nothing else.
+  it("queries only with ids the parser accepted", () => {
+    expect(routeCode).toMatch(/const\s+ids\s*=\s*parsed\.ids/);
+    expect(routeCode).not.toMatch(/ids\s*=\s*body\.id/);
+  });
+
+  it("answers a malformed id with 400, not 500", () => {
+    expect(routeCode).toMatch(/statusCode:\s*400[\s\S]*?parsed\.reason/);
+  });
+
+  it("never puts the caller's input into the message it sends back", () => {
+    expect(routeCode).not.toMatch(/message:\s*[`"'].*\$\{[^}]*body\.id/);
+  });
+});
+
+describe("POST /api/horse — HOR-111 stays untouched", () => {
+  /**
+   * `body.level` is required and then ignored. That is BUG-008 and it belongs
+   * to HOR-111. This issue must not remove the requirement, start honouring
+   * the value, or otherwise move the level contract.
+   */
+  it("still requires body.level", () => {
+    expect(routeSource).toMatch(/if\s*\(!body\.level\s*\|\|\s*!body\.id\)/);
+  });
+
+  it("still derives the depth from the maternal line, not from the caller", () => {
+    expect(routeCode).toMatch(/findFirstAncestor\(ids\[i\]\)/);
+    expect(routeCode).not.toMatch(/Number\(body\.level\)/);
+  });
+});

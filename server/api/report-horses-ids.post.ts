@@ -5,17 +5,9 @@ import {
   activeHorseFilter,
   horseStatusSelect
 } from "../utils/storehorse-compat";
+import { parseHorseIds } from "../utils/horseIds";
 const prisma = new PrismaClient();
 
-const convertToArray = (idString: any) => {
-  // Check if the string is empty or undefined
-  if (!idString) {
-    return [];
-  }
-
-  // Split the string by commas and trim any whitespace around each element
-  return idString.split(",").map((id: any) => Number(id));
-};
 const cleanDiscipline = (disciplines: any[]): any[] => {
   if (disciplines) {
     for (let index = 0; index < disciplines.length; index++) {
@@ -214,7 +206,18 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    let horseIds = convertToArray(body.horseIds);
+    // The report page sends whatever the user typed into the search box, so
+    // this is the copy of the grammar a person reaches first (HOR-103).
+    const parsed = parseHorseIds(body.horseIds);
+    if (!parsed.ok) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: parsed.reason,
+        message: "Error produssing"
+      });
+    }
+
+    const horseIds = parsed.ids;
     let data = [];
     let query = {};
     for (let i = 0; i < horseIds.length; i++) {

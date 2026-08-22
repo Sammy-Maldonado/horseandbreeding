@@ -9,6 +9,7 @@ import {
   activeHorseFilter,
   horseStatusSelect
 } from "../utils/storehorse-compat";
+import { parseHorseIds } from "../utils/horseIds";
 
 const prisma = new PrismaClient();
 
@@ -62,16 +63,6 @@ async function findFirstAncestor(
   return await findFirstAncestor(storeHorse.dam_id, ++level); // Recursive call
 }
 
-function convertToArray(idString: any) {
-  // Check if the string is empty or undefined
-  if (!idString) {
-    return [];
-  }
-
-  // Split the string by commas and trim any whitespace around each element
-  return idString.split(",").map((id: any) => Number(id));
-}
-
 // @ts-ignore
 export default defineEventHandler(async (event) => {
   try {
@@ -90,7 +81,18 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    let ids = convertToArray(body.id);
+    // The id is decided here, before anything is queried: a malformed one is
+    // the caller's mistake and must not become a database error (HOR-103).
+    const parsed = parseHorseIds(body.id);
+    if (!parsed.ok) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        message: parsed.reason
+      });
+    }
+
+    const ids = parsed.ids;
     const data = [];
     for (let i = 0; i < ids.length; i++) {
       const level = await findFirstAncestor(ids[i]);

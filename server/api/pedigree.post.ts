@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { createError, isError } from "h3";
+import { parseHorseIds } from "../utils/horseIds";
 
 const prisma = new PrismaClient();
 
@@ -81,15 +82,6 @@ const buildSelect = (level: any, topLevel: any): any => {
   }
 };
 
-function convertToArray(idString: any) {
-  // Check if the string is empty or undefined
-  if (!idString) {
-    return [];
-  }
-
-  // Split the string by commas and trim any whitespace around each element
-  return idString.split(",").map((id: any) => Number(id));
-}
 // @ts-ignore
 export default defineEventHandler(async (event) => {
   try {
@@ -105,8 +97,19 @@ export default defineEventHandler(async (event) => {
         message: "Error the data define"
       });
     }
+    // Same grammar, same refusal as `POST /api/horse`: the id is decided before
+    // anything is queried, so a malformed one never becomes a 500 (HOR-103).
+    const parsed = parseHorseIds(body.id);
+    if (!parsed.ok) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        message: parsed.reason
+      });
+    }
+
     const level = Number(body.level);
-    let ids = convertToArray(body.id);
+    const ids = parsed.ids;
     let select = buildSelect(level, level);
 
     const data = [];
