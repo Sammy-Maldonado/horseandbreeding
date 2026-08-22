@@ -1,10 +1,17 @@
 import { PrismaClient } from "@prisma/client";
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, isError, readBody } from "h3";
 const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   try {
-    const { id } = await readBody(event);
+    const { id } = await readBody(event).catch(() => ({ id: undefined }));
     const horseId = Number(id);
+    if (!Number.isInteger(horseId) || horseId <= 0) {
+      throw createError({
+        statusCode: 400,
+        message: "Error produssing",
+        statusMessage: "A valid horse id is required."
+      });
+    }
 
     const storeHorse = await prisma.storehorse.findUnique({
       select: {
@@ -76,11 +83,16 @@ export default defineEventHandler(async (event) => {
       // data:response,
       body: JSON.stringify(response)
     };
-  } catch (error: any) {
-    return {
-      status: 400,
+  } catch (error: unknown) {
+    // The raw database message never reaches the client (CLAUDE.md §7).
+    if (isError(error)) {
+      throw error;
+    }
+    console.error("Loading the horse for editing failed:", error);
+    throw createError({
+      statusCode: 500,
       message: "Error produssing",
-      statusMessage: error.message
-    };
+      statusMessage: "An error occurred while loading the horse."
+    });
   }
 });

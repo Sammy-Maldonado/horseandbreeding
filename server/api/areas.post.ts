@@ -1,12 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-import { defineEventHandler } from "h3";
+import { createError, defineEventHandler } from "h3";
+
+import { toPublicErrorResponse, ValidationError } from "../utils/publicError";
 const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   try {
     // @ts-ignore1
-    const { county_id } = await readBody(event);
+    const body = await readBody(event).catch(() => null);
+    const county_id = body?.county_id;
     if (!county_id) {
-      throw new Error("Missin variables");
+      throw new ValidationError("A county is required.");
     }
     const response = await prisma.areas.findMany({
       select: {
@@ -28,11 +31,7 @@ export default defineEventHandler(async (event) => {
       body: JSON.stringify(response)
     };
   } catch (error) {
-    console.log("Error produssing..!");
-    return {
-      statusCode: 400,
-      message: "Error produssing ..!",
-      statusMessage: "Bad request"
-    };
+    console.error("Loading areas failed:", error);
+    throw createError(toPublicErrorResponse(error));
   }
 });
