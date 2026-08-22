@@ -69,9 +69,14 @@ export default defineEventHandler(async (event) => {
     // @ts-ignore1
     const body = await readBody(event);
 
-    // Set your desired recursion level here
-
-    if (!body.level || !body.id) {
+    // The id is the only field this request must carry. `level` used to be
+    // required here and then discarded: the depth answered with is the depth of
+    // the horse's own maternal line, measured by `findFirstAncestor` below, and
+    // a caller cannot have an opinion about a fact. Requiring it also refused a
+    // perfectly good `level: 0`, because `0` is falsy (HOR-111). The sibling
+    // endpoints that build a caller-requested pedigree tree still take a level
+    // and still honour it; this one never did.
+    if (!body.id) {
       // A required field is missing from the request: that is the caller's
       // mistake, not a server failure (HOR-96).
       throw createError({
