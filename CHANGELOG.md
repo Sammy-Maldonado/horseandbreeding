@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.8](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.7...v1.3.8) (2026-08-22)
+
+
+### Bug Fixes
+
+* **api:** validate horse ids before they reach Prisma (HOR-103) ([bcc381a](https://github.com/Sammy-Maldonado/horseandbreeding/commit/bcc381a721f4db18a47133533bab1ac0e9f9690f))
+
 ## [1.3.7](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.6...v1.3.7) (2026-08-22)
 
 
