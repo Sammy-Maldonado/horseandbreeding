@@ -828,26 +828,22 @@ const submitForm = async () => {
     },
   };
   const response = await fetchWithToken(url, options);
+  // The endpoint now answers with a real HTTP status, so the reason lives in
+  // the status line and the body is read the same way either way (HOR-96).
+  const data = await response.json().catch(() => ({}));
 
-  if (response.ok) {
-    const data = await response.json();
-    if (data.statusCode == 200) {
-      message.value = data.statusMessage;
-      isError.value = 0; // Set error state
-      resetForm();
-    } else {
-      message.value = data.statusMessage;
-      isError.value = 1; // Set error state
-      if (data.statusCode == 401) {
-        // openModal();
-      }
-    }
+  if (response.ok && data.statusCode == 200) {
+    message.value = data.statusMessage;
+    isError.value = 0; // Set error state
+    resetForm();
+  } else if (response.status === 401 || response.status === 403) {
+    message.value =
+      " It looks like you are not logged in. Log in to get started on creating your horse!";
+    isError.value = 1; // Set error st
   } else {
-    if (response.status === 500) {
-      message.value =
-        " It looks like you are not logged in. Log in to get started on creating your horse!";
-      isError.value = 1; // Set error st
-    }
+    message.value =
+      data.statusMessage ?? " Something went wrong. Please try again.";
+    isError.value = 1; // Set error state
   }
 };
 

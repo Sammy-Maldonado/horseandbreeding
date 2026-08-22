@@ -169,6 +169,12 @@ const fetchCounties = async () => {
 onMounted(fetchCounties);
 
 const fetchUser = async () => {
+  // `onResponse` runs for every response, success or failure. `onResponseError`
+  // runs *in addition* when the response is a failure, so once the endpoint
+  // started answering with real 401/404 statuses it would overwrite the answer
+  // the server had just given — including the 404 that means "this address is
+  // free, go ahead and register". It now only speaks when nothing else did.
+  let answered = false;
   try {
     await useFetch("/api/user-by-email-pass", {
       method: "GET",
@@ -182,6 +188,11 @@ const fetchUser = async () => {
       transform: (user) => user,
       onResponse({ response }) {
         const _data = response._data;
+        if (typeof _data?.statusCode !== "number") {
+          return;
+        }
+        answered = true;
+        // 404 is not a failure here: it is the answer the wizard asked for.
         let next =
           _data.statusCode === 200 || _data.statusCode === 404 ? true : false;
         if (_data.statusCode === 200) {
@@ -199,7 +210,10 @@ const fetchUser = async () => {
         );
         // setTimeout(() => {}, 1500);
       },
-      onResponseError({ response }) {
+      onResponseError() {
+        if (answered) {
+          return;
+        }
         let message = "An unexpected error occurred. Please try again later.";
         emit("getStatus", { statusCode: 500, message: message }, false);
       },
@@ -226,6 +240,9 @@ watch(
 );
 
 const registerUser = async () => {
+  // Same double-fire as `fetchUser`: `onResponseError` used to overwrite the
+  // status the server actually returned (HOR-96).
+  let answered = false;
   try {
     await useFetch("/api/user", {
       method: "PUT",
@@ -241,6 +258,10 @@ const registerUser = async () => {
         //   form.data = data;
         //   form.data = userDetail;
         // }
+        if (typeof _data?.statusCode !== "number") {
+          return;
+        }
+        answered = true;
         let next =
           _data.statusCode === 200 || _data.statusCode === 404 ? true : false;
         emit(
@@ -253,7 +274,10 @@ const registerUser = async () => {
         );
         // setTimeout(() => {}, 1500);
       },
-      onResponseError({ response }) {
+      onResponseError() {
+        if (answered) {
+          return;
+        }
         let message = "An unexpected error occurred. Please try again later.";
         emit("getStatus", { statusCode: 500, message: message }, false);
       },

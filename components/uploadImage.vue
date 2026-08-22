@@ -171,23 +171,22 @@ const UploadPhotos = async (event) => {
       body: formData,
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.statusCode == 200) {
-        message.value = data.statusMessage;
-        isError.value = 0; // Set error state
-        // resetForm();
-      } else {
-        message.value = data.statusMessage;
-        isError.value = 1; // Set error state
-      }
+    // The endpoint now answers with a real HTTP status, so the reason lives in
+    // the status line and the body is read the same way either way (HOR-96).
+    const data = await response.json().catch(() => ({}));
+
+    if (response.ok && data.statusCode == 200) {
+      message.value = data.statusMessage;
+      isError.value = 0; // Set error state
+      // resetForm();
 
       // uploadedImages.value = [];
       // images.value = [];
+      // Only a successful upload has files to hand back to the parent.
       props.getPhotosIds(coverPoint.value, data.files);
     } else {
       isError.value = 1;
-      message.value = " Image upload error ";
+      message.value = data.statusMessage ?? " Image upload error ";
     }
   } catch (error) {
     console.error("Image upload error:", error);

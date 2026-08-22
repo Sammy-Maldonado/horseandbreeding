@@ -1,8 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { defineEventHandler } from "h3";
+import { createError, defineEventHandler } from "h3";
 
-import { toPublicErrorResponse, ValidationError } from "../utils/publicError";
+import {
+  PublicError,
+  toPublicErrorResponse,
+  ValidationError
+} from "../utils/publicError";
 import { registerUser } from "../utils/registration";
 
 const prisma = new PrismaClient();
@@ -43,8 +47,11 @@ export default defineEventHandler(async (event) => {
       where: { email: email }
     });
     if (findUser) {
-      throw new ValidationError(
-        "An account with this email already exists in the registry."
+      // The request was well formed; it clashes with a registration that
+      // already exists, which is what 409 is for.
+      throw new PublicError(
+        "An account with this email already exists in the registry.",
+        409
       );
     }
     // Step 1: Hash the new password using bcrypt
@@ -75,6 +82,6 @@ export default defineEventHandler(async (event) => {
     // Full detail stays server-side; the client only ever sees the intended
     // validation messages or the fixed generic one.
     console.error("Sign-up failed:", error);
-    return toPublicErrorResponse(error);
+    throw createError(toPublicErrorResponse(error));
   }
 });

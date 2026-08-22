@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { createError, isError } from "h3";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 import {
   activeHorseFilter,
@@ -205,11 +206,12 @@ export default defineEventHandler(async (event) => {
 
     // Set your desired recursion level here
 
-    if (!body.horseIds) {
-      return {
-        status: 500,
-        body: JSON.stringify({ error: "Error the data define" })
-      };
+    if (!body?.horseIds) {
+      throw createError({
+        statusCode: 400,
+        message: "Error produssing",
+        statusMessage: "At least one horse id is required."
+      });
     }
 
     let horseIds = convertToArray(body.horseIds);
@@ -258,12 +260,17 @@ export default defineEventHandler(async (event) => {
       // body: data
     };
   } catch (error) {
+    // The guard above already threw its own 400; anything reaching here is a
+    // failure on our side and must not carry the raw error out (CLAUDE.md §7).
+    if (isError(error)) {
+      throw error;
+    }
     console.error("Error fetching data:", error);
-    return {
-      statusCode: 400,
+    throw createError({
+      statusCode: 500,
       message: "Error produssing",
-      statusMessage: error
-    };
+      statusMessage: "The report could not be produced."
+    });
   } finally {
     await prisma.$disconnect();
   }
