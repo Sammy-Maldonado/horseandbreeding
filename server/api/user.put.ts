@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     if (!email || !emailRegex.test(email)) {
       throw createError({
         statusCode: 400,
-        statusMessage: `Invalid email <b>${userInfo.email}</b> format.`
+        statusMessage: `Invalid email ${userInfo.email} format.`
       });
     }
     if (userInfo.password?.length < 8) {
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
       where: { email: userInfo.email }
     });
     let updateData = {};
-    let message = `Welcome! The user account for <b>${userInfo.email}</b> has been successfully created.`;
+    let message = `Welcome! The user account for ${userInfo.email} has been successfully created.`;
     if (findUser) {
       const isPasswordValid = await bcrypt.compare(
         userInfo.password,
@@ -58,9 +58,9 @@ export default defineEventHandler(async (event) => {
         delete userData.password;
         delete userData.email;
         updateData = userData;
-        message = `The user account for <b>${userInfo.email}</b> has been successfully updated. Welcome back!`;
+        message = `The user account for ${userInfo.email} has been successfully updated. Welcome back!`;
       } else {
-        message = `The user account for <b>${userInfo.email}</b> could not be updated due to an incorrect password. Please try again with the correct password.`;
+        message = `The user account for ${userInfo.email} could not be updated due to an incorrect password. Please try again with the correct password.`;
         throw createError({
           statusCode: 401,
           statusMessage: message
