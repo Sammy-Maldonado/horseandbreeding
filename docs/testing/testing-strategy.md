@@ -179,6 +179,12 @@ Policy:
   exclusive by design.
 - **Fixtures may live beside a test**, and may be promoted to a shared location only when
   genuinely reused by more than one test.
+- **A test file inside `pages/` does not become a route.** `@nuxt/schema`'s default
+  `ignore` list excludes `**/*.{spec,test}.{js,cts,mts,ts,jsx,tsx}`, so the page scanner
+  skips `*.test.ts` and `*.nuxt.test.ts` and the router never sees them. Locality
+  therefore applies to pages exactly as it does everywhere else — a page's test belongs
+  beside the page. Verified for Nuxt 4.5.2; re-confirm it during a major Nuxt upgrade
+  (section 11), because a build that started routing test files would ship them.
 - **Do not create large generic test folders** (`__tests__/`, `test/`) without a real
   need. Locality keeps the test discoverable from the code it defends.
 
