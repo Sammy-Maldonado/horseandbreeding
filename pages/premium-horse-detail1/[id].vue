@@ -213,7 +213,7 @@ async function getCompetitionHistory() {
       "/api/horse",
       {
         method: "POST",
-        body: JSON.stringify({ id: id.toString(), level: 4 }),
+        body: JSON.stringify({ id: id.toString() }),
         headers: {
           "Content-Type": "application/json",
         },
