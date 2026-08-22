@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.7](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.6...v1.3.7) (2026-08-22)
+
+
+### Bug Fixes
+
+* **api:** bound the pedigree select recursion in POST /api/horse (HOR-107) ([9ef570b](https://github.com/Sammy-Maldonado/horseandbreeding/commit/9ef570b8687a5a874211cd55de8cd6ee2e894ce5))
+
 ## [1.3.6](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.5...v1.3.6) (2026-08-22)
 
 
