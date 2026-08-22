@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { defineEventHandler } from "h3";
+import { createError, defineEventHandler } from "h3";
+import { PublicError, toPublicErrorResponse } from "../utils/publicError";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 const prisma = new PrismaClient();
 
@@ -31,8 +32,10 @@ export default defineEventHandler(async (event) => {
     });
 
     if (!user) {
-      throw new Error(
-        "User not found. Please verify your credentials or contact support if the issue persists."
+      // The token is valid but the account behind it is gone.
+      throw new PublicError(
+        "User not found. Please verify your credentials or contact support if the issue persists.",
+        404
       );
     }
 
@@ -42,20 +45,10 @@ export default defineEventHandler(async (event) => {
       data: JSON.stringify(user)
     };
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return {
-        statusCode: 400,
-        message: "Internal server error..! ",
-        statusMessage: error.message
-      };
-    }
-
-    // Handle the case where `error` is not an instance of Error
-    return {
-      statusCode: 400,
-      message: "Unknown error occurred!",
-      statusMessage: "Unknown error"
-    };
+    // The raw message used to be echoed here, which handed the client whatever
+    // Prisma had to say about the schema (CLAUDE.md §7).
+    console.error("user-info failed:", error);
+    throw createError(toPublicErrorResponse(error));
   }
 });
 

@@ -163,8 +163,11 @@ useFetch("/api/familyHorseStore", {
   transform: (familyHorse) => JSON.parse(familyHorse.body),
 }).then((data) => {
   _familyHorse.value = data; // Update _familyHorse with the fetched data
-  breederid.value = _familyHorse.value.data[0]?.breeders?.id;
-  _familyHorse.value = _familyHorse.value.data[0];
+  // A real HTTP error leaves the payload null instead of the error-shaped object
+  // the fake 200 used to carry, so the first horse is read defensively. The page
+  // already renders empty when nothing came back (HOR-96).
+  breederid.value = _familyHorse.value.data?.[0]?.breeders?.id;
+  _familyHorse.value = _familyHorse.value.data?.[0];
 });
 
 // Fetch data from the second API

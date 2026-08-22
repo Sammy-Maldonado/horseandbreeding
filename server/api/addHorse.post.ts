@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, readBody } from "h3";
+import { toPublicErrorResponse, ValidationError } from "../utils/publicError";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 const prisma = new PrismaClient();
 const validateFields = (data: any) => {
@@ -19,24 +20,24 @@ const validateFields = (data: any) => {
 
   // Check if required fields are missing or empty
   if (!ad_title?.trim())
-    throw new Error("Ad title is required and cannot be empty.");
+    throw new ValidationError("Ad title is required and cannot be empty.");
   if (!comments?.trim())
-    throw new Error("comments are required and cannot be empty.");
-  if (!height?.trim()) throw new Error("Field height is required.");
-  if (!age?.trim()) throw new Error("Field age is required.");
-  if (!horse_type?.trim()) throw new Error("Field horse_type is required.");
-  if (!location?.trim()) throw new Error("Field area name is required.");
+    throw new ValidationError("comments are required and cannot be empty.");
+  if (!height?.trim()) throw new ValidationError("Field height is required.");
+  if (!age?.trim()) throw new ValidationError("Field age is required.");
+  if (!horse_type?.trim()) throw new ValidationError("Field horse_type is required.");
+  if (!location?.trim()) throw new ValidationError("Field area name is required.");
 
-  if (!currency?.trim()) throw new Error("Currency is required.");
-  if (!fullname?.trim()) throw new Error("Full name is required.");
+  if (!currency?.trim()) throw new ValidationError("Currency is required.");
+  if (!fullname?.trim()) throw new ValidationError("Full name is required.");
 
   if (typeof sexe !== "number" || sexe < 0)
-    throw new Error("Sexe must be a valid");
+    throw new ValidationError("Sexe must be a valid");
   if (typeof price !== "number" || price < 0)
-    throw new Error("Price must be a valid number greater than or equal to 0.");
+    throw new ValidationError("Price must be a valid number greater than or equal to 0.");
 
   if (typeof areaId !== "number" || areaId <= 0)
-    throw new Error("Area must be a valid.");
+    throw new ValidationError("Area must be a valid.");
   // Return true if all validations pass
   return true;
 };
@@ -118,11 +119,9 @@ export default defineEventHandler(async (event) => {
       body: JSON.stringify({ horse_id: horse_id })
     };
   } catch (error) {
-    console.log("Error produssing", error);
-    return {
-      statusCode: 400,
-      message: "Error produssing",
-      statusMessage: error
-    };
+    // A rejected field is a 400 the caller can fix; a database failure is ours
+    // and stays a 500. Neither one may carry the raw error to the client.
+    console.error("Creating the horse failed:", error);
+    throw createError(toPublicErrorResponse(error));
   }
 });

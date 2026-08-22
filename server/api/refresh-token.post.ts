@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, isError, readBody } from "h3";
 
 import { ACCESS_TOKEN_TTL_SECONDS, issueAccessToken } from "../utils/accessToken";
 import {
@@ -9,15 +9,19 @@ import {
 
 const prisma = new PrismaClient();
 
+// Every way a refresh can be refused looks the same from outside: the caller
+// must sign in again. Which of them happened stays in the server log.
+const REJECTED = "Invalid refresh access token..!";
+
 export default defineEventHandler(async (event) => {
   try {
     const { refreshToken } = await readBody(event);
     if (typeof refreshToken !== "string" || refreshToken.length === 0) {
-      return {
-        statusCode: 400,
-        message: "Invalid refresh access token..!",
-        statusMessage: "Bad request"
-      };
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        message: REJECTED
+      });
     }
 
     // Rotate first: the supplied credential is redeemed exactly once. The
@@ -31,11 +35,11 @@ export default defineEventHandler(async (event) => {
     });
     if (!user) {
       // The session pointed at a user that no longer exists.
-      return {
-        statusCode: 400,
-        message: "Invalid refresh access token..!",
-        statusMessage: "Bad request"
-      };
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        message: REJECTED
+      });
     }
 
     const accessToken = issueAccessToken(user);
@@ -51,17 +55,21 @@ export default defineEventHandler(async (event) => {
     if (error instanceof RefreshSessionError) {
       // INVALID (unknown or replayed credential) and EXPIRED both surface as
       // the same generic rejection; the distinction stays server-side.
-      return {
-        statusCode: 400,
-        message: "Invalid refresh access token..!",
-        statusMessage: "Bad request"
-      };
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        message: REJECTED
+      });
+    }
+    if (isError(error)) {
+      // A refusal decided above must keep the status it was raised with.
+      throw error;
     }
     console.error("Refresh failed:", error);
-    return {
-      statusCode: 400,
-      message: "Internal server error..!",
-      statusMessage: "Bad request"
-    };
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+      message: "Internal server error..!"
+    });
   }
 });

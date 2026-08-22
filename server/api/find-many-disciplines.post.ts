@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import{defineEventHandler} from "h3";
+import { createError, defineEventHandler } from "h3";
 
 const prisma = new PrismaClient();
 const JUMPING = 0;
@@ -38,10 +38,10 @@ export default defineEventHandler( async (event) =>{
             body: JSON.stringify(data)
         }
     } catch (error) {
-        return{
-            statusCode:400,
-            message:"Error produssing",
-            statusMessage:"Bad request"
-        }
+        throw createError({
+            statusCode: 500,
+            message: "Error produssing",
+            statusMessage: "Internal Server Error"
+        });
     }
 })

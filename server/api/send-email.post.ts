@@ -1,9 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-import { defineEventHandler, readBody } from "h3";
+import { createError, defineEventHandler, readBody } from "h3";
 import nodemailer from "nodemailer";
 const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
-  const { to, subject, text } = await readBody(event);
+  const body = await readBody(event).catch(() => null);
+  const to = body?.to;
+  const subject = body?.subject;
+  const text = body?.text;
+
+  if (!to || !subject || !text) {
+    throw createError({
+      statusCode: 400,
+      message: "Recipient, subject and message are all required.",
+      statusMessage: "Bad request"
+    });
+  }
+
   try {
     // Create a transporter
     const transporter = nodemailer.createTransport({
@@ -37,25 +49,14 @@ export default defineEventHandler(async (event) => {
       // body: JSON.stringify(response)
     };
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return {
-        status: 400,
-        message: error.message,
-        to: to,
-        sub: subject,
-        text: text,
-        statusMessage: "Bad request"
-      };
-    } else {
-      // Handle case where the error is not an instance of Error
-      return {
-        status: 400,
-        message: "Unknown error",
-        to: to,
-        sub: subject,
-        text: text,
-        statusMessage: "Bad request"
-      };
-    }
+    // The mail provider failed, not the caller. The SMTP error and the message
+    // that was being sent stay in the server log — echoing the recipient,
+    // subject and body back to the client leaked them (CLAUDE.md §7).
+    console.error("Sending the email failed:", error);
+    throw createError({
+      statusCode: 500,
+      message: "The email could not be sent. Please try again later.",
+      statusMessage: "Internal Server Error"
+    });
   }
 });
