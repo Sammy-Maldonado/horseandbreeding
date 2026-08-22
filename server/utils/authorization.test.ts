@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  authorizeAuthenticated,
   authorizeRoleAndScope,
   authorizeScope,
   hasRoleAndScope
@@ -197,6 +198,63 @@ describe("authorizeRoleAndScope", () => {
     if (outcome.granted) return;
     expect(outcome.denial).not.toHaveProperty("stack");
     expect(outcome.denial).not.toBeInstanceOf(Error);
+  });
+});
+
+// --- Authenticated-only access (HOR-98) ---------------------------------
+// The profile read behind the premium wizard needs identity but no role: any
+// signed-in user may read their own profile. This populates the previously
+// empty "authenticated" level of ADR-007.
+
+describe("authorizeAuthenticated", () => {
+  it("grants any authenticated user, roles or not", () => {
+    for (const user of [admin, viewer, roleless]) {
+      const outcome = authorizeAuthenticated(user);
+
+      expect(outcome.granted).toBe(true);
+      if (!outcome.granted) return;
+      expect(outcome.user).toBe(user);
+    }
+  });
+
+  it("refuses an absent authentication context with 401", () => {
+    const outcome = authorizeAuthenticated(null);
+
+    expect(outcome.granted).toBe(false);
+    if (outcome.granted) return;
+    expect(outcome.denial.statusCode).toBe(401);
+    expect(outcome.denial.statusMessage).toBe("Unauthorized");
+  });
+
+  it("treats an undefined context exactly like a null one", () => {
+    expect(authorizeAuthenticated(undefined)).toEqual(
+      authorizeAuthenticated(null)
+    );
+  });
+
+  it("keeps internals out of the denial body", () => {
+    const outcome = authorizeAuthenticated(null);
+
+    expect(outcome.granted).toBe(false);
+    if (outcome.granted) return;
+    expectLeaksNothing(outcome.denial);
+  });
+
+  it("answers with the same 401 the role-scoped refusal uses", () => {
+    // One indistinguishable unauthenticated refusal across the whole API —
+    // a caller cannot map which endpoints require roles by comparing bodies.
+    const here = authorizeAuthenticated(null);
+    const there = authorizeRoleAndScope(null, ["admin"], "manage_horses");
+
+    expect(here).toEqual(there);
+  });
+
+  it("never throws, whatever the authentication context holds", () => {
+    const contexts: AuthContext[] = [null, undefined, roleless, viewer, admin];
+
+    for (const context of contexts) {
+      expect(() => authorizeAuthenticated(context)).not.toThrow();
+    }
   });
 });
 
