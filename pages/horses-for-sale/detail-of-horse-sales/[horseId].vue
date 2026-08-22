@@ -200,16 +200,13 @@ import {
   PlusCircleIcon,
 } from "@heroicons/vue/20/solid";
 import { useRoute } from "vue-router";
-import { decryptNumber, formatPrice, timeAgo } from "/assets/js/functions";
+import { parseRouteId, formatPrice, timeAgo } from "/assets/js/functions";
 import SellerDetail from "../../../components/SellerDetail.vue";
 const position = ref(0);
 const route = useRoute();
 const horsesSells = ref([]);
 
-const id = decryptNumber(
-  route.params.horseId,
-  import.meta.env.VITE_ENCRYPT_KEY
-);
+const id = parseRouteId(route.params.horseId);
 
 const { data: horseDetail } = await useFetch("/api/storeHorseById", {
   method: "POST",

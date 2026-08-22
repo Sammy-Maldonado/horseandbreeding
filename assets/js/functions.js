@@ -1,6 +1,3 @@
-// using AES encryption with crypto-js library
-import CryptoJS from "crypto-js";
-// const { AES, enc } = CryptoJS;
 export const shortJumpingInt = {
   "sj 1.10m": 1.1,
   "sj 1.20m": 1.2,
@@ -111,40 +108,23 @@ export const decodedNotes = (notes) => {
   }
 };
 
-// Function to encrypt a Data using AES
-export const encryptData = (data, key) => {
-  if (!data || !key) {
-    console.error("Data or key is missing for encryption");
-    return;
-  }
-  try {
-    // Encrypt the data and convert it to a URL-safe format
-    const encrypted = CryptoJS.AES.encrypt(
-      JSON.stringify(data),
-      key
-    ).toString();
-    return encodeURIComponent(encrypted); // Make the encrypted string URL-safe
-  } catch (error) {
-    console.error("Encryption error:", error);
-  }
-  // return encodeURIComponent(AES.encrypt(Data.toString(), key ).toString());
-};
+// Horse and breeder identifiers travel in the URL as plain decimal numbers, so
+// a route parameter only has to be validated before it is used as an id. It is
+// caller-controlled input: anything that is not a canonical positive decimal is
+// rejected outright rather than coerced, which is what `parseInt` would do with
+// "12abc". `-1` means "no such identifier" — the same sentinel the AES decoder
+// this replaces returned on failure, so every page keeps its existing handling.
+const ROUTE_ID_PATTERN = /^[1-9][0-9]*$/;
 
-// Function to decrypt an encrypted number using AES
+export const parseRouteId = (value) => {
+  const candidate = typeof value === "number" ? String(value) : value;
 
-export const decryptNumber = (encryptedNumber, key) => {
-  try {
-    // Decrypt the number
-    const bytes = CryptoJS.AES.decrypt(encryptedNumber, key);
-    const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-
-    // Check if decryption resulted in a valid number
-    const decryptedNumber = parseInt(decryptedString, 10);
-    return isNaN(decryptedNumber) ? -1 : decryptedNumber;
-  } catch (error) {
-    console.error("Decryption failed:", error);
-    return -1; // Return -1 on any error
+  if (typeof candidate !== "string" || !ROUTE_ID_PATTERN.test(candidate)) {
+    return -1;
   }
+
+  const id = Number(candidate);
+  return Number.isSafeInteger(id) ? id : -1;
 };
 
 export const getAbsoluteUrl = (website) => {

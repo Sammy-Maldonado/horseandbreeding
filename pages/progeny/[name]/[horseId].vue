@@ -13,14 +13,11 @@ import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import {
   fetchDataMethodPost,
-  decryptNumber,
+  parseRouteId,
   convertUpCaseSireOrDam,
 } from "../../../assets/js/functions";
 const route = useRoute();
-const horseId = decryptNumber(
-  route.params.horseId,
-  import.meta.env.VITE_ENCRYPT_KEY
-);
+const horseId = parseRouteId(route.params.horseId);
 const data = ref([]);
 
 const fetchProgeny = async () => {

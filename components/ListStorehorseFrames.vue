@@ -27,9 +27,7 @@
             <img src="/img/hbull.gif" alt="" />
           </dt>
           <dd class="text-sm leading-6 text-white">
-            <a
-              :href="'../PremiumHorseDetail/' + encryptDataUrl(horse.horse_id)"
-            >
+            <a :href="'../PremiumHorseDetail/' + horse.horse_id">
               {{ convertUpCase(horse.name) }}
             </a>
           </dd>
@@ -39,7 +37,7 @@
   </div>
 </template>
 <script setup>
-import { convertUpCase, encryptData } from "/assets/js/functions";
+import { convertUpCase } from "/assets/js/functions";
 // Define a reactive variable for selected typeHorse
 const typeHorse = ref("Broodmare");
 
@@ -55,7 +53,4 @@ const typeHorses = [
 const props = defineProps({
   storehorse: { type: Object, default: null },
 });
-const encryptDataUrl = (id) => {
-  return encryptData(id, import.meta.env.VITE_ENCRYPT_KEY);
-};
 </script>

@@ -192,7 +192,6 @@ import {
   convertUpCase,
   getAbsoluteUrl,
   email,
-  encryptData,
   shortJumpingInt,
 } from "/assets/js/functions";
 // Define a ref for the trigger element
@@ -219,10 +218,7 @@ const highJump140 = 1.4;
 const goHorseDetailLink = (id) => {
   // Assuming /horseDetail is the route for horseDetail.vue
   if (id) {
-    return `../PremiumHorseDetail/${encryptData(
-      id,
-      import.meta.env.VITE_ENCRYPT_KEY
-    )}`;
+    return `../PremiumHorseDetail/${id}`;
   }
   return "#";
 };

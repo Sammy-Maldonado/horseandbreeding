@@ -66,7 +66,7 @@
   
 <script setup>
 import { useRouter } from "vue-router";
-import { convertUpCase, decodedNotes, encryptData } from "/assets/js/functions";
+import { convertUpCase, decodedNotes } from "/assets/js/functions";
 
 const router = useRouter();
 // Your Vue.js component script section using <script setup>
@@ -76,10 +76,7 @@ const getHorseDetailLink = (id) => {
   // Assuming /horseDetail is the route for horseDetail.vue
 
   router.push({
-    path: `../premium-horse-detail1/${encryptData(
-      id,
-      import.meta.env.VITE_ENCRYPT_KEY
-    )}`,
+    path: `../premium-horse-detail1/${id}`,
   });
 };
 </script>
