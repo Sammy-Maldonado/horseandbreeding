@@ -205,15 +205,17 @@ async function getCompetitionHistory() {
       }
     );
     if (fetchError.value) {
-      error.value = fetchError.value;
+      // This page has no error surface to route a failure to: `error` was never
+      // declared here, so this branch raised a ReferenceError of its own and the
+      // catch below swallowed it, destroying the status the server actually sent
+      // (HOR-108). The empty list set above is the failure state the template
+      // already renders; reporting the real failure is what was missing.
+      console.log("Error horse competition history", fetchError.value);
     } else {
       _competitionHistory.value = fetchedData.value;
     }
   } catch (err) {
     console.log("Error horse competition history", err);
-    // error.value = err;
-  } finally {
-    // pending.value = false;
   }
 }
 getCompetitionHistory();
