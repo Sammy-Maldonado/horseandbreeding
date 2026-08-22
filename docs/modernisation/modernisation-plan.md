@@ -410,6 +410,10 @@ Probed endpoints: `search`, `search-pages`, `pedigree`, `mareline`, `progeny`,
   **Removed as an inseparable consequence of HOR-56**: the response existed only on the
   invalid-shared-key path, and that path no longer exists. The wider class of handlers that
   return a status in the body instead of setting it is untouched and still open.
+  **Closed by HOR-96 on 2026-08-22**: every remaining handler that signalled failure by
+  returning a status in the body now throws, so no endpoint answers `200` with a failed
+  result. The body still carries `statusCode` for the existing callers — what changed is
+  that the transport status is now the truth.
 
 Each needs Sammy's decision and its own issue. Only the shared-key finding was acted on,
 by HOR-56.
