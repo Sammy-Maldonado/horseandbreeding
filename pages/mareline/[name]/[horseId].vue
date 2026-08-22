@@ -20,16 +20,12 @@
 import { ref } from "vue";
 import {
   fetchDataMethodPost,
-  decryptNumber,
+  parseRouteId,
   convertUpCaseSireOrDam,
 } from "../../../assets/js/functions";
 
 const route = useRoute();
-const id = decryptNumber(
-  route.params.horseId,
-  import.meta.env.VITE_ENCRYPT_KEY
-);
-// const id = route.params.id;
+const id = parseRouteId(route.params.horseId);
 const mareline = ref([]);
 const fetchMareline = async () => {
   const url = "/api/mareline";

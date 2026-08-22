@@ -143,12 +143,12 @@
 import {
   convertUpCase,
   decodedNotes,
-  decryptNumber,
+  parseRouteId,
 } from "/assets/js/functions";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const id = decryptNumber(route.params.id, import.meta.env.VITE_ENCRYPT_KEY);
+const id = parseRouteId(route.params.id);
 const _familyHorse = ref(null);
 //save competition history
 
