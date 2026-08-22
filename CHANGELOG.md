@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.9](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.8...v1.3.9) (2026-08-22)
+
+
+### Bug Fixes
+
+* **api:** drop the inert body.level from POST /api/horse (HOR-111) ([0e0b7d1](https://github.com/Sammy-Maldonado/horseandbreeding/commit/0e0b7d1358986da4e9828f6d32468dea626dbeef))
+
 ## [1.3.8](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.7...v1.3.8) (2026-08-22)
 
 
