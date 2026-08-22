@@ -13,7 +13,10 @@
       <span class="font-medium">{{
         isError ? "Invalid. " : "Successful. "
       }}</span>
-      <span v-html="message"></span>
+      <!-- The message is a plain-text status contract, not markup. Interpolate
+           it as text so a value carried inside it — an email the caller chose,
+           for instance — can never be parsed as HTML (HOR-99). -->
+      <span>{{ message }}</span>
     </div>
   </div>
 </template>

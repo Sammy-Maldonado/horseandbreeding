@@ -106,7 +106,7 @@ const handleSubmit = async () => {
       paymentResult.value = `Payment failed: ${error.message}`;
       isError.value = true;
     } else {
-      paymentResult.value = `Payment successful! Payment ID: <b>${paymentIntent.id}</b>`;
+      paymentResult.value = `Payment successful! Payment ID: ${paymentIntent.id}`;
       isError.value = false;
     }
   } catch (error) {
