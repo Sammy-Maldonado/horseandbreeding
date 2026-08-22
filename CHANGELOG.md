@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.5](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.4...v1.3.5) (2026-08-22)
+
+
+### Bug Fixes
+
+* **security:** remove credential transport in URLs and responses (HOR-98) ([8b060c4](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8b060c4b467e934b15e9e6f6b48cc6987d852eae))
+
 ## [1.3.4](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.3...v1.3.4) (2026-08-22)
 
 
