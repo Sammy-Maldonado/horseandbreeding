@@ -193,7 +193,6 @@ import {
   MenuItems,
 } from "@headlessui/vue";
 import { ref } from "vue";
-import { encryptData } from "/assets/js/functions";
 
 import { useRouter } from "vue-router";
 
@@ -212,13 +211,12 @@ const nav = ref([
   {
     label: "Premium profile 0",
     name: "premium",
-    to: "/premium-profile/" + encryptData(14, import.meta.env.VITE_ENCRYPT_KEY),
+    to: "/premium-profile/14",
   },
   {
     label: "Premium profile 1",
     name: "premium1",
-    to:
-      "/premium-profile1/" + encryptData(14, import.meta.env.VITE_ENCRYPT_KEY),
+    to: "/premium-profile1/14",
   },
   { label: "Buy", name: "buy", to: "/horses-for-sale/1" },
   { label: "Sell", name: "horse-book", to: "/sell" },

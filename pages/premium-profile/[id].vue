@@ -19,10 +19,10 @@
 <script setup>
 import BreederProfile from "@/components/BreederProfile.vue"; // Adjust the path based on your project structure
 import ContactDetailHorse from "@/components/ContactDetailHorse.vue";
-import { decryptNumber } from "/assets/js/functions";
+import { parseRouteId } from "/assets/js/functions";
 const route = useRoute();
 
-const id = decryptNumber(route.params.id, import.meta.env.VITE_ENCRYPT_KEY);
+const id = parseRouteId(route.params.id);
 // Send data to breeder profile
 
 const { data: breederHorses } = await useFetch("/api/storehorses", {

@@ -26,10 +26,7 @@
         </p>
       </div>
       <NuxtLink
-        :to="
-          '/horses-for-sale/detail-of-horse-sales/' +
-          encryptDataUrl(horse.horse_id)
-        "
+        :to="'/horses-for-sale/detail-of-horse-sales/' + horse.horse_id"
       >
         <div
           class="absolute inset-x-0 top-0 flex h-72 items-end justify-end overflow-hidden rounded-lg p-4"
@@ -48,10 +45,6 @@
 </template>
 
 <script setup>
-import { formatPrice, encryptData } from "../assets/js/functions";
+import { formatPrice } from "../assets/js/functions";
 const props = defineProps(["horse"]);
-
-const encryptDataUrl = (id) => {
-  return encryptData(id, import.meta.env.VITE_ENCRYPT_KEY);
-};
 </script>

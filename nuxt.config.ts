@@ -34,7 +34,6 @@ export default defineNuxtConfig({
   // Nitro registers automatically. See ADR-007.
   runtimeConfig: {
     DATABASE_URL: process.env.DATABASE_URL,
-    VITE_ENCRYPT_KEY: process.env.VITE_ENCRYPT_KEY,
     VITE_HOST: process.env.VITE_HOST,
     VITE_API_SERVER_URL: process.env.VITE_API_SERVER_URL,
     VITE_JWT_SECRET: process.env.VITE_JWT_SECRET,

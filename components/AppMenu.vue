@@ -185,17 +185,15 @@
   
 <script setup>
 import { ref } from "vue";
-import { encryptData } from "/assets/js/functions";
 const nav = ref([
   { label: "Home", to: "/" },
   {
     label: "Premium profile 0",
-    to: "/premium-profile/" + encryptData(14, import.meta.env.VITE_ENCRYPT_KEY),
+    to: "/premium-profile/14",
   },
   {
     label: "Premium profile 1",
-    to:
-      "/premium-profile1/" + encryptData(14, import.meta.env.VITE_ENCRYPT_KEY),
+    to: "/premium-profile1/14",
   },
   { label: "Buy", name: "buy", to: "/horses-for-sale/1" },
   { label: "List", name: "list", to: "/horses-sale/horsessalelist" },
