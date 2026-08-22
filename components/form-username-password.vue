@@ -1,5 +1,38 @@
 <template>
   <form class="mt-10 mx-5 w-full" @submit.prevent="fetchUserInfo">
+    <!-- Account choice -->
+    <fieldset class="mb-6">
+      <div class="flex items-center gap-8">
+        <label
+          for="mode-existing"
+          class="flex items-center gap-2 text-sm leading-6 text-gray-900"
+        >
+          <input
+            v-model="user.mode"
+            type="radio"
+            id="mode-existing"
+            name="account-mode"
+            value="existing"
+            class="h-4 w-4 border-gray-300 text-sky-700 focus:ring-sky-500"
+          />
+          I already have an account
+        </label>
+        <label
+          for="mode-new"
+          class="flex items-center gap-2 text-sm leading-6 text-gray-900"
+        >
+          <input
+            v-model="user.mode"
+            type="radio"
+            id="mode-new"
+            name="account-mode"
+            value="new"
+            class="h-4 w-4 border-gray-300 text-sky-700 focus:ring-sky-500"
+          />
+          I'm new here
+        </label>
+      </div>
+    </fieldset>
     <!-- Email Field -->
     <div class="flex items-center mb-6">
       <label for="email" class="text-sm leading-6 text-gray-900 mr-4 w-32">
@@ -43,19 +76,21 @@
     </div>
   </form>
 </template>
-    
+
 <script setup>
 import { reactive } from "vue";
 
 const emit = defineEmits(["getUserNamePassword"]);
 
+// The fields start empty on purpose: defaults here ship in the public client
+// bundle, and this component used to carry a working-looking credential pair
+// as its initial state (HOR-98).
 const user = reactive({
-  email: "inf01@gmail.com",
-  password: "userPassword123",
+  email: "",
+  password: "",
+  mode: "existing",
 });
 const fetchUserInfo = () => {
   emit("getUserNamePassword", user);
 };
 </script>
-      
-      

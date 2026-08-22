@@ -231,13 +231,13 @@ of them is abandoned residue.
 |---|---|---|
 | `access_tokens` | **ACTIVE** | `login.post.ts:48`, `refresh-token.post.ts:50` — written and never read; see the closing note below |
 | `refresh_tokens` | **ACTIVE** | `login.post.ts:60`, `refresh-token.post.ts:14` (read and write) |
-| `scopes` | **ACTIVE** | `sign-up.post.ts:79`, `user.post.ts:79`, `user-info.post.ts:62,69` |
-| `user_roles` | **ACTIVE** | `sign-up.post.ts:69`, `user.post.ts:69`, `user-info.post.ts:77`, `middleware/auth.ts:18` |
-| `user_role_scope` | **ACTIVE** | `sign-up.post.ts:89`, `user.post.ts:89` |
+| `scopes` | **ACTIVE** | `sign-up.post.ts:79`, `user-info.post.ts:62,69` (a third citation, `user.post.ts`, was removed by HOR-98) |
+| `user_roles` | **ACTIVE** | `sign-up.post.ts:69`, `user-info.post.ts:77`, `middleware/auth.ts:18` (a fourth citation, `user.post.ts`, was removed by HOR-98) |
+| `user_role_scope` | **ACTIVE** | `sign-up.post.ts:89` (a second citation, `user.post.ts`, was removed by HOR-98) |
 | `areas` | **ACTIVE** | `server/api/areas.post.ts:11`, consumed by `pages/sell.vue:415`; public in `apiAccessPolicy.ts:54`; FK target of `users_has_storehorse.area_id` |
 | `vendor` | **ACTIVE** | `server/api/vendor.post.ts:11`, consumed by `pages/vendor.vue:163`; public in `apiAccessPolicy.ts:48`; listed as an anonymous submission form in [ADR-007](../adr/ADR-007-api-authentication-trust-boundary.md) |
 | `clients` | **PARTIALLY IMPLEMENTED** | Designed as the OAuth client registry; FK target of all three token tables. No server consumer exists |
-| `authorization_codes` | **PARTIALLY IMPLEMENTED** | `pages/callback.vue` is a complete authorization-code callback, but the endpoint it calls does not exist |
+| `authorization_codes` | **PARTIALLY IMPLEMENTED** | Designed as OAuth authorization-code storage. Its only consumer, `pages/callback.vue`, called an endpoint that never existed and was removed by HOR-98; like `clients`, the model now has no consumer |
 | `sellers` | **PLANNED-FUTURE** | Designed with a `users` FK and referenced by `storehorse.seller_id`; carries hand-written developer comments in `schema.prisma`; no consumer |
 | `horse_views` | **PLANNED-FUTURE** | Designed with a `storehorse` FK and a hand-written comment; no consumer |
 
