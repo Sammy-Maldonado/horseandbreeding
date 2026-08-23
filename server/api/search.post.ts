@@ -1,8 +1,9 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient, Prisma } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { activeHorseFilter } from "../utils/storehorse-compat";
 import { parseSearchQuery } from "../utils/searchQuery";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 const buildSelect = () => {
   return {

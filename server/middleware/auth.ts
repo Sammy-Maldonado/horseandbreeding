@@ -1,9 +1,10 @@
 import { defineEventHandler } from "h3";
 import { verifyToken } from "../utils/verifyToken";
 import { H3Event } from "h3"; // Import types for H3 event
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import type { UserData } from "../utils/types";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 export default defineEventHandler(async (event: H3Event) => {
   const { headers } = event.req;

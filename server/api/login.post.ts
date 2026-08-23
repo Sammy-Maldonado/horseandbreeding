@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import bcrypt from "bcrypt";
 import { createError, defineEventHandler, readBody } from "h3";
 
@@ -6,7 +7,7 @@ import { ACCESS_TOKEN_TTL_SECONDS, issueAccessToken } from "../utils/accessToken
 import { PublicError, toPublicErrorResponse } from "../utils/publicError";
 import { createRefreshSession } from "../utils/refreshSession";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 // One message for both "no such email" and "wrong password", so a caller
 // cannot use the response to discover which addresses are registered.

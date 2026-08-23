@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, isError } from "h3";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
 import {
@@ -6,7 +7,7 @@ import {
   horseStatusSelect
 } from "../utils/storehorse-compat";
 import { parseHorseIds } from "../utils/horseIds";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 const cleanDiscipline = (disciplines: any[]): any[] => {
   if (disciplines) {

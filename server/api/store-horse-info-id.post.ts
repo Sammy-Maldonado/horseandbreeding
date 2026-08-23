@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { title } from "process";
 import { createError, isError } from "h3";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 const buildSelect = () => {
    

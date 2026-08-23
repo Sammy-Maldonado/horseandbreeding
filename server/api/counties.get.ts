@@ -1,7 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, defineEventHandler } from "h3";
  
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 export default defineEventHandler(async(event) => {
     try {
         const response = await prisma.counties.findMany(

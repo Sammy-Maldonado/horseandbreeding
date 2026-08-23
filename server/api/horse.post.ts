@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, isError } from "h3";
 import {
   buildSelect,
@@ -11,7 +12,7 @@ import {
 } from "../utils/storehorse-compat";
 import { parseHorseIds } from "../utils/horseIds";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 async function findFirstAncestor(
   id: any,

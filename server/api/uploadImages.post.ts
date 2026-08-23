@@ -6,9 +6,10 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { PublicError, toPublicErrorResponse } from "../utils/publicError";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 // Define an interface for the expected structure
 interface ParseResult {
   fields: Record<string, any>; // Replace 'any' with a more specific type if known
