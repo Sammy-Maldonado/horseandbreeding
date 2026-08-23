@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.11](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.10...v1.3.11) (2026-08-23)
+
+
+### Bug Fixes
+
+* **report:** report a failed pedigree lookup instead of swallowing it (HOR-116) ([97f340b](https://github.com/Sammy-Maldonado/horseandbreeding/commit/97f340b19d36a9f4fc92c4515d81e3761b343550))
+* **search:** refuse a malformed search request instead of answering 500 (HOR-116) ([745c70e](https://github.com/Sammy-Maldonado/horseandbreeding/commit/745c70e846c7f78fe9bb440ce19ffae8f781786d))
+
 ## [1.3.10](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.9...v1.3.10) (2026-08-22)
 
 
