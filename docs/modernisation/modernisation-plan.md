@@ -1204,8 +1204,33 @@ Progress:
   ids are **identifiers, not authorisation** — access control stays at the API and auth
   boundary, where HOR-95's role-scoped enforcement is unchanged. No advisory was fixed or
   introduced; the `crypto-js` path carried none.
-- **US-094 (HOR-89) remains PAUSED.** US-095 was authorised and completed ahead of it at
-  Sammy's direction; Stage J children are not strictly sequential.
+- **US-094 (HOR-89) — complete, as a removal rather than a migration.** The stage-start
+  target revalidation (Context7 first, corroborated against the upstream repository,
+  primeui.dev and registry data) invalidated the item's premise twice over. First,
+  **PrimeVue v5 is no longer open source**: `primevue@5.0.1`, `@primevue/nuxt-module@5.0.1`
+  and `@primeuix/themes@3.0.0` ship under the commercial PrimeUI licence, with no free LTS
+  line and no published maintenance commitment for v4; existing MIT versions remain MIT
+  forever. Second, the exhaustive consumer audit proved the repository has **zero PrimeVue
+  consumers**: no components (the generated manifest held only `RouterLink`/`RouterView`,
+  which `vue-router` registers at runtime), no directives, composables, theme imports or
+  plugin registration, and zero PrimeVue bytes in the built `.output`. The only wiring was
+  dead: the Nuxt module commented out of `modules`, a `PrimeVueResolver` registration whose
+  resolver only ever resolved PrimeVue components, and an `optimizeDeps` include for a
+  package nothing imported — with `unplugin-vue-components` and
+  `@primevue/auto-import-resolver` reaching the config **undeclared**, resolving only
+  transitively through the commented-out module (the Stage D loose end recorded in §9).
+  Sammy approved deletion over migration, the HOR-59 precedent applied to a whole library:
+  no PrimeVue runtime capability is required by the product, so **no Community-vs-Commercial
+  licensing decision was made or needed**, and no v5 licence was adopted to modernise unused
+  code. The removal deleted `primevue`, `@primevue/nuxt-module` and the deprecated
+  `@primevue/themes` from `package.json`, the dead wiring from `nuxt.config.ts`, and a
+  commented resolver import from `pages/add.vue` — 228 lockfile-inclusive deletions, zero
+  additions, 19 packages out of the store including the undeclared transitive pair, whose
+  re-audit confirmed no non-PrimeVue responsibility. Every gate matched the baseline
+  exactly: same test count green, byte-identical build size, zero `primevue`/`primeuix`
+  occurrences across source and `.output`, a clean `--frozen-lockfile` install, and
+  `pnpm-lock.yaml` still the only lockfile. No advisory was fixed or introduced; the
+  PrimeVue path carried none.
 - Later children are **not started**. Sammy authorises each child individually; finishing
   one child is not authorisation to begin the next (§14).
 
