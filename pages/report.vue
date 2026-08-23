@@ -122,7 +122,6 @@ const search = ref("59295");
 const isError = ref(-1); // To track if it's an error message
 const message = ref(""); // To store success/error messages
 
-const error = ref(null);
 const pending = ref(false);
 const _competitionHistory = ref([]);
 
@@ -139,7 +138,6 @@ if (!isLoggedIn()) {
 }
 async function fetchHorse() {
   pending.value = true;
-  error.value = null;
   fetchPedigree();
   try {
     _competitionHistory.value = [];
@@ -178,7 +176,6 @@ async function fetchHorse() {
     }
   } catch (err) {
     console.log("Error horse competition history", err);
-    error.value = err;
   } finally {
     pending.value = false;
   }
