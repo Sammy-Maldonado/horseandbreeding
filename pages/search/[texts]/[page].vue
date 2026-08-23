@@ -22,7 +22,14 @@ import { fetchDataMethodPost } from "../../../assets/js/functions";
 const route = useRoute();
 
 const searchText = ref(route.params.texts || ""); // Search query from URL
-const currentPage = ref(route.params.page || 0); // Current page from URL
+
+// A URL segment is always a string, so the page number stops being a URL here
+// and becomes a number once, at this boundary. Every consumer downstream then
+// does real arithmetic: `page - 1` already worked by accident, because `-`
+// coerces, but `page + 1` concatenated instead of adding and sent Next to the
+// wrong page. `type: Number` on the prop cannot fix that either — a prop type
+// is a runtime check, not a conversion (HOR-119).
+const currentPage = ref(Number(route.params.page || 0)); // Current page from URL
 const data = ref([]);
 
 const fetchSearch = async () => {
