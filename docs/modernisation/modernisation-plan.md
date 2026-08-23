@@ -1231,6 +1231,50 @@ Progress:
   occurrences across source and `.output`, a clean `--frozen-lockfile` install, and
   `pnpm-lock.yaml` still the only lockfile. No advisory was fixed or introduced; the
   PrimeVue path carried none.
+- **US-096 (HOR-91) — complete.** Prisma 6.19.3 → 7.9.1, `prisma` and `@prisma/client`
+  in lockstep, under **ADR-015** as the stage demanded. Sammy approved 7.9.1 as an
+  explicit target exception — the newest stable line at child start, with the Prisma 8
+  prerelease excluded by §14; the general LTS policy is unchanged. Prisma 7 replaces the
+  Rust query engine with a TypeScript query compiler and makes **driver adapters**
+  mandatory, so the child added exactly two runtime dependencies:
+  `@prisma/adapter-mariadb` 7.9.1 (lockstep) and its driver `mariadb`, pinned exact at
+  3.4.5 after Context7 revalidation. The deprecated `prisma-client-js` generator was
+  replaced by the modern `prisma-client` generator (kept only to minimise the diff it
+  would have been — Sammy chose the target architecture instead); the client now
+  generates to `generated/prisma/`, is **gitignored**, and is regenerated
+  deterministically by the existing `postinstall` (`prisma generate`) — proven
+  hash-identical across regenerations. v7 no longer auto-loads `.env`, so a new
+  `prisma.config.ts` loads it via `process.loadEnvFile()` and declares its datasource
+  **conditionally**, keeping `prisma generate` working in clean CI with no
+  `DATABASE_URL` at all — without inventing a fake one. The schema diff is two lines:
+  the generator block, and the datasource `url` line that moved into the config. All 44
+  client-owning server files were rewired mechanically (new import path, adapter
+  injection); the per-request ownership pattern itself was deliberately **not**
+  refactored. Adapter pool settings were set consciously to v6 parity (connection limit
+  10, connect timeout 5 s, acquire timeout 10 s, idle timeout 300 s) rather than
+  inheriting the adapter's defaults. Two behavioural contracts were protected with new
+  tests (13 added): the adapter helper's URL parsing and lifecycle, and the **Bytes
+  contract** — v7 returns plain `Uint8Array` where v6 returned Node `Buffer`, which
+  changes the JSON wire shape `decodedNotes()` depends on, so the one serving raw-query
+  path (`server/api/storehorses.post.ts`) restores the Buffer shape at the boundary
+  (`server/utils/rawQueryBytes.ts`); the auth `token_hash` path needed nothing, as it
+  never serialises Bytes to a client. The v7 CLI's flag rename was absorbed by the three
+  schema-gate tests (`--to-schema-datamodel` → `--to-schema`, see testing-strategy §11).
+  One platform defect surfaced: Nitro bundles the generated client and rewrites
+  `import.meta.url`, whose virtual value crashes the client's `__dirname` shim on
+  Windows at startup (`ERR_INVALID_FILE_URL_PATH`); a dependency-free inline Rollup
+  transform in `nuxt.config.ts` guards that one statement, POSIX behaviour unchanged.
+  **This child also closed the §10 crossing**: with the client out of `node_modules`,
+  the `node-linker=hoisted` premise died, and `.npmrc` was deleted after a consumer
+  audit — a clean `--frozen-lockfile` install under pnpm's default isolated layout
+  passed every gate. `hbold` was never mutated; the schema↔database residual diff is
+  **byte-identical before and after** — the same 19 deferred legacy statements — and
+  `migrate status` stays clean. Gates: 36 test files / 438 tests green (baseline 34/425
+  plus the 13 new, no reduction), production build green, core regression against
+  `hbold` green (search → pedigree → maternal line → progeny → breeder horses), failure
+  responses scanned — no Prisma class names, SQL, connection details or stack traces
+  leak to clients. No advisory was fixed or introduced: the 6 pre-existing high
+  advisories in the Nuxt build toolchain are untouched and unrelated.
 - Later children are **not started**. Sammy authorises each child individually; finishing
   one child is not authorisation to begin the next (§14).
 
