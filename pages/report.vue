@@ -187,7 +187,7 @@ const pedigrees = ref([]);
 const fetchPedigree = async () => {
   const url = "/api/pedigree";
   try {
-    const { data: fetchData, erro: fetchError } = await useFetch(url, {
+    const { data: fetchData, error: fetchError } = await useFetch(url, {
       method: "POST",
       body: JSON.stringify({ id: search.value, level: 3 }),
       headers: {
@@ -195,6 +195,18 @@ const fetchPedigree = async () => {
       },
       transform: (data) => JSON.parse(data.body),
     });
+    // `erro` was not a property of what `useFetch` returns, so this binding was
+    // permanently undefined and nothing read it. A failed request is reported
+    // through `error` and does not throw, so the catch below never saw one and
+    // the failure was reported nowhere at all (HOR-116).
+    //
+    // This page has no error surface of its own to route a pedigree failure to
+    // — the alert above belongs to `fetchHorse`, which runs concurrently — so
+    // the failure goes to the diagnostic path this function already uses, the
+    // same way the sibling horse-detail pages report theirs (HOR-108).
+    if (fetchError.value) {
+      console.error("Error fetching pedigree:", fetchError.value);
+    }
     // A failed pedigree lookup now leaves the payload null instead of the
     // error-shaped object the fake 200 carried, and the template indexes this
     // list directly. An empty list keeps that lookup safe (HOR-96).
