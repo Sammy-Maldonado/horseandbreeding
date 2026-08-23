@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import { activeHorseFilter } from "../utils/storehorse-compat";
+import { parseSearchQuery } from "../utils/searchQuery";
 
 const prisma = new PrismaClient();
 
@@ -42,7 +43,7 @@ const buildSelect = () => {
   };
 };
 
-const searchHorses = async (select: any, name: string, offSet: any) => {
+const searchHorses = async (select: any, name: string, offSet: number) => {
   const conditions: Prisma.storehorseWhereInput[] = [];
 
   // Add name condition if provided
@@ -74,19 +75,25 @@ export default defineEventHandler(async (event) => {
     // @ts-ignore1
     const body = await readBody(event);
 
-    if (!body.search && !body.page) {
-      // A required field is missing from the request: that is the caller's
-      // mistake, not a server failure (HOR-96).
+    // The request used to be validated by truthiness and parsed by coercion:
+    // `if (!body.search && !body.page)` let a request with no offset through,
+    // and `Number(undefined)` reached Prisma as `NaN`, turning the caller's
+    // mistake into a 500. The grammar now answers before any query is built,
+    // so nothing malformed reaches the database (HOR-116, after HOR-103).
+    const parsed = parseSearchQuery(body);
+    if (!parsed.ok) {
+      // A malformed request is the caller's mistake, not a server failure
+      // (HOR-96). The reason is the parser's own constant sentence, so nothing
+      // the caller sent travels back out inside it (HOR-99).
       throw createError({
         statusCode: 400,
         statusMessage: "Bad Request",
-        message: "Error the data define"
+        message: parsed.reason
       });
     }
-    const { page, search } = body;
 
     let select = buildSelect();
-    const data = await searchHorses(select, search, Number(page));
+    const data = await searchHorses(select, parsed.search, parsed.offset);
     return {
       status: 200,
       //   body:data,
