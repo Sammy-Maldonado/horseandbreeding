@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.12](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.11...v1.3.12) (2026-08-23)
+
+
+### Bug Fixes
+
+* **report:** remove the error state nothing ever read (HOR-119) ([77b4415](https://github.com/Sammy-Maldonado/horseandbreeding/commit/77b44152a88473033deb6bfdd54109a52df4d260))
+* **search:** read the route page as a number so Next advances by one (HOR-119) ([0dc602a](https://github.com/Sammy-Maldonado/horseandbreeding/commit/0dc602a52678e7ae1b4fd609156a4de4881dd587))
+
 ## [1.3.11](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.10...v1.3.11) (2026-08-23)
 
 
