@@ -46,7 +46,40 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    // Removed middleware as discussed earlier
+    rollupConfig: {
+      plugins: [
+        {
+          // Prisma 7's generated client (generated/prisma/client.ts) opens with
+          // `globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))`.
+          // Nitro bundles the generated client into the server chunk and rewrites
+          // `import.meta.url` to the virtual `file:///_entry.js`, which
+          // `fileURLToPath` rejects on Windows (ERR_INVALID_FILE_URL_PATH),
+          // crashing the production server at startup. The Prisma runtime never
+          // reads that global — its own per-module banner defines `__dirname` —
+          // so the assignment is guarded, not removed: on POSIX it still runs
+          // exactly as generated. No dependency added. See ADR-015 (HOR-91).
+          name: "prisma-generated-client-dirname-guard",
+          transform(code: string, id: string) {
+            if (!id.split("\\").join("/").includes("generated/prisma/client.")) {
+              return null;
+            }
+            const shim =
+              /globalThis\[["']__dirname["']\]\s*=\s*path\.dirname\(\s*fileURLToPath\(\s*(?:import\.meta\.url|globalThis\._importMeta_\.url)\s*\)\s*\)/;
+            if (!shim.test(code)) {
+              return null;
+            }
+            return {
+              code: code.replace(
+                shim,
+                (match) =>
+                  `try { ${match} } catch { /* virtual bundle URL — __dirname unused by the Prisma runtime */ }`
+              ),
+              map: null,
+            };
+          },
+        },
+      ],
+    },
   },
   vite: {
     cacheDir: ".vite-cache", // Set a custom cache directory or use default
