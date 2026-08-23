@@ -145,7 +145,7 @@ describe("schema-declared status column", () => {
         "migrate",
         "diff",
         "--from-empty",
-        "--to-schema-datamodel",
+        "--to-schema",
         SCHEMA_PATH,
         "--script",
       ],
