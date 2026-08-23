@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.10](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.9...v1.3.10) (2026-08-22)
+
+
+### Bug Fixes
+
+* **pages:** report the real /api/horse failure in getCompetitionHistory (HOR-108) ([60ad408](https://github.com/Sammy-Maldonado/horseandbreeding/commit/60ad4084a248caf1ad9a812ec3cda6b40f6eac21))
+
 ## [1.3.9](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.8...v1.3.9) (2026-08-22)
 
 
