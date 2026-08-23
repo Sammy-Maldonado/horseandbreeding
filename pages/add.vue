@@ -473,7 +473,6 @@ import { reactive } from "vue";
 import { fetchWithToken, isLoggedIn } from "@/composables/tokenManager";
 import { fetchDataMethodPost } from "../assets/js/functions";
 
-// import PrimeVueResolver from "@primevue/auto-import-resolver";
 const text = ref("");
 
 const isError = ref(-1); // To track if it's an error message
