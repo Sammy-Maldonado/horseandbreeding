@@ -1,7 +1,5 @@
 // nuxt.config.ts
-import Components from "unplugin-vue-components/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { PrimeVueResolver } from "@primevue/auto-import-resolver";
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
@@ -28,7 +26,6 @@ export default defineNuxtConfig({
   modules: [
     "@vee-validate/nuxt", // Add any other modules here as needed
     "nuxt-file-storage"
-    // "@primevue/nuxt-module"
   ],
   // Access to /api is governed by server/middleware/apiAccessControl.ts, which
   // Nitro registers automatically. See ADR-007.
@@ -54,17 +51,12 @@ export default defineNuxtConfig({
   vite: {
     cacheDir: ".vite-cache", // Set a custom cache directory or use default
     optimizeDeps: {
-      include: ["primevue"],
       exclude: ["vee-validate"]
     },
 
     plugins: [
-      Components({
-        resolvers: [PrimeVueResolver()]
-      }),
       // Tailwind 4's official integration. It replaces `@nuxtjs/tailwindcss`,
       // which cannot resolve Tailwind 4 and still depends on a Nuxt 3 kit.
-      // Appended to the existing plugins — this array is not Tailwind's.
       // See ADR-009.
       tailwindcss()
     ]
