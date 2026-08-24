@@ -18,6 +18,9 @@ python --version
 The authoritative pnpm version is the one declared in `package.json` under
 `packageManager` — see [ADR-004](../adr/ADR-004-pnpm-package-manager.md).
 
+`python` is required only by the extractor, never by the Nuxt application. Its supported
+line is recorded in section 10.
+
 ---
 
 ## 2. Install Node Dependencies
@@ -351,6 +354,29 @@ python extractor/parse_dams.py <catalogue.docx> > out.json
 
 Its only third-party dependency is `python-docx`, pinned in
 `extractor/requirements.txt`; everything else it uses is Python standard library.
+
+### Supported interpreter and dependency
+
+The extractor targets the **Python 3.14 line**. The durable rule is to run the **current
+supported 3.14 patch** — patch releases are security and bug fixes, so staying on the
+newest one is the supported position, and no repository file pins a patch.
+
+`python-docx` is pinned to the exact version verified against that interpreter. The pin
+is a repository dependency and moves only through its own Linear issue; the interpreter
+patch is a machine-level concern and is not managed by this repository — there is no
+`pyenv`, `.python-version`, `uv` or `tox` configuration here.
+
+Checked during HOR-93 (2026-08-24):
+
+| Item | State |
+|---|---|
+| `python-docx` declared | `1.2.0` — the current release; `requires-python >=3.9` |
+| Current supported 3.14 patch | `3.14.7` (released 2026-08-05) |
+| Interpreter on the development machine | `3.14.5` — two patches behind |
+
+Aligning the development machine to the current 3.14 patch is a local install, outside
+this repository. It changes no tracked file and needs no code change: `python-docx 1.2.0`
+already supports it.
 
 Input documents live under:
 

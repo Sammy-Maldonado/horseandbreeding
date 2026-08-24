@@ -23,10 +23,7 @@ export default defineNuxtConfig({
   // block here any more. Nuxt's own Vite builder already applies `autoprefixer`
   // and `cssnano` by default, which is what the removed block was duplicating.
   // See ADR-009.
-  modules: [
-    "@vee-validate/nuxt", // Add any other modules here as needed
-    "nuxt-file-storage"
-  ],
+  modules: [],
   // Access to /api is governed by server/middleware/apiAccessControl.ts, which
   // Nitro registers automatically. See ADR-007.
   runtimeConfig: {
@@ -83,9 +80,6 @@ export default defineNuxtConfig({
   },
   vite: {
     cacheDir: ".vite-cache", // Set a custom cache directory or use default
-    optimizeDeps: {
-      exclude: ["vee-validate"]
-    },
 
     plugins: [
       // Tailwind 4's official integration. It replaces `@nuxtjs/tailwindcss`,
