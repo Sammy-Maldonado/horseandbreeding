@@ -23,9 +23,7 @@ export default defineNuxtConfig({
   // block here any more. Nuxt's own Vite builder already applies `autoprefixer`
   // and `cssnano` by default, which is what the removed block was duplicating.
   // See ADR-009.
-  modules: [
-    "nuxt-file-storage" // Add any other modules here as needed
-  ],
+  modules: [],
   // Access to /api is governed by server/middleware/apiAccessControl.ts, which
   // Nitro registers automatically. See ADR-007.
   runtimeConfig: {
