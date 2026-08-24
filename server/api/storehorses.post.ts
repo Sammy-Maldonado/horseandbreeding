@@ -1,7 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
+import { bufferiseBytesColumn } from "../utils/rawQueryBytes";
 import { createError, isError } from "h3";
 // import { VercelRequest, VercelResponse } from "@vercel/node";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 // @ts-ignore
 export default defineEventHandler(async (event) => {
   try {
@@ -53,9 +55,15 @@ export default defineEventHandler(async (event) => {
       breeder ON card_trick.breederid = breeder.id
     WHERE
       card_trick.breederid = ${breederId};`;
+    // Prisma 7 returns Uint8Array for the Bytes `notes` column; restore the
+    // v6 Buffer JSON shape decodedNotes() depends on (see rawQueryBytes.ts).
+    const rows = bufferiseBytesColumn(
+      apiResponse as Array<Record<string, unknown>>,
+      "notes",
+    );
     return {
       status: 200,
-      body: JSON.stringify( apiResponse),
+      body: JSON.stringify(rows),
     };
   } catch (error) {
     // A deliberate HTTP error keeps the status it was raised with;

@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import bcrypt from "bcrypt";
 import { createError, defineEventHandler } from "h3";
 
@@ -9,7 +10,7 @@ import {
 } from "../utils/publicError";
 import { registerUser } from "../utils/registration";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 // Function to hash a password
 const saltRounds = 10; // Determines the complexity of the hashing
 async function hashPassword(password: any) {

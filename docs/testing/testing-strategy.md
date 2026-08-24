@@ -293,12 +293,16 @@ Binding rules for any change to `prisma/schema.prisma`:
   it was what the function emitted. Generate the migration SQL and assert on that.
 - **`prisma validate` alone is never sufficient evidence.** Neither is `prisma generate`.
   Both can succeed against a schema that produces unusable SQL.
-- **Use `prisma migrate diff --from-empty --to-schema-datamodel`** to produce that SQL. It
+- **Use `prisma migrate diff --from-empty --to-schema`** to produce that SQL. It
   needs **no database connection**, which is what makes it usable as an ordinary `node`
-  test rather than an integration test.
+  test rather than an integration test. (Prisma 7 renamed the flag from the earlier
+  `--to-schema-datamodel`; the command is otherwise unchanged.)
 - **Point `DATABASE_URL` at a deliberately unreachable address in such a test.** If a
   regression ever makes the diff require a live connection, the test must fail rather than
-  silently start depending on a developer's local MariaDB.
+  silently start depending on a developer's local MariaDB. Under Prisma 7 this variable
+  also makes `prisma.config.ts` declare its datasource — without it the config omits the
+  datasource block and `migrate diff` exits 0 with an **empty** script instead of the
+  schema's SQL, which would pass a naive gate while asserting nothing.
 - **Prove the gate fails.** Restore the previous schema and confirm the test goes RED. A
   gate that has never failed is not known to protect anything (section 13).
 - **Applying generated SQL for verification targets a disposable database only.** Never

@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, defineEventHandler, readBody } from "h3";
 import { toPublicErrorResponse, ValidationError } from "../utils/publicError";
 import { ensureHasRoleAndScope } from "../utils/requireAuthorization";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 const validateFields = (data: any) => {
   const {
     ad_title,

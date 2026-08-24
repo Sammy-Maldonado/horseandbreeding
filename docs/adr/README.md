@@ -22,6 +22,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-012](ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md) | Version schema evolution with a faithful Prisma Migrate baseline and modernise engines in staged InnoDB waves | Accepted |
 | [ADR-013](ADR-013-modern-authentication-architecture.md) | Stateless short-lived access JWTs and rotating digest-only refresh sessions; drop the write-only `access_tokens` store | Accepted |
 | [ADR-014](ADR-014-storehorse-status-backfill-and-probe-retirement.md) | Backfill `storehorse.status` to `NOT NULL DEFAULT 1`, fix the reconciled `1`/`-1` semantics, and retire the ADR-006 runtime probe | Accepted |
+| [ADR-015](ADR-015-prisma-7-driver-adapter-architecture.md) | Adopt the Prisma 7 driver-adapter architecture: modern ESM client generation, unversioned generated client, direct MariaDB driver adapter, `prisma.config.ts`, hoisted-linker retirement | Accepted |
 
 ## Writing a new ADR
 

@@ -198,6 +198,15 @@ Full baseline and schema-drift detail: [hbold-baseline.md](../data/hbold-baselin
 
 ## 7. Safe Prisma Introspection
 
+Prisma 7 notes (ADR-015): the CLI no longer auto-loads `.env` — the repository's
+`prisma.config.ts` loads it and declares the datasource, so every `pnpm exec prisma …`
+command below works exactly as before as long as `.env` exists. The client is generated
+into `generated/prisma/`, which is **gitignored**; `pnpm install` regenerates it via the
+`postinstall` script, so a fresh clone needs no extra step. Inside `postinstall`,
+`nuxt prepare` runs **before** `prisma generate`: the v7 CLI loads `prisma.config.ts`
+through the root `tsconfig.json`, which extends `./.nuxt/tsconfig.json` — a file that
+only exists once `nuxt prepare` has created it.
+
 Safe — prints to stdout, leaves the versioned schema untouched:
 
 ```bash
