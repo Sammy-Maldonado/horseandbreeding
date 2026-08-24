@@ -1275,8 +1275,43 @@ Progress:
   responses scanned — no Prisma class names, SQL, connection details or stack traces
   leak to clients. No advisory was fixed or introduced: the 6 pre-existing high
   advisories in the Nuxt build toolchain are untouched and unrelated.
-- Later children are **not started**. Sammy authorises each child individually; finishing
-  one child is not authorisation to begin the next (§14).
+- **US-097 (HOR-92) — complete.** MariaDB 10.11 LTS → **12.3 LTS** for the local
+  reference environment, under **ADR-016**. The stage-start revalidation (Context7 plus
+  the official MariaDB release and lifecycle sources) mapped the candidate lines — 11.4
+  (older, ends before 12.3), 11.8 (shortest runway of all candidates), 12.3 (newest
+  LTS, maintained to mid-2029), 13.x (rolling, excluded by policy) — and Sammy chose
+  12.3. Durable references name the **line**; the runbook pins the series tag
+  `mariadb:12.3`, and the container plus image digest own the exact patch (the tag
+  resolved to 12.3.2 at migration time). The migration was **side-by-side, never
+  in-place**: the old `hb-mysql` sat on an anonymous volume, and MariaDB supports no
+  downgrade after a system-table upgrade, so starting the new image over that volume
+  would have destroyed the only live rollback. Instead: a fresh
+  checksum-verified `--databases` dump of the current `hbold` (restore-proven before
+  use), a disposable 12.3 environment on its own port and named volume, and the full
+  gate battery there before any cutover — restored-current `migrate status` up to
+  date; a second environment rebuilt from the clean legacy baseline converging through
+  the migration history; a 464-line before/after invariant matrix identical except two
+  explained server-level facts (the 11.8+ `utf8mb4`/`uca1400` server defaults, which
+  table- and column-explicit charsets shield `hbold` from, and 12.3's
+  `transaction_isolation` alias); `CHECKSUM TABLE EXTENDED` identical across all 41
+  tables; `sql_mode` and transaction semantics unchanged with zero config overrides;
+  the schema↔database residual diff **byte-identical across versions** — the same 19
+  deferred legacy statements — and every migration file hash unchanged; the full
+  36-file / 438-test suite and production build green; a 9-test disposable Prisma 7
+  runtime probe (reads, pagination, compound uniques, registration, `P2002`, `Bytes`
+  round-trip, interactive-transaction rollback, refresh-token rotation) green; an
+  18-query production regression battery hash-identical between server lines, with
+  controlled failures leaking no internals. The cutover itself was reversible
+  mechanics: stop and rename the 10.11 container to `hb-mysql-1011-rollback`, bring up
+  the new canonical `hb-mysql` (`mariadb:12.3`, named volume `hb-mysql-123-data`,
+  same credentials — no rotation), restore the verified dump, and verify
+  `SELECT VERSION()` **through the application adapter path** plus the same 18-query
+  battery against the pre-cutover baseline. Rollback was then **tested live** — swap
+  back to 10.11, verify version and row counts, swap forward again. The preserved
+  10.11 container is retained stopped; its removal is a separate decision (ADR-016
+  review trigger). `hbold` content was never mutated: 59,903 horses,
+  identical checksums, `latin1` database default preserved. No Prisma, schema,
+  charset, engine or credential change; no advisory fixed or introduced.
 
 Remaining target versions live in the HOR-83 matrix and are re-validated when each child
 starts (§2).
