@@ -59,6 +59,12 @@ DATABASE_URL="mysql://root:<local-password>@127.0.0.1:3306/hbold"
 The `hbold` dump originates from a MariaDB-family database, so the local instance runs
 MariaDB rather than MySQL 8 — closer to the source, fewer conversion surprises.
 
+Since HOR-92
+([ADR-016](../adr/ADR-016-mariadb-12-3-lts-side-by-side-migration.md)) the canonical
+local server line is **MariaDB 12.3 LTS**. The container image is the series tag
+`mariadb:12.3`, which tracks the newest maintained patch of the line; the running
+container and its image digest are the authority on the exact patch.
+
 Expected container:
 
 ```txt
@@ -82,10 +88,29 @@ Create **only when it does not exist**:
 ```bash
 docker run -d --name hb-mysql \
   -e MARIADB_ROOT_PASSWORD=<local-password> \
-  -e MARIADB_DATABASE=hbold \
   -p 3306:3306 \
-  mariadb:10.11
+  -v hb-mysql-123-data:/var/lib/mysql \
+  mariadb:12.3
 ```
+
+Two deliberate differences from the pre-HOR-92 command:
+
+- **No `MARIADB_DATABASE=hbold`.** Since 11.8, MariaDB's server-level default charset
+  is `utf8mb4` with `uca1400` collations, so a database created by the entrypoint would
+  not be `latin1`-default. `hbold` must instead come from restoring the reference dump
+  (§5), whose `CREATE DATABASE` statement carries the correct `latin1` default
+  explicitly.
+- **The data directory lives on the named volume `hb-mysql-123-data`**, not an
+  anonymous one, so the volume lifecycle is explicit and auditable.
+
+### 4.1 The preserved 10.11 rollback container
+
+The pre-migration environment is retained as the stopped container
+**`hb-mysql-1011-rollback`** (image `mariadb:10.11`, anonymous volume, data untouched).
+It is the live rollback source for the HOR-92 migration: rollback is stop the 12.3
+container, rename this one back to `hb-mysql`, and start it — see ADR-016. **Do not
+delete it**; its retention is a separate, explicit decision recorded in ADR-016's
+review triggers.
 
 ---
 
@@ -106,6 +131,13 @@ docker exec -i hb-mysql \
 ```
 
 Restore only into an empty or newly created local database.
+
+> **Since HOR-92** the canonical environment was populated by restoring a fresh,
+> checksum-verified dump of the then-current `hbold` (taken with `--databases`, so it
+> carries the `CREATE DATABASE` statement and the `latin1` database default) into the
+> new 12.3 container. A future rebuild of the 12.3 environment restores a dump of that
+> shape — it does not start from `_legacy/hbold_backup.sql` unless the goal is the
+> clean legacy baseline described in §5.0.
 
 ### 5.0 Since HOR-79 — restore is followed by the migration history
 

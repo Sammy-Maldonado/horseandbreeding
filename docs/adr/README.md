@@ -23,6 +23,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-013](ADR-013-modern-authentication-architecture.md) | Stateless short-lived access JWTs and rotating digest-only refresh sessions; drop the write-only `access_tokens` store | Accepted |
 | [ADR-014](ADR-014-storehorse-status-backfill-and-probe-retirement.md) | Backfill `storehorse.status` to `NOT NULL DEFAULT 1`, fix the reconciled `1`/`-1` semantics, and retire the ADR-006 runtime probe | Accepted |
 | [ADR-015](ADR-015-prisma-7-driver-adapter-architecture.md) | Adopt the Prisma 7 driver-adapter architecture: modern ESM client generation, unversioned generated client, direct MariaDB driver adapter, `prisma.config.ts`, hoisted-linker retirement | Accepted |
+| [ADR-016](ADR-016-mariadb-12-3-lts-side-by-side-migration.md) | Adopt MariaDB 12.3 LTS through a side-by-side container migration with a verified restore; the 10.11 environment is preserved as rollback | Accepted |
 
 ## Writing a new ADR
 
