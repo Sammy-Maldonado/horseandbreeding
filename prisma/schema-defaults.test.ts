@@ -18,7 +18,7 @@ import { beforeAll, describe, expect, it } from "vitest";
  * defect is not the function, it is what the function emits. So these tests
  * generate the real artifact — the migration SQL — and assert on that.
  *
- * The diff runs `--from-empty --to-schema-datamodel`, which needs no database
+ * The diff runs `--from-empty --to-schema`, which needs no database
  * connection. `DATABASE_URL` is set to a deliberately unreachable address so a
  * regression that starts requiring a live connection fails here rather than
  * silently depending on a developer's local MariaDB.
@@ -112,7 +112,7 @@ describe("generated migration SQL", () => {
         "migrate",
         "diff",
         "--from-empty",
-        "--to-schema-datamodel",
+        "--to-schema",
         SCHEMA_PATH,
         "--script",
       ],

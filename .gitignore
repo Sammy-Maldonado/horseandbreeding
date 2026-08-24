@@ -36,3 +36,7 @@ data/private/
 # Kept out of git history (~88MB of binaries); only the README is tracked.
 _legacy/*
 !_legacy/README.md
+
+# Prisma 7 generated client (ADR-015): machine-generated, deterministically
+# recreated by postinstall (`prisma generate`); never versioned.
+/generated/prisma/

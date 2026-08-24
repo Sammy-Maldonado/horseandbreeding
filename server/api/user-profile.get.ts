@@ -1,11 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, defineEventHandler, isError } from "h3";
 
 import { PublicError, toPublicErrorResponse } from "../utils/publicError";
 import { ensureAuthenticated } from "../utils/requireAuthorization";
 import { USER_PROFILE_SELECT } from "../utils/userProfile";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 /**
  * The authenticated profile read (HOR-98).

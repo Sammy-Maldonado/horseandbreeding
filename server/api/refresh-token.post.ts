@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, defineEventHandler, isError, readBody } from "h3";
 
 import { ACCESS_TOKEN_TTL_SECONDS, issueAccessToken } from "../utils/accessToken";
@@ -7,7 +8,7 @@ import {
   rotateRefreshSession
 } from "../utils/refreshSession";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 
 // Every way a refresh can be refused looks the same from outside: the caller
 // must sign in again. Which of them happened stays in the server log.
