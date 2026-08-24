@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.13](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.12...v1.3.13) (2026-08-24)
+
+
+### Bug Fixes
+
+* **deps:** run nuxt prepare before prisma generate in postinstall (HOR-91) ([8121e46](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8121e4602f12f7f27f019c45531f3c990867a9a8))
+
 ## [1.3.12](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.11...v1.3.12) (2026-08-23)
 
 
