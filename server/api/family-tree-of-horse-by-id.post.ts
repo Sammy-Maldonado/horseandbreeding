@@ -1,11 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, isError } from "h3";
 import {
   activeHorseFilter,
   horseStatusSelect
 } from "../utils/storehorse-compat";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 async function getDescendantsById(whereFilter: any) {
   const horses = await prisma.storehorse.findMany({
     select: {

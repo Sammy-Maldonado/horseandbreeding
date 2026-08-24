@@ -1,6 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
+import { createMariaDbAdapter } from "../utils/prismaAdapter";
 import { createError, defineEventHandler, isError, readBody } from "h3";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 export default defineEventHandler(async (event) => {
   try {
     const { id } = await readBody(event).catch(() => ({ id: undefined }));

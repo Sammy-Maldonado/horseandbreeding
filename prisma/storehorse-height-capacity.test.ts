@@ -19,7 +19,7 @@ import { beforeAll, describe, expect, it } from "vitest";
  * schema actually produces once Prisma renders it. So these tests generate the
  * real artifact — the DDL `prisma migrate diff` emits — and assert on that.
  *
- * `--from-empty --to-schema-datamodel` needs no database connection.
+ * `--from-empty --to-schema` needs no database connection.
  * `DATABASE_URL` points at a deliberately unreachable address so a regression
  * that starts requiring a live connection fails here rather than silently
  * binding CI to a developer's local MariaDB or to `hbold`.
@@ -86,7 +86,7 @@ describe("generated schema DDL", () => {
         "migrate",
         "diff",
         "--from-empty",
-        "--to-schema-datamodel",
+        "--to-schema",
         SCHEMA_PATH,
         "--script",
       ],
