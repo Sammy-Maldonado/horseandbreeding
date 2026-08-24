@@ -43,7 +43,7 @@
   "devDependencies": {
     "@nuxt/test-utils": "4.1.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multiparty": "^4.2.1",
     "@types/nodemailer": "^8.0.1",
