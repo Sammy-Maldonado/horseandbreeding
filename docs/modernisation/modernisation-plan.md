@@ -93,7 +93,7 @@ are deliberately omitted** and are re-validated when each stage starts.
 | **G** | Nuxt framework major migration — the pivot. Its content-module sub-migration was resolved by removal in HOR-67 and was not part of this stage (§10) | HOR-67, HOR-68 | **Done** |
 | **H** | Tailwind CSS major migration — depends on the build tooling that arrived with Stage G | HOR-69 | **Done** |
 | **I** | Stripe integration modernisation, including replacing the unmaintained module | HOR-72 | **Done** |
-| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | HOR-83 | **In progress** |
+| **J** | Deferred and ADR-heavy items — next Prisma major, MariaDB LTS migration, PrimeVue major, the Stage F libraries that remain below their current line (§9), dead-weight cleanup, advisory sweep, Python patch | HOR-83 | **Done** |
 
 **Order rationale:** external tooling → runtime → hygiene → dead-weight removal → contained
 data layer → contained libraries → framework (the pivot) → CSS → payments → deferred and
@@ -1102,7 +1102,7 @@ authorisation**.
 
 ---
 
-## 13. Current stage — Stage J (in progress)
+## 13. Completed — Stage J (HOR-83)
 
 **Stage J started on 2026-08-17**, authorised by Sammy after the v1.3.1 release cycle
 closed. **HOR-83** (US-088) is the stage umbrella; it owns the refreshed audit matrix, the
@@ -1313,8 +1313,54 @@ Progress:
   identical checksums, `latin1` database default preserved. No Prisma, schema,
   charset, engine or credential change; no advisory fixed or introduced.
 
-Remaining target versions live in the HOR-83 matrix and are re-validated when each child
-starts (§2).
+- **US-098 (HOR-93) — complete.** The closing sweep, run as small attributable slices
+  rather than one blind transaction. **Removals**, each gated on a proven zero-consumer
+  audit before deletion: `axios` (every call site had already moved to Nuxt's own
+  `$fetch`, and nothing replaced its responsibilities), `@vee-validate/nuxt` (the module
+  and only the configuration proven specific to it — no validation logic was touched),
+  the root `postcss` declaration (Tailwind 4 is a Vite plugin under ADR-009 and no file
+  in the repository owns a direct PostCSS responsibility, so the declaration was dead
+  rather than out of date), and the unused `nuxt-file-storage` module. A transitive
+  refresh moved the vulnerable `brace-expansion` and `tar` closures without touching a
+  declared range. **Updates**, one transaction each, every target chosen from the
+  library's own support policy rather than from registry `latest`: `@nuxt/test-utils`
+  4.1.0 — which also dropped the `h3` prerelease its previous line pulled in —
+  `happy-dom` 20.11.6, `vitest` 4.1.11, `vue` 3.5.41, `@stripe/stripe-js` 9.14.0,
+  `@types/bcrypt` 6.0.0 (a types-only major: the new surface compiled with no
+  behavioural change) and `prettier` 3.9.6 with **no repository-wide reformat** — the
+  formatter moved, the formatting did not. **Deliberate keeps:** the `mariadb` driver
+  stays pinned exactly to the version `@prisma/adapter-mariadb` declares, because
+  ADR-015 owns that pin and its review trigger — the adapter changing its own
+  declaration — has not fired; and `vue3-carousel` stays on the 0.4 line. The carousel
+  decision was measured, not assumed: 0.17.0 was installed in a disposable probe and
+  compared against the two consumers in the repository. `wrapAround` now emits clone
+  slides, which changes what an index click means in the gallery's thumbnail strip;
+  upstream's own gallery-with-thumbnails recipe has moved from the `v-for` index to a
+  scoped slot; slide height became a required configuration concept that did not exist
+  in 0.4; and the navigation button metrics changed. There is no automated coverage of
+  either consumer, the live one is a customer-facing screen, and no advisory names the
+  package — so the migration is a **separate, visually verified change**, not a
+  patch-sweep line item. **Advisories went from 8 (7 high, 1 moderate) to 1.** The
+  survivor is `deepmerge-ts`, reached only through `@prisma/config`, which declares it
+  as an exact version rather than a range: no lockfile refresh can move it, no supported
+  Prisma release changes it, and the only alternatives would be an override, a fork or a
+  patch — none of which fix anything, so the risk is accepted rather than silenced. It
+  is toolchain-only in this build — absent from both the client and the server output —
+  and the sole object graph it merges is the repository's own versioned
+  `prisma.config.ts`. **Python:** the extractor's single dependency, `python-docx`, was
+  confirmed to be the current release for the supported interpreter line, so the pin did
+  not move and no extractor behaviour changed. What was missing was the durable rule
+  itself, which now lives in
+  [local-development §10](../runbooks/local-development.md) — the extractor targets the
+  Python 3.14 line and runs its current supported patch, the interpreter is a
+  machine-level concern this repository does not manage, and no tracked file pins a
+  patch.
+
+**Stage J is complete.** All ten children (US-089–US-098) are in `main`, which closes the
+last stage on the map: every stage from A to J is now Done. The deferred and ADR-heavy
+tail no longer exists as modernisation debt. Two dependency items remain deliberately
+open and are tracked outside this stage — the `vue3-carousel` 0.17 migration and the one
+accepted upstream-blocked advisory above.
 
 ---
 
