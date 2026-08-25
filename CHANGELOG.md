@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.14](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.13...v1.3.14) (2026-08-24)
+
+
+### Bug Fixes
+
+* **HOR-93:** refresh vulnerable brace-expansion and tar transitives ([3b3e8be](https://github.com/Sammy-Maldonado/horseandbreeding/commit/3b3e8bec0df78121817207b9a71a280e7c16004a))
+
 ## [1.3.13](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.12...v1.3.13) (2026-08-24)
 
 
