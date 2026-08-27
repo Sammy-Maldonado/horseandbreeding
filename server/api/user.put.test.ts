@@ -71,6 +71,82 @@ const patchedPasswordWidth = () => {
   return Number(statement![1]);
 };
 
+/**
+ * HOR-125 (SEC-002) — the route must never describe its write from the
+ * caller's object again.
+ *
+ * What the contract does with each field is proven exhaustively, against the
+ * real functions, in `server/utils/publicAccountWrite.test.ts`. What is left is
+ * the wiring, and only the route's own source can show that: these guard the
+ * two spreads that made `PUT /api/user` a mass-assignment endpoint, in the same
+ * way `horse.post.test.ts` and `credential-transport.test.ts` guard theirs.
+ */
+const routeSource = read("server/api/user.put.ts");
+
+/** The source with comments removed — several of them quote the defect verbatim. */
+const routeCode = routeSource
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/\/\/.*$/gm, "");
+
+describe("PUT /api/user — the caller no longer describes the write", () => {
+  it("never spreads the caller's object into Prisma again", () => {
+    // `create: { ...userData, email, password }` was the create half.
+    expect(routeCode).not.toMatch(/\.\.\.\s*userData/);
+  });
+
+  it("no longer builds an update by deleting keys from the caller's object", () => {
+    // `delete userData.password; delete userData.email; updateData = userData`
+    // was the update half. Two keys stripped, every other one written.
+    expect(routeCode).not.toMatch(/delete\s+userData\./);
+    expect(routeCode).not.toMatch(/updateData\s*=\s*userData\s*;/);
+  });
+
+  it("builds both payloads through the server-owned contract", () => {
+    expect(routeCode).toMatch(/toAccountCreateData\(/);
+    expect(routeCode).toMatch(/toAccountUpdateData\(/);
+    expect(routeSource).toMatch(
+      /from\s+"\.\.\/utils\/publicAccountWrite"/
+    );
+  });
+
+  it("hands the create payload the server's own email and hash", () => {
+    // Not `userInfo.email`, which is the raw body value: `email` is the string
+    // the handler already validated against the address regex.
+    expect(routeCode).toMatch(
+      /toAccountCreateData\(\s*userData\s*,\s*email\s*,\s*hashedPassword\s*\)/
+    );
+  });
+
+  it("still hashes the password it stores", () => {
+    // The contract owns the profile columns; it must not have displaced the
+    // credential handling around it (HOR-98 keeps the rest).
+    expect(routeCode).toMatch(/hashPassword\(userInfo\.password\)/);
+    expect(routeCode).toMatch(/bcrypt\.compare\(/);
+  });
+});
+
+describe("PUT /api/user — the fields a public caller may never set", () => {
+  // A regression here would not be cosmetic: `roles` reaches
+  // `user_role_scope -> scope`, the exact pair `ensureHasRoleAndScope` reads.
+  it.each([
+    "user_type",
+    "status",
+    "is_breeder",
+    "is_owner",
+    "is_stud",
+    "welcome",
+    "news",
+    "logo",
+    "roles",
+    "refresh_tokens",
+    "authorization_codes",
+    "users_has_storehorse",
+    "seller"
+  ])("is never named in the route's write path: %s", (field) => {
+    expect(routeCode).not.toMatch(new RegExp(`\\b${field}\\b`));
+  });
+});
+
 describe("bcrypt digest length", () => {
   it.each([
     ["the shortest password the route accepts", "Aa1!aaaa"],
