@@ -149,6 +149,7 @@ Unless an approved Linear issue and ADR explicitly change scope:
 - Replacement ORM.
 - Multi-tenant SaaS redesign.
 - Automatic resolution of ambiguous identities.
+- Automatic creation of new horse identities when resolution fails.
 - Destructive removal of legacy schema elements.
 - Production migration before local repeatability is proven.
 
@@ -344,6 +345,49 @@ Re-running must not duplicate records.
 - **BR-010 — Schema preservation:** Absence from `hbold` is not sufficient evidence to remove a Prisma model or field.
 - **BR-011 — Idempotency:** Repeat execution must not create duplicate canonical data.
 - **BR-012 — Review before publication:** Reports containing unresolved required content cannot be treated as final.
+
+### Architecture invariants
+
+Approved 2026-08-27. These invariants bind every Automation MVP issue. The
+ingestion/serving decision is recorded in
+[ADR-017](../adr/ADR-017-separate-catalogue-ingestion-from-report-serving.md); the
+canonical write-up decision in
+[ADR-005](../adr/ADR-005-canonical-writeup-library.md).
+
+- **AI-001 — One report, one horse:** The report/catalogue deliverable represents one
+  horse: its pedigree, the maternal-line information below it, relevant dam write-ups,
+  offspring and competition results, and later a professional PDF presentation. A batch
+  operation produces many individual horse reports; it does not change the unit.
+- **AI-002 — Pedigree source:** Pedigree is derived from relational data by following
+  `storehorse.sire_id` and `storehorse.dam_id` (BR-001, BR-002). Maternal generations
+  are derived by repeatedly walking `dam_id`. Complete ancestry is not duplicated per
+  descendant by default; such denormalisation requires a measured performance case and
+  its own approved design. Existing pedigree code is a reuse candidate, not verified
+  behaviour — it must be audited before being relied upon.
+- **AI-003 — Word catalogues are ingestion sources:** The historical Word catalogues
+  under `data/private/catalogues/` are private ingestion/reference material. They are
+  never runtime dependencies for report serving, and no report request re-parses the
+  historical corpus.
+- **AI-004 — Ingestion/serving separation:** The ingestion path (Word catalogue →
+  extraction → identity resolution → canonical persistence + provenance) is
+  architecturally separate from the serving path (`horse_id` → database → pedigree +
+  maternal information → report model → PDF). See ADR-017.
+- **AI-005 — Canonical reuse:** Repeated maternal information is stored and referenced
+  canonically (ADR-005). The same mare/write-up/result information is not copied
+  independently per descendant unless a future approved data model explicitly requires
+  a snapshot or history representation. Provenance is preserved (BR-007).
+- **AI-006 — No silent identity creation:** When extracted source material cannot be
+  resolved to an existing horse, the outcomes are: confident match → downstream
+  processing continues; ambiguous → explicit review state; not found → explicit
+  unresolved/missing state. Automatically creating a new horse/dam is out of scope and
+  requires its own future approved design.
+- **AI-007 — Content before presentation:** The automated report must first prove it
+  contains the same valuable information Marcus currently assembles manually;
+  presentation improvements come after. PDF/UI design consumes a structured report
+  model and never dictates the storage or extraction architecture.
+- **AI-008 — Monetisation separation:** Subscription, pay-per-report, or hybrid design
+  remains outside the Automation MVP architecture. The core catalogue pipeline must not
+  depend on a billing model decision.
 
 ---
 

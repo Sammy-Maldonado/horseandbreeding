@@ -118,6 +118,21 @@ by which source owns the fact — never by which was written last:
 
 If Precedence does not resolve it: **stop, explain the conflict, ask Sammy.**
 
+### Automation MVP reconciliation rule
+
+Before implementing any Automation MVP issue:
+
+1. Read the issue's current acceptance criteria in Linear.
+2. Read the relevant stable requirements —
+   [automation-mvp.md](docs/requirements/automation-mvp.md), including its
+   **Architecture invariants** — and the relevant accepted ADRs, in particular
+   [ADR-005](docs/adr/ADR-005-canonical-writeup-library.md) and
+   [ADR-017](docs/adr/ADR-017-separate-catalogue-ingestion-from-report-serving.md).
+3. Compare them semantically. An old Linear issue does not override a newer approved
+   requirement or accepted ADR.
+4. On conflict, **stop implementation and reconcile the issue first.** Never implement
+   stale acceptance criteria merely because they already exist in Linear.
+
 Current work status belongs in Linear and is never copied into this file.
 
 ---
@@ -175,6 +190,13 @@ Binding. Violating one is a defect regardless of what the issue asked for.
 - **`mareline_id` groups maternal families. It does not replace the pedigree chain.**
 - **The Word archive is the source of truth for historical write-ups**, not the database
   text fields.
+- **Historical Word catalogues are ingestion sources, never runtime dependencies for
+  report serving**
+  ([ADR-017](docs/adr/ADR-017-separate-catalogue-ingestion-from-report-serving.md)).
+  No report request re-parses the historical corpus.
+- **Identity resolution never creates a new horse automatically.** Confident match →
+  continue; ambiguous → review; not found → explicit unresolved state. Creating missing
+  horses requires its own future approved design.
 - **A mare has at most one canonical write-up**, keyed to her `horse_id` and reused
   across every foal in her line
   ([ADR-005](docs/adr/ADR-005-canonical-writeup-library.md)).
