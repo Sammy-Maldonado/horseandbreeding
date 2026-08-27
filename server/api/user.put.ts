@@ -4,6 +4,10 @@ import bcrypt from "bcrypt";
 import { createError, defineEventHandler, isError } from "h3";
 
 import { toPublicErrorResponse } from "../utils/publicError";
+import {
+  toAccountCreateData,
+  toAccountUpdateData
+} from "../utils/publicAccountWrite";
 const prisma = new PrismaClient({ adapter: createMariaDbAdapter() });
 // Function to hash a password
 const saltRounds = 10; // Determines the complexity of the hashing
@@ -56,9 +60,10 @@ export default defineEventHandler(async (event) => {
         findUser.password
       );
       if (isPasswordValid) {
-        delete userData.password;
-        delete userData.email;
-        updateData = userData;
+        // The caller no longer describes the write. Deleting two keys left
+        // every other one — including `user_type` and the nested `roles` path
+        // Prisma accepts — free to reach the row (HOR-125).
+        updateData = toAccountUpdateData(userData);
         message = `The user account for ${userInfo.email} has been successfully updated. Welcome back!`;
       } else {
         message = `The user account for ${userInfo.email} could not be updated due to an incorrect password. Please try again with the correct password.`;
@@ -74,11 +79,9 @@ export default defineEventHandler(async (event) => {
     await prisma.users.upsert({
       where: { email: userInfo.email },
       update: updateData, // No update needed for user when updateData is {}
-      create: {
-        ...userData,
-        email: userInfo.email,
-        password: hashedPassword
-      }
+      // Built by the server from the approved contract, field by field. The
+      // spread this replaced handed Prisma whatever the caller sent (HOR-125).
+      create: toAccountCreateData(userData, email, hashedPassword)
     });
     // The full row is never returned: it carries the bcrypt password hash,
     // and the wizard only ever reads the status and message (HOR-98).
