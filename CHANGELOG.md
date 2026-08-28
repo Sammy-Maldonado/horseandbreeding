@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.15...v1.4.0) (2026-08-28)
+
+
+### Features
+
+* **extractor:** productionise maternal-line extraction with zero-loss accounting (HOR-12) ([cb728c9](https://github.com/Sammy-Maldonado/horseandbreeding/commit/cb728c9ac4785c02e65d85ecec14b53c8a315232))
+
 ## [1.3.15](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.14...v1.3.15) (2026-08-27)
 
 
