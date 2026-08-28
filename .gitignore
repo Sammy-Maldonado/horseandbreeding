@@ -40,3 +40,7 @@ _legacy/*
 # Prisma 7 generated client (ADR-015): machine-generated, deterministically
 # recreated by postinstall (`prisma generate`); never versioned.
 /generated/prisma/
+
+# Python bytecode caches written by the extractor and its tests.
+__pycache__/
+*.pyc

@@ -111,18 +111,27 @@ delete".
 ## 7. Word extractor
 
 ```txt
-extractor/parse_dams.py
+extractor/parse_dams.py                thin command entry point
+extractor/maternal_line/               extraction package (source_walk, grammar, structure,
+                                       accounting, extraction, model, cli)
+extractor/maternal_line/test_*.py      unittest suite, synthetic python-docx fixtures only
 extractor/requirements.txt
 ```
 
-A Python prototype that parses historical `.docx` catalogues into structured data. It
-is a **separate module** and stays outside the Node toolchain and dependency tree.
+A Python extractor that turns historical `.docx` catalogues into structured maternal-line
+data under the no-silent-loss contract of
+[writeup-grammar.md](../domain/writeup-grammar.md) §8: known grammar is parsed,
+everything else is preserved verbatim and reported, and every meaningful source block is
+accounted for exactly once in the extraction report. It was productionised in HOR-12
+(2026-08-28), replacing the partial prototype measured in writeup-grammar §6.2. It is a
+**separate module** and stays outside the Node toolchain and dependency tree; it does not
+touch the database, identity resolution or report serving.
 
 Its only third-party dependency is `python-docx`, pinned in
-`extractor/requirements.txt`. Everything else it uses is Python standard library.
-
-The grammar it targets is documented in
-[writeup-grammar.md](../domain/writeup-grammar.md).
+`extractor/requirements.txt`. Everything else it uses is Python standard library. Its
+tests run with the standard-library `unittest` runner and are part of the `Test / Build`
+check — commands in the
+[local development runbook](../runbooks/local-development.md) §10.
 
 ---
 
