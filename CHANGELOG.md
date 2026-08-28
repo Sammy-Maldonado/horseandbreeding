@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.15](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.14...v1.3.15) (2026-08-27)
+
+
+### Bug Fixes
+
+* **api:** give PUT /api/user a server-owned account write contract (HOR-125) ([dd65ea1](https://github.com/Sammy-Maldonado/horseandbreeding/commit/dd65ea120d5bcdd5e36bc3972ace8d638c5ffaa1))
+
 ## [1.3.14](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.13...v1.3.14) (2026-08-24)
 
 
