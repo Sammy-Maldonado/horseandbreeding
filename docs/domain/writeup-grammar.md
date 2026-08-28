@@ -338,8 +338,12 @@ What the sample showed:
   subject fields taken from descendants, and a fatal encoding failure on a Windows
   cp1252 console producing zero output.
 
-Consequently the current implementation is a **partial prototype**. Productionising it
-requires a real extraction contract (section 8), not regex hardening alone. Corpus-wide
+Consequently the implementation measured here was a **partial prototype**. HOR-12
+(2026-08-28) replaced it with the `extractor/maternal_line/` package, which implements
+the extraction contract of section 8: source-block accounting, raw text and provenance
+retention, structural descendants, explicit reporting of unsupported and ambiguous
+structures, and Unicode-safe output. This baseline remains as the historical record of
+what the prototype lost; it is not a measurement of the current extractor. Corpus-wide
 consistency remains the job of the format consistency check that follows
 productionisation.
 
