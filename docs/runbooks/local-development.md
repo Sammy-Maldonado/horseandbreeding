@@ -349,8 +349,29 @@ pip install -r extractor/requirements.txt
 Run:
 
 ```bash
-python extractor/parse_dams.py <catalogue.docx> > out.json
+python extractor/parse_dams.py <catalogue.docx> -o out.json
 ```
+
+Output is deterministic UTF-8 JSON regardless of the console code page (`cp1252`
+included); without `-o` the JSON is written to stdout as UTF-8 bytes. Exit codes: `0`
+success, `2` usage, `3` input missing or unreadable, `4` source accounting incomplete
+(the extractor refuses to emit output that lost a source block), `5` output write
+failure, `6` unexpected internal failure. A failure writes one line to stderr and never
+leaves a partial or zero-byte output file behind.
+
+The implementation lives in the `extractor/maternal_line/` package (`source_walk` →
+`structure` + `grammar` → `accounting` → `extraction`; `cli` is the command entry).
+`parse_dams.py` is a thin wrapper kept as the stable entry point.
+
+Test:
+
+```bash
+python -m unittest discover -s extractor/maternal_line -t extractor -p "test_*.py" -v
+```
+
+The tests use the standard-library `unittest` runner (no pytest) and synthetic `.docx`
+fixtures generated with python-docx at test time — never real client documents. The
+same command runs in the GitHub `Test / Build` check after the Node tests and build.
 
 Its only third-party dependency is `python-docx`, pinned in
 `extractor/requirements.txt`; everything else it uses is Python standard library.
