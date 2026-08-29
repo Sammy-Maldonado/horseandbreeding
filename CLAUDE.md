@@ -126,8 +126,9 @@ Before implementing any Automation MVP issue:
 2. Read the relevant stable requirements —
    [automation-mvp.md](docs/requirements/automation-mvp.md), including its
    **Architecture invariants** — and the relevant accepted ADRs, in particular
-   [ADR-005](docs/adr/ADR-005-canonical-writeup-library.md) and
-   [ADR-017](docs/adr/ADR-017-separate-catalogue-ingestion-from-report-serving.md).
+   [ADR-005](docs/adr/ADR-005-canonical-writeup-library.md),
+   [ADR-017](docs/adr/ADR-017-separate-catalogue-ingestion-from-report-serving.md) and
+   [ADR-018](docs/adr/ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md).
 3. Compare them semantically. An old Linear issue does not override a newer approved
    requirement or accepted ADR.
 4. On conflict, **stop implementation and reconcile the issue first.** Never implement
@@ -188,15 +189,28 @@ Binding. Violating one is a defect regardless of what the issue asked for.
   and define the pedigree chain.
 - **The maternal line is traversed through `dam_id`.**
 - **`mareline_id` groups maternal families. It does not replace the pedigree chain.**
-- **The Word archive is the source of truth for historical write-ups**, not the database
-  text fields.
+- **`storehorse` is the single canonical horse registry**, keyed by `horse_id`. There is
+  no second canonical horse table. The current `hbold` snapshot may be stale: it is a
+  reconciliation target, never an authority over the Word source
+  ([ADR-018](docs/adr/ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md)).
+- **Marcus's completed Word catalogues are the authoritative ingestion source for the
+  business content they contain** — write-ups, pedigree as printed, competition results,
+  approvals, riders and related facts — not the database text fields
+  ([ADR-018](docs/adr/ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md)).
+  A stale or missing database row never justifies discarding Word content.
 - **Historical Word catalogues are ingestion sources, never runtime dependencies for
   report serving**
   ([ADR-017](docs/adr/ADR-017-separate-catalogue-ingestion-from-report-serving.md)).
   No report request re-parses the historical corpus.
-- **Identity resolution never creates a new horse automatically.** Confident match →
-  continue; ambiguous → review; not found → explicit unresolved state. Creating missing
-  horses requires its own future approved design.
+- **Identity resolution never creates a horse blindly.** Every extracted horse is
+  `EXISTING_HORSE` (reuse `horse_id`), `NEW_HORSE` (created only through the safe
+  source-derived contract of ADR-018), `AMBIGUOUS` (review; never inserted, merged or
+  assigned) or `CONFLICT` (every assertion preserved; review). Name alone is never a
+  match.
+- **No silent data loss through ingestion.** Every extracted item is accounted for through
+  canonicalisation and persistence; source assertions and provenance survive canonical
+  updates; Word-versus-database and Word-versus-Word conflicts are audited, never
+  discarded ([ADR-018](docs/adr/ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md)).
 - **A mare has at most one canonical write-up**, keyed to her `horse_id` and reused
   across every foal in her line
   ([ADR-005](docs/adr/ADR-005-canonical-writeup-library.md)).
