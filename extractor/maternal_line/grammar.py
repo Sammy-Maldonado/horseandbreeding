@@ -31,8 +31,21 @@ from maternal_line.model import (
 
 MIN_YEAR, MAX_YEAR = 1900, 2100
 
-DAM_OF = re.compile(r"\bdam\s+of\b\s*[:;]?", re.I)
-SEE_ABOVE = re.compile(r"\(\s*see\s+above\s*\)|\bsee\s+above\b", re.I)
+# Markers match at word boundaries. Each alternation also carries a narrow
+# recovery branch for a corpus-verified fused typo shape (HOR-139, grammar
+# reference §3.5/§3.6); anything beyond those exact shapes stays unmatched so
+# the text is preserved unparsed rather than guessed.
+DAM_OF = re.compile(
+    r"\bdam\s+of\b\s*[:;]?"          # canonical, word-bounded
+    r"|(?<!\w)sdam\s+of\s*[:;]"      # stray single "s" glued on, colon required
+    r"|\bdam\s+of(?=\d)",            # digit glued straight after the marker
+    re.I,
+)
+SEE_ABOVE = re.compile(
+    r"\(\s*s?see\s+above\s*(?:\)|0(?=\s|$))"  # parenthesised; tolerates a stuttered
+    r"|\bsee\s+above\b",                      # "s" and a "0" mistyped for ")"
+    re.I,
+)
 ETC = re.compile(r"\betc\.?(?=$|[\s,;)])", re.I)
 # "Approved KWPN", "approved kwpn", "Approved KWPN/SBS", "Approved KWPN, BWP and SBS".
 # Continuation studbooks must be upper case so that ", Approved BWP" starts a new match.

@@ -195,9 +195,23 @@ Punctuation varies: `dam of` without a colon and `dam of;` were both observed.
 
 Fused typo shapes also occur: a word running straight into `dam of` with no space,
 and a digit running straight off it (`…dam of` / `dam of3…`). The 2026-08-29 corpus
-check found 7 such occurrences across 6 documents. The marker is recognised only at
-word boundaries, so a fused occurrence is **not** a descendant marker: no descendants
-are fabricated from it, and the fused text is preserved unparsed instead.
+check found 7 such occurrences across 6 documents. Word-boundary recognition remains
+the norm: an arbitrary word fused into the marker is **not** a descendant marker, no
+descendants are fabricated from it, and the fused text is preserved unparsed.
+
+Since 2026-08-29 (HOR-139) the grammar additionally recovers **exactly two
+corpus-verified fused typo shapes**, and nothing wider:
+
+- a single stray `s` glued onto the front with a colon required after the marker
+  (`sdam of:`) — a multi-letter prefix (`gooddam of:`) or any other stray letter
+  (`adam of:`) is still rejected;
+- a digit glued straight off the marker (`dam of3`) — the marker is recovered, but
+  the digit tail is **not** promoted to a descendant identity unless the ordinary
+  grammar independently parses it; a bare digit run stays preserved unparsed as a
+  descendant list.
+
+Any fusion outside those exact shapes remains unmatched and preserved unparsed:
+false-positive parsing is worse than `PRESERVED_UNPARSED`.
 
 **Rule:** the extractor output needs a structural descendant representation —
 relationships, nesting, source order and, where relevant, the indentation evidence. A
@@ -214,8 +228,16 @@ reliable in the sample and is worth preserving.
 
 As with `dam of` (section 3.5), fused typo shapes exist: a word or digit running
 straight into or off `see above` with no space. The 2026-08-29 corpus check found 3
-such occurrences across 3 documents. A fused occurrence is not recognised as a
-reference; the text is preserved unparsed.
+such occurrences across 3 documents. An arbitrary fused occurrence is not recognised
+as a reference; the text is preserved unparsed.
+
+Since 2026-08-29 (HOR-139) the **parenthesised form only** additionally tolerates
+two corpus-verified typo shapes: a stuttered leading `s` (`(SSEE ABOVE)`) and a `0`
+mistyped for the closing parenthesis (`(SEE ABOVE0`), the latter only when a
+boundary follows the `0`. The bare form stays strictly word-bounded: `see above`
+fused into a preceding word, or with a digit run straight off it, is not a
+reference — and adjacent year or result text is never swallowed by the marker; it
+is parsed or preserved on its own account.
 
 ### 3.7 `etc.`
 
@@ -385,6 +407,12 @@ threshold. It proves **accounting completeness**, not semantic correctness.
 - **Marker counters**: the baseline's `dam of` 11,412 and `see above` 763 are plain
   substring counts. The word-bounded grammar sees 10 fewer — the fused typo
   occurrences of sections 3.5 and 3.6, which are preserved unparsed by design.
+  *Addendum 2026-08-29 (HOR-139):* the conservative recovery shapes of sections 3.5
+  and 3.6 now recognise exactly those 10 occurrences (7 `dam of`, 3 `see above`)
+  across the 7 affected documents. A full corpus re-run confirmed the change is
+  confined to them: the node-level accounting above is byte-for-byte unchanged
+  (40,094 = 40,006 + 59 + 29 + 0 + 0, unaccounted 0), no descendant identity was
+  fabricated from a digit tail, and no other document's classification moved.
 - **Year counters**: the baseline's year figures could not be reproduced exactly
   because the original scan definition was not preserved; the closest reproducible
   definition agrees within ±0.2%, and the ledger proves independently that no year
