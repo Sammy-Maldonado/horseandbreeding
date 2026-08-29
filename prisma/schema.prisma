@@ -230,6 +230,12 @@ model storehorse {
   seller                sellers?                         @relation(fields: [seller_id], references: [id])
   seller_id             Int?
   competitionHistory    competition_history[]
+  // HOR-9 canonical relational model (ADR-018). Typed navigation only: the
+  // FOREIGN KEY statements towards this MyISAM table are deferred (ADR-012).
+  canonicalWriteup        canonical_writeup?
+  sourceAssertions        source_assertion[]               @relation("SourceAssertionHorse")
+  relatedSourceAssertions source_assertion[]               @relation("SourceAssertionRelatedHorse")
+  canonicalChangeAudits   canonical_change_audit[]
   @@unique([horse_id])
   @@index([dam_id], map: "fk_dam")
   @@index([sire_id], map: "fk_sire")
@@ -539,8 +545,289 @@ model competition_history {
   detail                String?   @db.VarChar(255)
   status                Boolean   @default(true)
   created               DateTime  @default(now()) @db.Timestamp(0)
+  // HOR-9 additive structured evolution (ADR-018). Every column below is
+  // nullable: legacy rows keep working untouched, NULL means "not captured
+  // by ingestion". `storehorse_id` stays the horse that ACHIEVED the result.
+  discipline_code        String?                      @db.VarChar(20)
+  result_kind            competition_result_kind?
+  event_name             String?                      @db.VarChar(255)
+  level_code             String?                      @db.VarChar(20)
+  participation          competition_participation?
+  country_code           String?                      @db.VarChar(3)
+  raw_source_segment     String?                      @db.Text
+  ingestion_run_id       Int?
+  canonicalisation_state ingestion_persistence_state?
   storehorse            storehorse? @relation(fields: [storehorse_id], references: [horse_id])
+  ingestionRun           ingestion_run?               @relation(fields: [ingestion_run_id], references: [ingestion_run_id], onDelete: Restrict)
+  sourceAssertions       source_assertion[]
   @@index([storehorse_id])
+  @@index([ingestion_run_id])
   @@map("competition_history")
 }
 
+
+// ---------------------------------------------------------------------------
+// Canonical relational model around storehorse (HOR-9 — ADR-018, ADR-005,
+// ADR-017).
+//
+// storehorse stays the single canonical horse registry. Every model below is
+// anchored to storehorse.horse_id; none of them is a second horse table and
+// none of them duplicates the pedigree chain (storehorse.sire_id / dam_id).
+// Relations towards the MyISAM storehorse table are declared for typed
+// navigation; their FOREIGN KEY statements are deferred in the migration
+// (ADR-012 deferral list), exactly like competition_history.storehorse_id.
+// Design reference: docs/data/canonical-relational-model.md
+// ---------------------------------------------------------------------------
+
+/// Zero-loss outcome of one extracted item after canonicalisation (ADR-018).
+enum ingestion_persistence_state {
+  CANONICALISED_STRUCTURED
+  CANONICALISED_RELATIONSHIP
+  PRESERVED_SOURCE_FACT
+  AMBIGUOUS
+  CONFLICT
+  EXPLICITLY_UNSUPPORTED
+  ERROR
+}
+
+/// Identity resolution outcome for the horse an assertion is about (ADR-018).
+enum identity_resolution_outcome {
+  NOT_ATTEMPTED
+  EXISTING_HORSE
+  NEW_HORSE
+  AMBIGUOUS
+  CONFLICT
+}
+
+enum source_document_type {
+  WORD_CATALOGUE
+  EXCEL_AUCTION_LIST
+  OTHER
+}
+
+enum ingestion_run_status {
+  STARTED
+  COMPLETED
+  FAILED
+  ABORTED
+}
+
+/// What one source assertion claims. Closed vocabulary derived from the
+/// write-up grammar (docs/domain/writeup-grammar.md).
+enum source_assertion_kind {
+  SUBJECT_IDENTITY
+  BIRTH_YEAR
+  PEDIGREE_DAM
+  PEDIGREE_SIRE
+  DESCENDANT_LINK
+  MATERNAL_WRITEUP
+  COMPETITION_RESULT
+  APPROVAL
+  STUDBOOK
+  DISCIPLINE
+  SPORT_LEVEL
+  RIDER
+  COUNTRY
+  SIRE_NOTE
+  HEAD_NOTE
+  SEE_ABOVE_REFERENCE
+  FREE_TEXT
+  UNSUPPORTED_STRUCTURE
+  EXTRACTION_ERROR
+}
+
+enum writeup_lifecycle_state {
+  IMPORTED
+  APPROVED
+  CORRECTED
+}
+
+/// Mirrors the extractor placing vocabulary: placed / won / competed.
+enum competition_result_kind {
+  PLACED
+  WON
+  COMPETED
+}
+
+enum competition_participation {
+  INDIVIDUAL
+  TEAM
+}
+
+enum canonical_target_kind {
+  STOREHORSE_FIELD
+  STOREHORSE_DAM
+  STOREHORSE_SIRE
+  CANONICAL_WRITEUP
+  COMPETITION_HISTORY
+  APPROVAL_LINK
+  STUDBOOK_LINK
+  DISCIPLINE_LINK
+}
+
+enum canonical_change_kind {
+  CREATED
+  UPDATED
+  CONFIRMED
+  REVERTED
+}
+
+/// A registered ingestion source (a completed Word catalogue, an auction Excel).
+/// Identity and metadata only — never the document binary.
+model source_document {
+  source_document_id  Int                  @id @default(autoincrement())
+  /// Stable key shared with the extractor output (document_id).
+  document_key        String               @unique @db.VarChar(64)
+  /// SHA-256 of the document bytes, hex encoded.
+  content_fingerprint String               @unique @db.Char(64)
+  document_type       source_document_type
+  catalogue_name      String?              @db.VarChar(191)
+  catalogue_year      Int?
+  /// Private location reference under data/private. Never exposed to clients or logs.
+  source_reference    String?              @db.VarChar(255)
+  byte_size           Int?
+  notes               String?              @db.Text
+  registered_at       DateTime             @default(now())
+  ingestionRuns       ingestion_run[]
+  canonicalWriteups   canonical_writeup[]
+  sourceAssertions    source_assertion[]
+}
+
+/// One execution of the extractor + canonicalisation over one source document.
+/// run_key is deterministic (fingerprint + versions) so re-runs are idempotent.
+model ingestion_run {
+  ingestion_run_id        Int                      @id @default(autoincrement())
+  run_key                 String                   @unique @db.VarChar(128)
+  source_document_id      Int
+  extractor_version       String                   @db.VarChar(32)
+  output_contract_version String                   @db.VarChar(32)
+  run_status              ingestion_run_status     @default(STARTED)
+  started_at              DateTime                 @default(now())
+  completed_at            DateTime?
+  total_source_nodes      Int?
+  accounted_nodes         Int?
+  unaccounted_nodes       Int?
+  /// Counts per persistence state and per assertion kind.
+  accounting_summary      Json?
+  error_summary           String?                  @db.Text
+  created_by              String?                  @db.VarChar(100)
+  sourceDocument          source_document          @relation(fields: [source_document_id], references: [source_document_id], onDelete: Restrict)
+  sourceAssertions        source_assertion[]
+  canonicalWriteups       canonical_writeup[]
+  competitionHistory      competition_history[]
+  canonicalChangeAudits   canonical_change_audit[]
+
+  @@index([source_document_id])
+  @@index([run_status])
+}
+
+/// The canonical maternal write-up of one mare (ADR-005): at most one row per
+/// storehorse.horse_id, reused by every foal in her line through dam_id.
+/// Content only — never PDF-shaped. Conflicting variants stay as assertions.
+model canonical_writeup {
+  writeup_id         Int                     @id @default(autoincrement())
+  horse_id           Int                     @unique
+  content            String                  @db.Text
+  /// SHA-256 of the normalised content, for identical-reuse and conflict detection.
+  content_hash       String                  @db.Char(64)
+  lifecycle_state    writeup_lifecycle_state @default(IMPORTED)
+  version            Int                     @default(1)
+  source_document_id Int?
+  ingestion_run_id   Int?
+  approved_by        String?                 @db.VarChar(100)
+  approved_at        DateTime?
+  created_at         DateTime                @default(now())
+  updated_at         DateTime                @updatedAt
+  horse              storehorse              @relation(fields: [horse_id], references: [horse_id])
+  sourceDocument     source_document?        @relation(fields: [source_document_id], references: [source_document_id], onDelete: Restrict)
+  ingestionRun       ingestion_run?          @relation(fields: [ingestion_run_id], references: [ingestion_run_id], onDelete: Restrict)
+  sourceAssertions   source_assertion[]
+
+  @@index([source_document_id])
+  @@index([ingestion_run_id])
+  @@index([lifecycle_state])
+}
+
+/// The zero-loss evidence ledger: one row per extracted claim, with its exact
+/// source coordinates, raw text, interpretation and persistence outcome.
+/// Many assertions may point at one canonical fact (cross-document reuse);
+/// an unresolved assertion never creates a horse — horse_id simply stays NULL.
+model source_assertion {
+  source_assertion_id     Int                         @id @default(autoincrement())
+  /// Deterministic key (document fingerprint + node + kind + position).
+  assertion_key           String                      @unique @db.VarChar(128)
+  source_document_id      Int
+  ingestion_run_id        Int
+  node_id                 String                      @db.VarChar(64)
+  block_index             Int
+  lot_order               Int?
+  section_ordinal         Int?
+  section_occurrence      Int?
+  item_order              Int?
+  chain_index             Int?
+  segment_index           Int?
+  text_offset             Int?
+  nesting_depth           Int                         @default(0)
+  assertion_kind          source_assertion_kind
+  subject_name_raw        String?                     @db.VarChar(255)
+  subject_name_normalised String?                     @db.VarChar(255)
+  raw_text                String                      @db.Text
+  interpreted_payload     Json?
+  persistence_state       ingestion_persistence_state
+  state_reason            String?                     @db.VarChar(255)
+  resolution_outcome      identity_resolution_outcome @default(NOT_ATTEMPTED)
+  /// The canonical horse this assertion is about, once resolved.
+  horse_id                Int?
+  /// The other canonical horse of a relationship assertion (dam, sire, descendant).
+  related_horse_id        Int?
+  writeup_id              Int?
+  competition_history_id  Int?
+  decided_by              String?                     @db.VarChar(100)
+  decided_at              DateTime?
+  decision_note           String?                     @db.VarChar(255)
+  created_at              DateTime                    @default(now())
+  updated_at              DateTime                    @updatedAt
+  sourceDocument          source_document             @relation(fields: [source_document_id], references: [source_document_id], onDelete: Restrict)
+  ingestionRun            ingestion_run               @relation(fields: [ingestion_run_id], references: [ingestion_run_id], onDelete: Restrict)
+  horse                   storehorse?                 @relation("SourceAssertionHorse", fields: [horse_id], references: [horse_id])
+  relatedHorse            storehorse?                 @relation("SourceAssertionRelatedHorse", fields: [related_horse_id], references: [horse_id])
+  writeup                 canonical_writeup?          @relation(fields: [writeup_id], references: [writeup_id], onDelete: Restrict)
+  competitionHistory      competition_history?        @relation(fields: [competition_history_id], references: [competition_history_id], onDelete: Restrict)
+  canonicalChangeAudits   canonical_change_audit[]
+
+  @@index([source_document_id, node_id])
+  @@index([ingestion_run_id])
+  @@index([horse_id])
+  @@index([related_horse_id])
+  @@index([writeup_id])
+  @@index([competition_history_id])
+  @@index([persistence_state])
+  @@index([assertion_kind])
+  @@index([subject_name_normalised])
+}
+
+/// Audit of every canonical change made from source evidence: previous value,
+/// new value, decision and run, so one ingestion run can be reversed by its context.
+model canonical_change_audit {
+  canonical_change_audit_id Int                   @id @default(autoincrement())
+  ingestion_run_id          Int?
+  source_assertion_id       Int?
+  horse_id                  Int?
+  target_kind               canonical_target_kind
+  target_id                 Int?
+  field_name                String?               @db.VarChar(64)
+  previous_value            String?               @db.Text
+  new_value                 String?               @db.Text
+  change_kind               canonical_change_kind
+  decided_by                String?               @db.VarChar(100)
+  decision_note             String?               @db.VarChar(255)
+  created_at                DateTime              @default(now())
+  ingestionRun              ingestion_run?        @relation(fields: [ingestion_run_id], references: [ingestion_run_id], onDelete: Restrict)
+  sourceAssertion           source_assertion?     @relation(fields: [source_assertion_id], references: [source_assertion_id], onDelete: Restrict)
+  horse                     storehorse?           @relation(fields: [horse_id], references: [horse_id])
+
+  @@index([ingestion_run_id])
+  @@index([source_assertion_id])
+  @@index([horse_id])
+  @@index([target_kind, target_id])
+}

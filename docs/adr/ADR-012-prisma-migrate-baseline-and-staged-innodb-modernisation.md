@@ -129,6 +129,19 @@ its own backup and review gates. Deferral loses nothing.
 
 ---
 
+## Amendment Notes
+
+- **2026-08-29, HOR-9.** The deferral category "foreign keys that touch MyISAM tables"
+  grew from 17 to 21: the canonical relational model declares four relations towards
+  `storehorse` (`canonical_writeup.horse_id`, `source_assertion.horse_id`,
+  `source_assertion.related_horse_id`, `canonical_change_audit.horse_id`) whose
+  `FOREIGN KEY` statements are excluded from the migration for the same reason as
+  `competition_history.storehorse_id`. The residual diff is therefore 23 statements. The
+  decision is unchanged; the measured list lives in
+  [hbold-baseline.md](../data/hbold-baseline.md) §7.1–§7.2.
+
+---
+
 ## Review Triggers
 
 - A later wave converts more tables to InnoDB or migrates charsets — extend or

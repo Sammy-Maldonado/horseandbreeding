@@ -113,6 +113,19 @@ Silent wrong attribution in a pedigree document is worse than an explicit review
 
 ---
 
+## Implementation Note (2026-08-29, HOR-9)
+
+The library is realised by the `canonical_writeup` table: one row per mare, with
+`horse_id` UNIQUE against `storehorse.horse_id`, the content, its normalised
+`content_hash`, a lifecycle state (`IMPORTED | APPROVED | CORRECTED`), a version and
+provenance (source document, ingestion run). Every catalogue occurrence of the text is a
+`source_assertion` pointing at that single row; a differing text is a `CONFLICT`
+assertion, never an overwrite; `(SEE ABOVE)` is recorded as a reference assertion, never
+as content. The decision above is unchanged. The persisted shape is described in
+[docs/data/canonical-relational-model.md](../data/canonical-relational-model.md).
+
+---
+
 ## Review Triggers
 
 Revisit if:
