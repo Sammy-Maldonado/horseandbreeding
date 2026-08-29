@@ -12,7 +12,7 @@ The official ADR location is `docs/adr/`.
 | [ADR-002](ADR-002-mysql-mariadb-and-table-names.md) | Keep MySQL/MariaDB and the existing useful table names | Accepted |
 | [ADR-003](ADR-003-prisma-schema-preservation.md) | Preserve the Prisma schema when working against legacy `hbold` | Accepted |
 | [ADR-004](ADR-004-pnpm-package-manager.md) | pnpm is the official package manager | Accepted |
-| [ADR-005](ADR-005-canonical-writeup-library.md) | Canonical mare write-up library fed by Word extraction | Accepted |
+| [ADR-005](ADR-005-canonical-writeup-library.md) | Canonical mare write-up library fed by Word extraction | Accepted — complemented by ADR-018 |
 | [ADR-006](ADR-006-storehorse-column-compatibility-layer.md) | Compatibility layer for drifted `storehorse` columns | Superseded by ADR-014 |
 | [ADR-007](ADR-007-api-authentication-trust-boundary.md) | API authentication trust boundary and per-route access classification | Accepted |
 | [ADR-008](ADR-008-flat-repository-structure-during-framework-majors.md) | Keep the flat repository structure during framework majors | Accepted |
@@ -24,7 +24,8 @@ The official ADR location is `docs/adr/`.
 | [ADR-014](ADR-014-storehorse-status-backfill-and-probe-retirement.md) | Backfill `storehorse.status` to `NOT NULL DEFAULT 1`, fix the reconciled `1`/`-1` semantics, and retire the ADR-006 runtime probe | Accepted |
 | [ADR-015](ADR-015-prisma-7-driver-adapter-architecture.md) | Adopt the Prisma 7 driver-adapter architecture: modern ESM client generation, unversioned generated client, direct MariaDB driver adapter, `prisma.config.ts`, hoisted-linker retirement | Accepted |
 | [ADR-016](ADR-016-mariadb-12-3-lts-side-by-side-migration.md) | Adopt MariaDB 12.3 LTS through a side-by-side container migration with a verified restore; the 10.11 environment is preserved as rollback | Accepted |
-| [ADR-017](ADR-017-separate-catalogue-ingestion-from-report-serving.md) | Separate catalogue ingestion from report serving: historical Word catalogues are ingestion inputs; runtime report generation reads persisted canonical data | Accepted |
+| [ADR-017](ADR-017-separate-catalogue-ingestion-from-report-serving.md) | Separate catalogue ingestion from report serving: historical Word catalogues are ingestion inputs; runtime report generation reads persisted canonical data | Accepted — its open question on missing-horse creation is decided by ADR-018 |
+| [ADR-018](ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md) | `storehorse` is the single canonical horse registry and Marcus's completed Word catalogues are the authoritative ingestion source; identity resolution yields `EXISTING_HORSE` / `NEW_HORSE` / `AMBIGUOUS` / `CONFLICT` with safe source-derived creation; conflicts are audited; zero loss extends through persistence | Accepted |
 
 ## Writing a new ADR
 

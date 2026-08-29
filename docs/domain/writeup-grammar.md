@@ -51,10 +51,13 @@ Rules:
 - The table is the source of **lot identity text**. The extractor must read enough of
   it for downstream identity resolution to know which horse/lot the extracted
   material belongs to. Extracted lots without identity are unusable.
-- The table is **not** the authoritative pedigree. The Automation MVP pedigree comes
-  from relational `storehorse.sire_id` / `storehorse.dam_id` (AI-002 in
-  [automation-mvp.md](../requirements/automation-mvp.md)). The extractor never
-  rebuilds sire/dam ancestry from Word and never becomes a second pedigree engine.
+- The pedigree printed in the table is an authoritative **source assertion** about the
+  lot horse (ADR-018): identity resolution and reconciliation use it as evidence and may
+  canonicalise it into `storehorse.sire_id` / `storehorse.dam_id`. The canonical
+  pedigree itself lives only in those relations (AI-002 in
+  [automation-mvp.md](../requirements/automation-mvp.md)). The extractor preserves what
+  the table states; it never rebuilds ancestry on its own, never becomes a second
+  pedigree engine and is never a runtime pedigree source.
 - How the identity text is resolved to a `horse_id` is owned by identity resolution
   (FR-004, section 7 below), not by this grammar.
 
@@ -324,11 +327,13 @@ Rules:
 ## 5. Text-only descendants
 
 Distant descendants frequently do not exist in `storehorse`. This is expected and
-acceptable: they legitimately live only as library text with no `horse_id`.
+acceptable: they may legitimately remain preserved source facts with no `horse_id`.
 
 A missing `horse_id` for a distant descendant is **not** an extraction error and must
-not be reported as one. It also must not trigger creation of speculative horse
-records.
+not be reported as one. It must never trigger blind creation of a speculative horse
+record. Whether such a descendant becomes a `NEW_HORSE` through the safe source-derived
+creation contract, stays a text-only source fact, or goes to review is decided by
+identity resolution under ADR-018 — never by the grammar and never from the name alone.
 
 ---
 
@@ -422,19 +427,32 @@ threshold. It proves **accounting completeness**, not semantic correctness.
 
 ## 7. Identity resolution signals
 
-Resolution of a Word name to `storehorse.horse_id` uses this cascade:
+Resolution of a Word horse to `storehorse.horse_id` is owned by identity resolution
+(FR-004) under ADR-018. The grammar's responsibility is to expose the signals the
+resolver needs, exactly as the source states them:
 
-1. Normalised exact name.
-2. Birth year.
-3. Sire name.
-4. Dam name.
-5. Human review.
+```txt
+name (raw and normalised)      birth year        sex
+sire (by / v. / sire notes)    dam (section order, dam of:)   dam's dam
+descendants (dam of:)          cross-document recurrence
+```
 
-Normalised name alone resolves most maternal-line heads in the observed sample.
-Remaining ambiguity is broken with birth year, then sire and dam context.
+Rules:
 
-Where the cascade does not produce a confident single match, the case goes to human
-review. Ambiguous matches are never auto-assigned — see BR-004 in
+- Evidence comes from the **family graph**, never from the name alone. In the measured
+  baseline a single normalised-name candidate was contradicted by dam, sire or
+  birth-year evidence in roughly one in six checkable cases, so a name-only singleton is
+  **not** a match.
+- The outcome is exactly one of `EXISTING_HORSE | NEW_HORSE | AMBIGUOUS | CONFLICT`, each
+  with its evidence.
+- Invalid or implausible signals (for example an impossible birth year) are preserved as
+  extracted, flagged, and treated as `UNKNOWN` for identity evidence — never corrected
+  silently, never dropped.
+- The exact normalisation rules, evidence thresholds and the plausibility range are
+  approved in the identity-resolution design (HOR-14, HOR-144) and recorded in this
+  section once approved. Until then, no rule here is implementable as a threshold.
+
+Ambiguous matches are never auto-assigned — see BR-004 in
 [automation-mvp.md](../requirements/automation-mvp.md).
 
 ---
