@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.4.1...v1.5.0) (2026-08-29)
+
+
+### Features
+
+* **ingestion:** add pure canonicalisation rules for write-ups, results and zero-loss states (HOR-9) ([aadc238](https://github.com/Sammy-Maldonado/horseandbreeding/commit/aadc2380424ae803830137d3279d08ddcf2578ae))
+* **prisma:** add the canonical relational model around storehorse (HOR-9) ([19d220f](https://github.com/Sammy-Maldonado/horseandbreeding/commit/19d220f9c05685ba372e2e0c718fae689147b775))
+
 ## [1.4.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.4.0...v1.4.1) (2026-08-29)
 
 
