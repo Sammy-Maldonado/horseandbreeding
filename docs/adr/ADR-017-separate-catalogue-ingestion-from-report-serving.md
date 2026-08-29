@@ -108,7 +108,8 @@ This ADR deliberately does **not** decide:
 
 - exact future table names;
 - exact caching strategy;
-- automatic creation of missing horses (out of scope; future separate design);
+- automatic creation of missing horses (out of scope; future separate design — decided
+  on 2026-08-29 by [ADR-018](ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md));
 - pricing/subscription models;
 - PDF visual design;
 - any rewrite of the extractor's implementation language.
