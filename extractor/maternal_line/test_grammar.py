@@ -381,3 +381,38 @@ class ChainedMarkerOwnershipTest(unittest.TestCase):
             offsets = [(seg.offset, seg.offset + len(seg.text)) for seg in node.segments]
             for (a_start, a_end), (b_start, _) in zip(offsets, offsets[1:]):
                 self.assertLessEqual(a_end, b_start, node.text)
+
+
+class FusedMarkerTest(unittest.TestCase):
+    """Markers fused to adjacent text carry no word boundary and are not markers.
+
+    The corpus contains typo shapes where a word runs straight into "dam of" or
+    a digit runs straight off "dam of" / "see above". The grammar must neither
+    recognise the fused occurrence as a marker nor fabricate descendants or
+    references from it — the fused text is preserved unparsed instead.
+    """
+
+    def test_digit_fused_after_dam_of_is_not_a_descendant_marker(self):
+        item = parse_item("VELVET STORM: sj 1.35m dam of3 winners")
+        self.assertIsNone(item.descendant_marker)
+        self.assertEqual(item.descendants, [])
+        self.assertEqual([seg.text for seg in item.unparsed_segments], ["dam of3 winners"])
+        self.assertEqual(item.unparsed_segments[0].status, PRESERVED_UNPARSED)
+
+    def test_word_fused_before_dam_of_is_not_a_descendant_marker(self):
+        item = parse_item("BRONZE FERN: sj 1.30m gooddam of: LILAC POND: sj 1.20m")
+        self.assertIsNone(item.descendant_marker)
+        self.assertEqual(item.descendants, [])
+        self.assertEqual([seg.text for seg in item.unparsed_segments],
+                         ["gooddam of: LILAC POND: sj 1.20m"])
+
+    def test_digit_fused_after_see_above_is_not_a_reference(self):
+        item = parse_item("AURORA LAKE: see above2018: pl 1st CSI2* Riverbend")
+        self.assertIsNone(item.see_above)
+        self.assertEqual([seg.text for seg in item.unparsed_segments], ["see above"])
+        self.assertEqual(result_tuples(item), [(2018, "1st", "CSI2* Riverbend")])
+
+    def test_word_fused_before_see_above_is_not_a_reference(self):
+        item = parse_item("AURORA LAKE: winnersee above")
+        self.assertIsNone(item.see_above)
+        self.assertEqual([seg.text for seg in item.unparsed_segments], ["winnersee above"])

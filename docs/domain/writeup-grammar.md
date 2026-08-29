@@ -193,6 +193,12 @@ The historical documents encode the descendant hierarchy through any combination
 
 Punctuation varies: `dam of` without a colon and `dam of;` were both observed.
 
+Fused typo shapes also occur: a word running straight into `dam of` with no space,
+and a digit running straight off it (`…dam of` / `dam of3…`). The 2026-08-29 corpus
+check found 7 such occurrences across 6 documents. The marker is recognised only at
+word boundaries, so a fused occurrence is **not** a descendant marker: no descendants
+are fabricated from it, and the fused text is preserved unparsed instead.
+
 **Rule:** the extractor output needs a structural descendant representation —
 relationships, nesting, source order and, where relevant, the indentation evidence. A
 boolean "has descendants" flag is insufficient and loses the descendant text entirely.
@@ -205,6 +211,11 @@ ambiguous otherwise. Expanding `(SEE ABOVE)` inside a descendant is not required
 present earlier in the same document. Expanding it into a copied write-up would
 recreate the duplication the canonical library exists to eliminate. Its detection was
 reliable in the sample and is worth preserving.
+
+As with `dam of` (section 3.5), fused typo shapes exist: a word or digit running
+straight into or off `see above` with no space. The 2026-08-29 corpus check found 3
+such occurrences across 3 documents. A fused occurrence is not recognised as a
+reference; the text is preserved unparsed.
 
 ### 3.7 `etc.`
 
@@ -346,6 +357,38 @@ structures, and Unicode-safe output. This baseline remains as the historical rec
 what the prototype lost; it is not a measurement of the current extractor. Corpus-wide
 consistency remains the job of the format consistency check that follows
 productionisation.
+
+### 6.3 Corpus format-consistency check (2026-08-29) — FULL LOCAL CORPUS / ACCOUNTING RECORD
+
+HOR-11 ran the production extractor CLI (`extractor/parse_dams.py`) over the complete
+local private corpus. Aggregate, anonymised record — no accuracy claim, no acceptance
+threshold. It proves **accounting completeness**, not semantic correctness.
+
+- **Corpus**: 33 files discovered, all readable, all distinct by SHA-256. One is an
+  AutoRecovered near-duplicate of another: byte-different but identical on every
+  structural counter, so it was deduplicated statistically. The authoritative variant
+  of that pair remains unresolved; neither file was touched. Unless stated otherwise,
+  figures below are over the 32 unique documents.
+- **Execution**: 33 of 33 CLI runs exited 0. No document failed, none was skipped.
+- **Zero silent loss, proven by the production ledger**: 40,094 meaningful source
+  nodes = 40,006 `PARSED` + 59 `PRESERVED_UNPARSED` + 29 `EXPLICITLY_AMBIGUOUS` +
+  0 `EXPLICITLY_UNSUPPORTED` + 0 `ERROR`; unaccounted 0; ledger missing, duplicate
+  and unknown all 0 in every document. The reconciliation holds per document, not
+  only in aggregate.
+- **The non-parsed remainder is exactly the known variant classes**: the 59
+  preserved-unparsed nodes are precisely the corpus's 59 no-colon paragraphs
+  (section 3.11), and the 29 ambiguous nodes are precisely the repeated-ordinal Dam
+  sections (section 2.5). Everything the prototype silently dropped is now accounted.
+- **Structure counters match the recorded corpus baseline exactly**: 1,027 tables,
+  1,022 first-Dam cells, 3,903 Dam headings, 38 merged heading+entry paragraphs,
+  29 repeated ordinals, 93 pre-Dam paragraphs, 59 no-colon paragraphs.
+- **Marker counters**: the baseline's `dam of` 11,412 and `see above` 763 are plain
+  substring counts. The word-bounded grammar sees 10 fewer — the fused typo
+  occurrences of sections 3.5 and 3.6, which are preserved unparsed by design.
+- **Year counters**: the baseline's year figures could not be reproduced exactly
+  because the original scan definition was not preserved; the closest reproducible
+  definition agrees within ±0.2%, and the ledger proves independently that no year
+  text was lost.
 
 ---
 
