@@ -515,6 +515,13 @@ These are product concepts, not permission to alter Prisma without an approved i
 - **Report:** Assembled pedigree and maternal-line content for one horse.
 - **AuctionBatch:** One Excel import and the reports/results generated from it.
 
+Persisted shape (HOR-9): `Horse` = `storehorse`; `CanonicalWriteUp` = `canonical_writeup`;
+`SourceDocument` = `source_document`; `ExtractionRun` = `ingestion_run`;
+`SourceAssertion` = `source_assertion`; `CompetitionResult` = `competition_history`.
+`ExtractedEntry` lives in the extractor output, `IdentityMatch` and `ReviewItem` are not
+persisted yet (HOR-14, HOR-142). See
+[docs/data/canonical-relational-model.md](../data/canonical-relational-model.md).
+
 ---
 
 ## 10. Non-Functional Requirements

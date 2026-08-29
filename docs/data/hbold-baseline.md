@@ -400,17 +400,43 @@ Consequences for earlier sections:
 ### 7.1 Residual drift — deliberate, bounded, measured
 
 After the full migration chain, `prisma migrate diff` between the database and
-`prisma/schema.prisma` reports **exactly 19 statements**, all deferred with evidence
-(see ADR-012):
+`prisma/schema.prisma` reports **exactly 23 statements**, all deferred with evidence
+(see ADR-012 and, for the HOR-9 additions, §7.2):
 
 | Deferral | Count | Blocker |
 |---|---|---|
-| Foreign keys touching MyISAM tables | 17 | MyISAM cannot enforce them; 2 would hard-fail (InnoDB child → MyISAM parent) |
+| Foreign keys touching MyISAM tables — declared before HOR-9 | 17 | MyISAM cannot enforce them; 2 would hard-fail (InnoDB child → MyISAM parent) |
+| Foreign keys from the HOR-9 InnoDB tables to `storehorse` | 4 | `canonical_writeup.horse_id`, `source_assertion.horse_id`, `source_assertion.related_horse_id`, `canonical_change_audit.horse_id` — InnoDB child → MyISAM parent hard-fails (errno 150); the application enforces them until `storehorse` moves to InnoDB in a later ADR-012 wave |
 | Composite primary keys | 2 | `storehorse_has_approvedby` (52 duplicate pairs), `studbook_has_storehorse` (16,696 duplicate pairs) — deduplication is an unauthorised destructive decision |
 
 The count was **20** until HOR-82 landed the `storehorse.height` widening (§3.3), which
-removed the one remaining capacity statement. The two categories above are structural and
-are not resolved by widening a column.
+removed the one remaining capacity statement; **19** from HOR-82 until HOR-9; and **23**
+since HOR-9 declared four relations towards `storehorse` (§7.2). The categories above are
+structural and are not resolved by widening a column.
 
 Anything outside this list appearing in the residual diff is a defect, not an accepted
 drift.
+
+### 7.2 HOR-9 — canonical relational model around `storehorse`
+
+Measured 2026-08-29 on the local `hbold` before and after
+`20260829194803_hor9_canonical_relational_model` (model reference:
+[canonical-relational-model.md](canonical-relational-model.md)):
+
+| Item | Before | After |
+|---|---|---|
+| Base tables (`information_schema.tables`) | 41 | 46 |
+| Columns | 303 | 392 |
+| `_prisma_migrations` rows | 6 | 7 |
+| `storehorse` rows | 59,903 | 59,903 |
+| `competition_history` rows | 454 | 454 |
+| Rows deleted / tables dropped / columns dropped | — | 0 / none / none |
+
+New tables — `source_document`, `ingestion_run`, `canonical_writeup`, `source_assertion`,
+`canonical_change_audit` — are InnoDB, `utf8mb4_unicode_ci`, created empty, with ten
+enforced foreign keys among InnoDB tables. `competition_history` gained nine nullable
+columns; every one of the 454 legacy rows keeps them `NULL`. Its free-text additions are
+declared `utf8mb4` explicitly inside the `latin1` table; Prisma reports no charset drift.
+
+The §7 figure of **42** base tables predates the `access_tokens` drop in
+`20260815101514_modern_auth_sessions` (HOR-76): 41 before HOR-9 is consistent with it.
