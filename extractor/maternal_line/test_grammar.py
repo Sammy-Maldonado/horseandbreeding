@@ -383,36 +383,83 @@ class ChainedMarkerOwnershipTest(unittest.TestCase):
                 self.assertLessEqual(a_end, b_start, node.text)
 
 
-class FusedMarkerTest(unittest.TestCase):
-    """Markers fused to adjacent text carry no word boundary and are not markers.
+class FusedMarkerRecoveryTest(unittest.TestCase):
+    """Corpus-verified fused-marker typos are recovered; nothing is fabricated.
 
-    The corpus contains typo shapes where a word runs straight into "dam of" or
-    a digit runs straight off "dam of" / "see above". The grammar must neither
-    recognise the fused occurrence as a marker nor fabricate descendants or
-    references from it — the fused text is preserved unparsed instead.
+    HOR-139: the grammar tolerates exactly the fused typo shapes proven by the
+    corpus check — a stray single "s" glued onto "dam of:", a digit glued
+    straight after "dam of", a "0" mistyped for the closing paren of
+    "(see above)" and a stuttered leading "s" inside "(ssee above)". The
+    recovered marker keeps its exact source text, and adjacent material that
+    the ordinary grammar cannot structure stays preserved unparsed.
     """
 
-    def test_digit_fused_after_dam_of_is_not_a_descendant_marker(self):
+    def test_digit_fused_after_dam_of_recovers_the_marker_only(self):
         item = parse_item("VELVET STORM: sj 1.35m dam of3 winners")
-        self.assertIsNone(item.descendant_marker)
+        self.assertIsNotNone(item.descendant_marker)
+        self.assertEqual(item.descendant_marker.raw, "dam of")
         self.assertEqual(item.descendants, [])
-        self.assertEqual([seg.text for seg in item.unparsed_segments], ["dam of3 winners"])
+        self.assertEqual([seg.text for seg in item.unparsed_segments], ["3 winners"])
         self.assertEqual(item.unparsed_segments[0].status, PRESERVED_UNPARSED)
 
-    def test_word_fused_before_dam_of_is_not_a_descendant_marker(self):
+    def test_stray_s_fused_before_dam_of_recovers_the_marker(self):
+        item = parse_item("BRONZE FERN: sj 1.30m sdam of: LILAC POND: sj 1.20m")
+        self.assertIsNotNone(item.descendant_marker)
+        self.assertEqual(item.descendant_marker.raw, "sdam of:")
+        self.assertEqual(len(item.descendants), 1)
+        self.assertEqual(item.descendants[0].subject.name, "LILAC POND")
+        self.assertEqual(item.unparsed_segments, [])
+
+    def test_zero_mistyped_for_closing_paren_recovers_see_above(self):
+        item = parse_item("AURORA LAKE: sj 1.45m (see above0")
+        self.assertIsNotNone(item.see_above)
+        self.assertEqual(item.see_above.raw, "(see above0")
+        self.assertEqual(item.results, [])
+        self.assertEqual(item.unparsed_segments, [])
+
+    def test_stuttered_s_inside_parens_recovers_see_above(self):
+        item = parse_item("AURORA LAKE: sj 1.45m (ssee above)")
+        self.assertIsNotNone(item.see_above)
+        self.assertEqual(item.see_above.raw, "(ssee above)")
+        self.assertIsNone(item.subject.rider)
+        self.assertEqual(item.unparsed_segments, [])
+
+
+class FusedMarkerRejectionTest(unittest.TestCase):
+    """Recovery is limited to the verified typo shapes — no substring matching.
+
+    Anything beyond the exact corpus-proven families must stay unrecognised and
+    preserved unparsed: a multi-letter word glued to the marker, a stray letter
+    other than "s", a digit glued to a bare "see above", or a paren-zero form
+    without a boundary after the "0".
+    """
+
+    def test_multi_letter_word_fused_before_dam_of_is_not_recovered(self):
         item = parse_item("BRONZE FERN: sj 1.30m gooddam of: LILAC POND: sj 1.20m")
         self.assertIsNone(item.descendant_marker)
         self.assertEqual(item.descendants, [])
         self.assertEqual([seg.text for seg in item.unparsed_segments],
                          ["gooddam of: LILAC POND: sj 1.20m"])
 
-    def test_digit_fused_after_see_above_is_not_a_reference(self):
+    def test_stray_letter_other_than_s_is_not_recovered(self):
+        item = parse_item("MISTY VALE: sj 1.30m adam of: NOBLE OAK: sj 1.20m")
+        self.assertIsNone(item.descendant_marker)
+        self.assertEqual(item.descendants, [])
+        self.assertEqual([seg.text for seg in item.unparsed_segments],
+                         ["adam of: NOBLE OAK: sj 1.20m"])
+
+    def test_digit_fused_after_bare_see_above_is_not_recovered(self):
         item = parse_item("AURORA LAKE: see above2018: pl 1st CSI2* Riverbend")
         self.assertIsNone(item.see_above)
         self.assertEqual([seg.text for seg in item.unparsed_segments], ["see above"])
         self.assertEqual(result_tuples(item), [(2018, "1st", "CSI2* Riverbend")])
 
-    def test_word_fused_before_see_above_is_not_a_reference(self):
+    def test_word_fused_before_bare_see_above_is_not_recovered(self):
         item = parse_item("AURORA LAKE: winnersee above")
         self.assertIsNone(item.see_above)
         self.assertEqual([seg.text for seg in item.unparsed_segments], ["winnersee above"])
+
+    def test_paren_zero_without_a_boundary_after_it_is_not_recovered(self):
+        item = parse_item("AURORA LAKE: sj 1.45m (see above01")
+        self.assertIsNone(item.see_above)
+        self.assertEqual([seg.text for seg in item.unparsed_segments], ["(see above01"])
