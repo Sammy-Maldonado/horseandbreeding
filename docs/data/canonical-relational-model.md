@@ -169,6 +169,6 @@ database, so CI never needs `hbold`.
 
 | Finding | Why not here | Tracked in |
 |---|---|---|
-| `storehorse.dam_id` is `Int?` in Prisma while the baseline DDL differs | a nullability change on the registry is not additive and touches the pedigree chain | separate Linear issue (see HOR-9 record) |
-| `storehorse_has_approvedby` (52) and `studbook_has_storehorse` (16,696) duplicate pairs block the composite primary keys | deduplication is a destructive, unauthorised decision (ADR-012) | separate Linear issue (see HOR-9 record) |
+| `storehorse.dam_id` is `Int?` in Prisma and nullable in the live database while the baseline DDL says `NOT NULL DEFAULT 0` | a nullability change on the registry is not additive and touches the pedigree chain | HOR-146 |
+| `storehorse_has_approvedby` (52) and `studbook_has_storehorse` (16,696) duplicate pairs block the composite primary keys | deduplication is a destructive, unauthorised decision (ADR-012) | HOR-147 |
 | Four relations towards `storehorse` cannot be enforced while it is MyISAM | ADR-012 wave, not an HOR-9 decision | ADR-012 deferral list, [hbold-baseline.md](hbold-baseline.md) §7.1 |
