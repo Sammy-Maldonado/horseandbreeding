@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.4.0...v1.4.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* **extractor:** recover corpus-verified fused maternal-line markers conservatively (HOR-139) ([21fd570](https://github.com/Sammy-Maldonado/horseandbreeding/commit/21fd5709174dac02f6aa75d01e81b3fc884a35a1))
+* **extractor:** recover corpus-verified fused maternal-line markers conservatively (HOR-139) ([8820cfe](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8820cfeeb359b6d2dce4aedfa937475fa233dbdd))
+
 ## [1.4.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.3.15...v1.4.0) (2026-08-28)
 
 
