@@ -105,12 +105,19 @@ search a horse  OR  upload the auction Excel
 - Validate consistency across documents and years.
 - Support bulk ingestion after single-document quality is proven.
 
-### 4.4 Identity resolution
+### 4.4 Identity resolution and reconciliation
 
-- Resolve extracted maternal-line horses to `storehorse.horse_id`.
-- Match by normalised name, then birth year, then sire/dam context.
-- Route ambiguous matches to review.
-- Never silently assign uncertain identities.
+- Resolve extracted horses to `storehorse.horse_id` using the Word family graph — name
+  together with dam, dam's dam, sire, birth year, sex, descendants and recurrence across
+  documents — never by name alone.
+- Classify every extracted horse as `EXISTING_HORSE`, `NEW_HORSE`, `AMBIGUOUS` or
+  `CONFLICT` with its evidence (ADR-018).
+- Reuse the existing `horse_id` for `EXISTING_HORSE`; allow a reliably identified source
+  horse to become a new `storehorse` row only through the safe source-derived creation
+  contract.
+- Route `AMBIGUOUS` and `CONFLICT` cases to review with their candidates and evidence.
+- Never silently assign uncertain identities, never create a horse from weak or
+  name-only evidence, never create a duplicate merely because matching failed.
 
 ### 4.5 Report generation
 
@@ -149,7 +156,9 @@ Unless an approved Linear issue and ADR explicitly change scope:
 - Replacement ORM.
 - Multi-tenant SaaS redesign.
 - Automatic resolution of ambiguous identities.
-- Automatic creation of new horse identities when resolution fails.
+- Unsafe blind creation of horse identities — from weak or name-only evidence, or merely
+  because matching failed. (Safe source-derived creation of a reliably identified Word
+  horse through the approved ingestion workflow is **in** scope — ADR-018.)
 - Destructive removal of legacy schema elements.
 - Production migration before local repeatability is proven.
 
@@ -215,17 +224,27 @@ Unsupported structures must be explicit, not silently discarded.
 
 ### FR-004 — Resolve horse identity
 
-Resolution cascade:
+Every extracted horse must be classified as exactly one of:
 
-1. Normalised exact name.
-2. Birth year.
-3. Sire name.
-4. Dam name.
-5. Human review.
+```txt
+EXISTING_HORSE   confident match → reuse storehorse.horse_id
+NEW_HORSE        reliably identified, absent from the registry → may be created in
+                 storehorse through the safe source-derived creation contract
+AMBIGUOUS        more than one plausible candidate, or evidence too weak → review item;
+                 never inserted, merged or assigned
+CONFLICT         the source contradicts the canonical state or another source → every
+                 assertion preserved; review item
+```
 
-Automatic assignment must meet the approved confidence rules.
+Evidence comes from the Word family graph — name, dam, dam's dam, sire, birth year, sex,
+descendants, cross-document recurrence. A single name candidate is never a match.
 
-Ambiguous matches must create a review item.
+The exact evidence rules are approved in the identity-resolution design and recorded in
+[writeup-grammar.md](../domain/writeup-grammar.md) §7. Automatic assignment must meet
+those approved rules; every decision retains its evidence (NFR-008).
+
+`AMBIGUOUS` and `CONFLICT` results must create a review item. A horse absent from the
+database is not in itself an error or a review case.
 
 ### FR-005 — Create canonical write-ups
 
@@ -364,9 +383,15 @@ canonical write-up decision in
   descendant by default; such denormalisation requires a measured performance case and
   its own approved design. Existing pedigree code is a reuse candidate, not verified
   behaviour — it must be audited before being relied upon.
-- **AI-003 — Word catalogues are ingestion sources:** The historical Word catalogues
-  under `data/private/catalogues/` are private ingestion/reference material. They are
-  never runtime dependencies for report serving, and no report request re-parses the
+- **AI-003 — Word catalogues are authoritative ingestion sources:** The historical Word
+  catalogues under `data/private/catalogues/` are private ingestion/reference material.
+  Marcus's completed catalogues are the authoritative ingestion evidence for the business
+  content they contain — pedigree as printed, maternal generations, descendants, birth
+  year, sex, colour, discipline, performance level, riders, countries, approvals,
+  studbooks, competition results, narrative and provenance (ADR-018). The current
+  `hbold` snapshot is a reconciliation target, not an authority over them; a stale or
+  missing database row never justifies discarding Word content. Catalogues are never
+  runtime dependencies for report serving, and no report request re-parses the
   historical corpus.
 - **AI-004 — Ingestion/serving separation:** The ingestion path (Word catalogue →
   extraction → identity resolution → canonical persistence + provenance) is
@@ -376,11 +401,30 @@ canonical write-up decision in
   canonically (ADR-005). The same mare/write-up/result information is not copied
   independently per descendant unless a future approved data model explicitly requires
   a snapshot or history representation. Provenance is preserved (BR-007).
-- **AI-006 — No silent identity creation:** When extracted source material cannot be
-  resolved to an existing horse, the outcomes are: confident match → downstream
-  processing continues; ambiguous → explicit review state; not found → explicit
-  unresolved/missing state. Automatically creating a new horse/dam is out of scope and
-  requires its own future approved design.
+- **AI-006 — No blind identity creation:** `storehorse` is the single canonical horse
+  registry (ADR-018). Identity resolution classifies every extracted horse as
+  `EXISTING_HORSE` (reuse `horse_id`), `NEW_HORSE` (a reliably identified source horse
+  may be created in `storehorse` only through the safe source-derived creation
+  contract, with provenance and run context), `AMBIGUOUS` (explicit review state; never
+  a blind insert, merge or assignment) or `CONFLICT` (every assertion preserved; review).
+  Horses are never invented from weak or name-only evidence and never duplicated because
+  matching failed. Distant descendants without resolvable identity may remain preserved
+  source facts with no `horse_id`.
+- **AI-009 — Source assertions and audited reconciliation:** Every canonical value derived
+  from a catalogue keeps its source assertion and provenance, and these survive later
+  canonical updates. Where the Word is clear and the identity confident, the Word value
+  wins over stale `hbold` data — never through an unaudited destructive overwrite: the
+  previous value, the source value, the decision and the run context are recorded.
+  Catalogues that disagree with each other are both preserved as a `CONFLICT` for
+  review; no newest/oldest/first/last rule decides automatically (ADR-018).
+- **AI-010 — Zero loss through canonical persistence:** The extractor's zero-silent-loss
+  accounting extends through canonicalisation and persistence. Every meaningful extracted
+  item ends in exactly one explicit state — `CANONICALISED_STRUCTURED`,
+  `CANONICALISED_RELATIONSHIP`, `PRESERVED_SOURCE_FACT`, `AMBIGUOUS`, `CONFLICT`,
+  `EXPLICITLY_UNSUPPORTED` or `ERROR` — and `UNACCOUNTED_AFTER_INGESTION = 0` is required
+  of every run. Competition results and other business facts are stored relationally
+  around the `horse_id` of the horse they belong to; deduplication of canonical facts
+  never deletes source occurrences (ADR-018).
 - **AI-007 — Content before presentation:** The automated report must first prove it
   contains the same valuable information Marcus currently assembles manually;
   presentation improvements come after. PDF/UI design consumes a structured report
@@ -459,13 +503,14 @@ AND a review item can be created
 
 These are product concepts, not permission to alter Prisma without an approved issue.
 
-- **Horse:** Existing pedigree entity represented by `storehorse`.
+- **Horse:** The canonical horse entity — a `storehorse` row identified by `horse_id`; the single canonical horse registry (ADR-018).
 - **CanonicalWriteUp:** Approved reusable text associated with a resolved mare.
 - **SourceDocument:** A Word or Excel input with provenance metadata.
 - **ExtractionRun:** One parser execution and its result summary.
 - **ExtractedEntry:** Raw/structured entry produced by the parser before final resolution.
-- **IdentityMatch:** Resolution result with confidence, evidence, candidates, and review state.
-- **CompetitionResult:** Structured competition information linked to a horse or write-up.
+- **SourceAssertion:** What one source states about one horse or relationship (raw segment, normalised value, provenance), kept independently of the canonical decision taken on it.
+- **IdentityMatch:** Resolution result — `EXISTING_HORSE`, `NEW_HORSE`, `AMBIGUOUS` or `CONFLICT` — with evidence, candidates, and review state.
+- **CompetitionResult:** Structured competition information linked to the `horse_id` of the horse that achieved it.
 - **ReviewItem:** A missing, ambiguous, or conflicting case requiring human action.
 - **Report:** Assembled pedigree and maternal-line content for one horse.
 - **AuctionBatch:** One Excel import and the reports/results generated from it.
@@ -511,7 +556,11 @@ The MVP is complete when:
 - the adopted Nuxt application remains the product base;
 - the local database and Prisma workflow are reproducible;
 - historical Word catalogues can be parsed with explicit reports;
-- identity resolution meets the approved threshold and routes ambiguity to review;
+- identity resolution classifies every extracted horse explicitly (`EXISTING_HORSE`,
+  `NEW_HORSE`, `AMBIGUOUS`, `CONFLICT`) under the approved evidence rules and routes
+  ambiguity and conflict to review;
+- ingestion accounts for every extracted item (`UNACCOUNTED_AFTER_INGESTION = 0`) and
+  preserves source assertions and provenance;
 - canonical write-ups are reused rather than duplicated;
 - conflicting sources are preserved and reviewed;
 - one horse report can be assembled automatically;
