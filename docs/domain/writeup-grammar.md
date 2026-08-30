@@ -448,12 +448,106 @@ Rules:
 - Invalid or implausible signals (for example an impossible birth year) are preserved as
   extracted, flagged, and treated as `UNKNOWN` for identity evidence — never corrected
   silently, never dropped.
-- The exact normalisation rules, evidence thresholds and the plausibility range are
-  approved in the identity-resolution design (HOR-14, HOR-144) and recorded in this
-  section once approved. Until then, no rule here is implementable as a threshold.
 
 Ambiguous matches are never auto-assigned — see BR-004 in
 [automation-mvp.md](../requirements/automation-mvp.md).
+
+### 7.1 Approved v1 rules (HOR-14)
+
+The resolver lives in `server/identity/` (pure modules, tests beside them). It reads the
+active registry once through `activeHorseFilter` (ADR-014), indexes it in memory, and
+never writes: `NEW_HORSE` is a creation proposal for the ingestion write path (HOR-13);
+`AMBIGUOUS` and `CONFLICT` are review material (HOR-142). Its input is a minimal source
+entity (name, birth year, sex, sire, dam, dam's dam, structural role, occurrence count,
+provenance), decoupled from DOCX parsing (HOR-12).
+
+**Name comparison key.** Trim, collapse internal whitespace runs, compare
+case-insensitively. Nothing else: accents are content, punctuation is content, studbook
+suffixes are content, tokens are never deleted or expanded, no fuzzy matching. The
+measured baseline showed whitespace and case folding to be safe and suffix stripping to
+create far more false collisions than it rescues. The typographic apostrophe (U+2019) and
+the ASCII apostrophe (U+0027) remain distinct in v1; folding them requires a read-only
+collision probe that has not yet been run.
+
+**Candidate generation.** Exact key equality against the active registry. A name only
+generates candidates; it never decides.
+
+**Signals.** Compared in this order: `DAM`, `MATERNAL_GRANDDAM`, `SIRE`, `BIRTH_YEAR`,
+`SEX`. Each is `MATCH`, `MISMATCH` or `UNKNOWN`. `UNKNOWN` means "no usable evidence on at
+least one side" and never rewards a candidate. Registered parents are reached through
+`dam_id` / `sire_id` (the maternal granddam is the dam's dam); `0`, `NULL`, a dangling id
+or an unnamed row is `UNKNOWN`. A source parent is evidence only when the extractor
+asserted the relation confidently; an ambiguous, unsupported or error relation is
+`UNKNOWN` with the reason `SOURCE_RELATION_AMBIGUOUS` attached, even when the names agree.
+
+**Birth year — interim screen.** Only an integer between 1900 and 2030 inclusive is
+usable; `0`, sentinels and anything outside the window are `UNKNOWN`. Two equal unusable
+values are not a match. This is a conservative usability filter, not the approved
+plausibility range, which HOR-144 still owns.
+
+**Sex.** A sex match never corroborates (it separates too little); a mismatch of two known
+values contradicts. The registry's sex column is not interpreted in v1 — its default
+coincides with a real sex code, so a stored value cannot be told from "never set" — and
+every candidate carries `UNKNOWN` sex until an approved mapping exists.
+
+**Corroboration and contradiction.** A corroboration is a `MATCH` on dam, maternal
+granddam, sire or birth year. A contradiction is a `MISMATCH` on any signal; a parent
+mismatch is reported as `TRUSTED_PARENT_MISMATCH`, a year or sex mismatch as
+`TRUSTED_SIGNAL_MISMATCH`.
+
+| Candidate classification | Corroborations | Contradictions |
+|---|---|---|
+| `SUPPORTED` | ≥ 1 | 0 |
+| `CONFLICTED_SUPPORTED` | ≥ 2, and more than the contradictions | ≥ 1 |
+| `MIXED` | ≥ 1 | ≥ 1, otherwise |
+| `NEUTRAL` | 0 | 0 |
+| `CONTRADICTED` | 0 | exactly 1 — rejected, not safely excluded |
+| `EXCLUDED` | 0 | ≥ 2 — safely excluded |
+
+**Outcome.** `SUPPORTED`, `CONFLICTED_SUPPORTED` and `MIXED` candidates compete.
+
+- Two or more competing candidates → `AMBIGUOUS` (`MULTIPLE_VIABLE_CANDIDATES`). No
+  tie-break ever selects among them — not lowest id, not first row, not most fields.
+- Exactly one competing candidate and it is `SUPPORTED` → `EXISTING_HORSE`.
+- Exactly one competing candidate and it is `CONFLICTED_SUPPORTED`: with no other
+  candidate at all → `EXISTING_HORSE` with a canonical data conflict per contradicted
+  signal (`DB_PEDIGREE_CONFLICT` — same horse, stale registry pedigree, never an identity
+  failure); with any `NEUTRAL` or `CONTRADICTED` namesake → `AMBIGUOUS`
+  (`MULTIPLE_VIABLE_CANDIDATES`).
+- Exactly one competing candidate and it is `MIXED` → `AMBIGUOUS`
+  (`INSUFFICIENT_CORROBORATION` plus the rejection reasons).
+- No competing candidate: two or more `NEUTRAL` / `CONTRADICTED` → `AMBIGUOUS`
+  (`MULTIPLE_VIABLE_CANDIDATES`); exactly one `NEUTRAL` → `AMBIGUOUS`
+  (`INSUFFICIENT_CORROBORATION`); exactly one `CONTRADICTED` → `AMBIGUOUS` with its
+  mismatch reason. A single contradiction rejects a candidate but never turns the entity
+  into a new horse.
+- No candidate, or every candidate `EXCLUDED`: a **well-established** entity →
+  `NEW_HORSE` (`NO_PLAUSIBLE_EXISTING_CANDIDATE`) with a creation proposal built only from
+  confidently asserted source facts; otherwise `AMBIGUOUS`
+  (`NO_PLAUSIBLE_EXISTING_CANDIDATE`, `INSUFFICIENT_SOURCE_ESTABLISHMENT`).
+- An entity without usable name text → `AMBIGUOUS` (`INSUFFICIENT_SOURCE_ESTABLISHMENT`),
+  no candidates.
+
+**Establishment.** An entity is well established when it has usable name text, is not a
+mere textual mention, and carries at least one anchor: a confidently asserted dam, a
+confidently asserted sire, a usable birth year, or structural recurrence (observed at
+least twice). Zero name candidates alone never make a new horse.
+
+**Word versus Word.** After per-entity resolution, entities that resolved to the same
+`horse_id` are compared: if two of them confidently assert different dams, maternal
+granddams, sires, usable birth years or known sexes, both become `CONFLICT`
+(`SOURCE_IDENTITY_CONFLICT`), each recording the other's source and provenance, and no
+`horse_id` is assigned. Compatible recurrence across documents resolves consistently to
+the same horse. De-duplicating several `NEW_HORSE` proposals for the same new horse within
+a batch belongs to the write path (HOR-13).
+
+**Determinism.** Same entities and same registry rows give the same results whatever the
+row load order or the entity input order; candidate lists are presented in `horse_id`
+order, which is presentation, never selection.
+
+**Still open.** The approved birth-year plausibility range (HOR-144); the apostrophe fold
+(pending the collision probe); interpreting the registry sex column; batch
+de-duplication of creation proposals (HOR-13).
 
 ---
 
