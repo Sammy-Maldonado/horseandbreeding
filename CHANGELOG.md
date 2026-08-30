@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.5.0...v1.6.0) (2026-08-30)
+
+
+### Features
+
+* **identity:** resolve source-family entities against storehorse (HOR-14) ([2776446](https://github.com/Sammy-Maldonado/horseandbreeding/commit/277644688e4d16c6c95c1996ffa3505e71128d92))
+* **identity:** resolve source-family entities against storehorse (HOR-14) ([72c2486](https://github.com/Sammy-Maldonado/horseandbreeding/commit/72c2486c1d5a08fbd1fb9ca43e8b205dc325e998))
+
 ## [1.5.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.4.1...v1.5.0) (2026-08-29)
 
 
