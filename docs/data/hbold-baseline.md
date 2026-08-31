@@ -400,19 +400,21 @@ Consequences for earlier sections:
 ### 7.1 Residual drift — deliberate, bounded, measured
 
 After the full migration chain, `prisma migrate diff` between the database and
-`prisma/schema.prisma` reports **exactly 23 statements**, all deferred with evidence
-(see ADR-012 and, for the HOR-9 additions, §7.2):
+`prisma/schema.prisma` reports **exactly 25 statements**, all deferred with evidence
+(see ADR-012 and, for the HOR-9 and HOR-142 additions, §7.2 and §7.3):
 
 | Deferral | Count | Blocker |
 |---|---|---|
 | Foreign keys touching MyISAM tables — declared before HOR-9 | 17 | MyISAM cannot enforce them; 2 would hard-fail (InnoDB child → MyISAM parent) |
 | Foreign keys from the HOR-9 InnoDB tables to `storehorse` | 4 | `canonical_writeup.horse_id`, `source_assertion.horse_id`, `source_assertion.related_horse_id`, `canonical_change_audit.horse_id` — InnoDB child → MyISAM parent hard-fails (errno 150); the application enforces them until `storehorse` moves to InnoDB in a later ADR-012 wave |
+| Foreign keys from the HOR-142 InnoDB tables to `storehorse` | 2 | `identity_review_case.decided_horse_id`, `identity_review_candidate.horse_id` — same errno 150 class; the application enforces them until the ADR-012 `storehorse` wave |
 | Composite primary keys | 2 | `storehorse_has_approvedby` (52 duplicate pairs), `studbook_has_storehorse` (16,696 duplicate pairs) — deduplication is an unauthorised destructive decision |
 
 The count was **20** until HOR-82 landed the `storehorse.height` widening (§3.3), which
-removed the one remaining capacity statement; **19** from HOR-82 until HOR-9; and **23**
-since HOR-9 declared four relations towards `storehorse` (§7.2). The categories above are
-structural and are not resolved by widening a column.
+removed the one remaining capacity statement; **19** from HOR-82 until HOR-9; **23**
+since HOR-9 declared four relations towards `storehorse` (§7.2); and **25** since HOR-142
+declared two more (§7.3). The categories above are structural and are not resolved by
+widening a column.
 
 Anything outside this list appearing in the residual diff is a defect, not an accepted
 drift.
@@ -440,3 +442,23 @@ declared `utf8mb4` explicitly inside the `latin1` table; Prisma reports no chars
 
 The §7 figure of **42** base tables predates the `access_tokens` drop in
 `20260815101514_modern_auth_sessions` (HOR-76): 41 before HOR-9 is consistent with it.
+
+### 7.3 HOR-142 — durable identity review persistence
+
+Measured 2026-08-31 on the local `hbold` before and after
+`20260831143000_hor142_identity_review_persistence` (model reference:
+[canonical-relational-model.md](canonical-relational-model.md) §3.4):
+
+| Item | Before | After |
+|---|---|---|
+| Base tables (`information_schema.tables`) | 46 | 48 |
+| Columns | 392 | 419 |
+| `_prisma_migrations` rows | 7 | 8 |
+| `storehorse` rows | 59,903 | 59,903 |
+| `competition_history` rows | 454 | 454 |
+| Rows deleted / tables dropped / columns dropped | — | 0 / none / none |
+
+New tables — `identity_review_case`, `identity_review_candidate` — are InnoDB,
+`utf8mb4_unicode_ci`, created empty, with two enforced foreign keys among InnoDB tables
+(case → `source_assertion`, candidate → case). The residual diff gained exactly the two
+deferred `storehorse` relations listed in §7.1 and nothing else.

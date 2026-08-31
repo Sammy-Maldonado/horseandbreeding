@@ -236,6 +236,8 @@ model storehorse {
   sourceAssertions        source_assertion[]               @relation("SourceAssertionHorse")
   relatedSourceAssertions source_assertion[]               @relation("SourceAssertionRelatedHorse")
   canonicalChangeAudits   canonical_change_audit[]
+  identityReviewDecisions identity_review_case[]           @relation("IdentityReviewDecidedHorse")
+  identityReviewCandidates identity_review_candidate[]     @relation("IdentityReviewCandidateHorse")
   @@unique([horse_id])
   @@index([dam_id], map: "fk_dam")
   @@index([sire_id], map: "fk_sire")
@@ -794,6 +796,7 @@ model source_assertion {
   writeup                 canonical_writeup?          @relation(fields: [writeup_id], references: [writeup_id], onDelete: Restrict)
   competitionHistory      competition_history?        @relation(fields: [competition_history_id], references: [competition_history_id], onDelete: Restrict)
   canonicalChangeAudits   canonical_change_audit[]
+  identityReviewCases     identity_review_case[]
 
   @@index([source_document_id, node_id])
   @@index([ingestion_run_id])
@@ -830,4 +833,90 @@ model canonical_change_audit {
   @@index([source_assertion_id])
   @@index([horse_id])
   @@index([target_kind, target_id])
+}
+
+/// HOR-142 (ADR-018 §5, §11). Outcomes that are review material — the other
+/// two resolver outcomes never create a case.
+enum identity_review_outcome {
+  AMBIGUOUS
+  CONFLICT
+}
+
+enum identity_review_state {
+  OPEN
+  DECIDED
+}
+
+/// The human decision on a review case. Only ASSIGNED_EXISTING_HORSE carries a
+/// horse reference; APPROVED_NEW_HORSE authorises the HOR-13 creation path
+/// without inserting anything here.
+enum identity_review_decision {
+  ASSIGNED_EXISTING_HORSE
+  APPROVED_NEW_HORSE
+  KEPT_TEXT_ONLY
+  REJECTED
+}
+
+/// Mirrors the HOR-14 resolver's candidate classification vocabulary.
+enum identity_candidate_classification {
+  SUPPORTED
+  CONFLICTED_SUPPORTED
+  MIXED
+  NEUTRAL
+  CONTRADICTED
+  EXCLUDED
+}
+
+/// Durable review case for one AMBIGUOUS / CONFLICT resolution (HOR-142).
+/// Anchored to the `source_assertion` evidence ledger — the raw Word text
+/// stays there; this row snapshots the decision-time resolution evidence.
+model identity_review_case {
+  identity_review_case_id   Int                        @id @default(autoincrement())
+  /// Deterministic idempotency key: sha256(assertion key + outcome + resolver contract version).
+  review_case_key           String                     @unique @db.Char(64)
+  source_assertion_id       Int
+  outcome                   identity_review_outcome
+  name_key                  String?                    @db.VarChar(255)
+  reason_codes              Json
+  source_conflicts          Json
+  establishment             Json
+  resolver_contract_version String                     @db.VarChar(31)
+  review_state              identity_review_state      @default(OPEN)
+  decision                  identity_review_decision?
+  /// Set only by an ASSIGNED_EXISTING_HORSE decision — a reference to the
+  /// current canonical horse, never a snapshot.
+  decided_horse_id          Int?
+  decided_by                String?                    @db.VarChar(100)
+  decided_at                DateTime?
+  decision_note             String?                    @db.VarChar(255)
+  created_at                DateTime                   @default(now())
+  updated_at                DateTime                   @updatedAt
+  sourceAssertion           source_assertion           @relation(fields: [source_assertion_id], references: [source_assertion_id], onDelete: Restrict)
+  decidedHorse              storehorse?                @relation("IdentityReviewDecidedHorse", fields: [decided_horse_id], references: [horse_id])
+  candidates                identity_review_candidate[]
+
+  @@index([source_assertion_id])
+  @@index([review_state])
+  @@index([outcome])
+  @@index([decided_horse_id])
+}
+
+/// Immutable decision-time snapshot of one evaluated candidate: which
+/// `storehorse.horse_id` was considered and exactly why it did not resolve.
+model identity_review_candidate {
+  identity_review_candidate_id Int                               @id @default(autoincrement())
+  identity_review_case_id      Int
+  horse_id                     Int
+  candidate_order              Int
+  candidate_name               String                            @db.VarChar(255)
+  classification               identity_candidate_classification
+  signals                      Json
+  corroborations               Json
+  contradictions               Json
+  rejection_reasons            Json
+  reviewCase                   identity_review_case              @relation(fields: [identity_review_case_id], references: [identity_review_case_id], onDelete: Restrict)
+  horse                        storehorse                        @relation("IdentityReviewCandidateHorse", fields: [horse_id], references: [horse_id])
+
+  @@unique([identity_review_case_id, candidate_order], map: "identity_review_candidate_case_order_key")
+  @@index([horse_id])
 }

@@ -1,6 +1,6 @@
 # Canonical Relational Model Around `storehorse`
 
-**Owner issue:** HOR-9 (US-011). **Governing decisions:**
+**Owner issues:** HOR-9 (US-011), HOR-142 (US-131). **Governing decisions:**
 [ADR-018](../adr/ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md)
 (single canonical registry, Word-authoritative ingestion, safe creation contract),
 [ADR-005](../adr/ADR-005-canonical-writeup-library.md) (one canonical write-up per mare),
@@ -84,7 +84,42 @@ and `canonical_change_audit.horse_id` are declared in Prisma for typed navigatio
 MyISAM (an InnoDB child → MyISAM parent constraint fails with errno 150). This is the same
 class as `competition_history.storehorse_id` and is recorded in the ADR-012 deferral list
 ([hbold-baseline.md](hbold-baseline.md) §7.1). The application enforces the links until a
-later ADR-012 wave converts `storehorse`.
+later ADR-012 wave converts `storehorse`. HOR-142 adds `identity_review_case.decided_horse_id`
+and `identity_review_candidate.horse_id` to the same deferred class.
+
+### 3.4 Identity review persistence (HOR-142)
+
+AMBIGUOUS and CONFLICT resolutions from the HOR-14 resolver become durable review cases
+anchored to the `source_assertion` evidence ledger.
+
+| Table | One row is | Key columns |
+|---|---|---|
+| `identity_review_case` | One durable review case for one `AMBIGUOUS` / `CONFLICT` resolution of one `source_assertion` | `review_case_key` UNIQUE (SHA-256 of `assertion_key` + outcome + resolver contract version — idempotent re-persistence), `source_assertion_id` (InnoDB FK, enforced), `outcome` `AMBIGUOUS \| CONFLICT`, decision-time snapshot (`name_key`, `reason_codes` JSON, `source_conflicts` JSON, `establishment` JSON, `resolver_contract_version`), lifecycle (`review_state` `OPEN \| DECIDED`, `decision` `ASSIGNED_EXISTING_HORSE \| APPROVED_NEW_HORSE \| KEPT_TEXT_ONLY \| REJECTED`, `decided_horse_id?`, `decided_by`, `decided_at`, `decision_note`) |
+| `identity_review_candidate` | One immutable decision-time snapshot of one evaluated `storehorse` candidate | `identity_review_case_id` (InnoDB FK, enforced), `horse_id` → `storehorse` (deferred), `candidate_order` (deterministic `horse_id` ascending, UNIQUE per case), `candidate_name`, `classification` (the six-value HOR-14 vocabulary), `signals` / `corroborations` / `contradictions` / `rejection_reasons` JSON |
+
+Distinctions the model enforces:
+
+- The case **snapshots resolution evidence**; the raw Word text stays in
+  `source_assertion.raw_text` and is never duplicated. `decided_horse_id` is a
+  **reference to the current canonical horse**; the candidate rows are **snapshots of the
+  evidence at resolution time** — deliberately different things.
+- Only `AMBIGUOUS` and `CONFLICT` persist review cases. `EXISTING_HORSE` and `NEW_HORSE`
+  never do, and `canonicalDataConflicts` on an `EXISTING_HORSE` alone never create one —
+  they are canonical-data material (`canonical_change_audit`), not identity-review
+  material.
+- Recording a decision updates decision columns only; the original evidence survives
+  every decision. Neither table writes `storehorse` — `ASSIGNED_EXISTING_HORSE`
+  references an existing `horse_id`, and `APPROVED_NEW_HORSE` authorises the HOR-13
+  creation path without inserting anything here.
+- Write-up conflicts (FR-005 / BR-005) are deliberately **not** represented by these
+  tables: they concern content on an already-resolved mare, not identity. They will be a
+  sibling model keyed to `canonical_writeup` when the write-up review workflow is built
+  (HOR-22 scope) — designed, not implemented here.
+
+Pure rule modules live under `server/review/` (`types.ts`, `keys.ts`, `mapReviewCase.ts`,
+`decision.ts`, `persistReviewCases.ts`) with tests beside them; none touches Prisma, Nitro
+or a database. `prisma/identity-review-model.test.ts` gates the schema and the migration
+text (additive, no second registry, deferred `storehorse` keys) without a database.
 
 ---
 
