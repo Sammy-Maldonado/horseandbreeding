@@ -453,9 +453,11 @@ describe("HOR-9 migration", () => {
     return readFileSync(join(MIGRATIONS_DIR, hor9[0], "migration.sql"), "utf8");
   }
 
-  it("ships exactly one migration, ordered after every applied migration", () => {
+  it("ships exactly one migration, ordered after every migration applied before it", () => {
     expect(hor9).toHaveLength(1);
-    expect(folders.at(-1)).toBe(hor9[0]);
+    // Later issues (HOR-142, ...) append after HOR-9; ordering is pinned to
+    // the last migration that predates the canonical model.
+    expect(hor9[0] > "20260819120000_storehorse_status_active_backfill").toBe(true);
   });
 
   it("documents the deferred storehorse foreign keys in its header", () => {
