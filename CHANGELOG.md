@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.6.0...v1.7.0) (2026-08-31)
+
+
+### Features
+
+* **review:** persist ambiguous and conflict resolutions as durable review cases (HOR-142) ([24894f4](https://github.com/Sammy-Maldonado/horseandbreeding/commit/24894f4c488160ed5aa701c0dc08de50f0d64815))
+* **review:** persist ambiguous and conflict resolutions as durable review cases (HOR-142) ([8f80e2d](https://github.com/Sammy-Maldonado/horseandbreeding/commit/8f80e2d8d88e2ec816cf801be14311b36980291b))
+
 ## [1.6.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.5.0...v1.6.0) (2026-08-30)
 
 
