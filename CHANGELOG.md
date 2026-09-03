@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.7.0...v1.7.1) (2026-09-03)
+
+
+### Bug Fixes
+
+* **identity:** fold typographic apostrophe in horse-name comparison key (HOR-152) ([7145b27](https://github.com/Sammy-Maldonado/horseandbreeding/commit/7145b27fa6374ed575416109d50993cbbd8cfe22))
+* **identity:** fold typographic apostrophe into ASCII in the horse-name comparison key (HOR-152) ([78bdfc8](https://github.com/Sammy-Maldonado/horseandbreeding/commit/78bdfc825b34cc5955dbd22941fb59d173af41ba))
+
 ## [1.7.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.6.0...v1.7.0) (2026-08-31)
 
 
