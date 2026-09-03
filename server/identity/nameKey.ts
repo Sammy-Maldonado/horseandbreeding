@@ -11,14 +11,21 @@
  * The database collation happens to be case- and accent-insensitive; that is
  * a storage property, not the identity contract. Equality is decided here.
  *
- * Known limitation (v1): the typographic apostrophe U+2019 and the ASCII
- * apostrophe U+0027 are distinct. Word emits U+2019; the registry mostly
- * holds ASCII. A read-only collision probe must approve the equivalence
- * before it is added — the local database was unavailable when HOR-14 was
- * implemented, so the key leaves both characters as printed.
+ * The comparison key also folds the typographic apostrophe U+2019 to the
+ * ASCII apostrophe U+0027 (HOR-152). Word emits U+2019; the registry mostly
+ * holds ASCII, so without the fold an existing row is never generated as a
+ * candidate and an established source horse becomes a false NEW_HORSE. The
+ * read-only probe measured the fold safe: 18 of 56,395 named active rows
+ * carry U+2019, folding merges 9 key pairs (0.03% of rows), and every merged
+ * pair resolves through the ordinary candidate rules — family evidence
+ * decides or the outcome is AMBIGUOUS; a fold never assigns identity by
+ * itself. Other single-quote lookalikes (U+2018, U+02BC, U+0060, U+00B4)
+ * measured at most one row each and stay as printed. Unicode normalisation
+ * is not applied: NFC was measured a no-op on every stored name.
  */
 
 const WHITESPACE_RUN = /\s+/g;
+const TYPOGRAPHIC_APOSTROPHE = /’/g;
 
 /** Display form: trimmed, single-spaced, otherwise exactly as printed. */
 export function normaliseHorseName(raw: string | null | undefined): string {
@@ -31,5 +38,8 @@ export function normaliseHorseName(raw: string | null | undefined): string {
 /** Comparison form; `null` when the name carries no usable text. */
 export function horseNameKey(raw: string | null | undefined): string | null {
   const normalised = normaliseHorseName(raw);
-  return normalised === "" ? null : normalised.toLowerCase();
+  if (normalised === "") {
+    return null;
+  }
+  return normalised.toLowerCase().replace(TYPOGRAPHIC_APOSTROPHE, "'");
 }
