@@ -462,12 +462,20 @@ entity (name, birth year, sex, sire, dam, dam's dam, structural role, occurrence
 provenance), decoupled from DOCX parsing (HOR-12).
 
 **Name comparison key.** Trim, collapse internal whitespace runs, compare
-case-insensitively. Nothing else: accents are content, punctuation is content, studbook
-suffixes are content, tokens are never deleted or expanded, no fuzzy matching. The
-measured baseline showed whitespace and case folding to be safe and suffix stripping to
-create far more false collisions than it rescues. The typographic apostrophe (U+2019) and
-the ASCII apostrophe (U+0027) remain distinct in v1; folding them requires a read-only
-collision probe that has not yet been run.
+case-insensitively, and fold the typographic apostrophe (U+2019) to the ASCII apostrophe
+(U+0027). Nothing else: accents are content, punctuation is content, studbook suffixes
+are content, tokens are never deleted or expanded, no fuzzy matching. The measured
+baseline showed whitespace and case folding to be safe and suffix stripping to create far
+more false collisions than it rescues. The apostrophe fold was approved by the HOR-152
+read-only collision probe (evidence in
+[hbold-baseline.md](../data/hbold-baseline.md)): Word emits U+2019 while the registry
+overwhelmingly stores ASCII, so without the fold an existing horse spelled typographically
+is never generated as a candidate and an established source horse becomes a false
+`NEW_HORSE` — a creation proposal no review queue intercepts. The fold broadens candidate
+retrieval only; it never assigns identity. Other single-quote lookalikes (U+2018, U+02BC,
+U+0060, U+00B4) measured at most one registry row each and remain distinct. Unicode
+normalisation is not applied: NFC was measured a no-op on every stored active name, so
+adopting it would change nothing and is left out.
 
 **Candidate generation.** Exact key equality against the active registry. A name only
 generates candidates; it never decides.
@@ -545,9 +553,9 @@ a batch belongs to the write path (HOR-13).
 row load order or the entity input order; candidate lists are presented in `horse_id`
 order, which is presentation, never selection.
 
-**Still open.** The approved birth-year plausibility range (HOR-144); the apostrophe fold
-(pending the collision probe); interpreting the registry sex column; batch
-de-duplication of creation proposals (HOR-13).
+**Still open.** The approved birth-year plausibility range (HOR-144); interpreting the
+registry sex column (HOR-150); batch de-duplication of creation proposals (HOR-13). The
+apostrophe fold closed under HOR-152.
 
 ---
 

@@ -46,6 +46,14 @@ describe("buildStorehorseIndex", () => {
     );
   });
 
+  it("buckets apostrophe-equivalent spellings together, still in horse_id order (HOR-152)", () => {
+    const ascii = row({ horseId: 70, name: "Keeper's Mare" });
+    const typographic = row({ horseId: 71, name: "Keeper’s Mare" });
+    const folded = buildStorehorseIndex([typographic, ascii]);
+
+    expect(folded.candidatesByNameKey("keeper's mare").map((r) => r.horseId)).toEqual([70, 71]);
+  });
+
   it("follows dam_id and sire_id, treating 0, null and dangling ids as unknown", () => {
     expect(index.damOf(MARE)).toEqual(DAM);
     expect(index.sireOf(MARE)).toEqual(SIRE);
