@@ -178,7 +178,9 @@ differing text is a `CONFLICT` assertion — the stored write-up is never overwr
 | `canonical_writeup.content_hash` | SHA-256 of the normalised text (`writeupContentHash`) | identical-after-normalisation ⇒ reuse; different ⇒ conflict |
 
 Normalisation is formatting-only (NFC, line endings, whitespace runs); case, words and
-punctuation are content.
+punctuation are content. The full write-boundary normalisation contract — source vs
+display vs comparison representations, per-field classes, the shared server module —
+is [canonical-write-normalisation.md](canonical-write-normalisation.md) (HOR-154).
 
 ---
 
