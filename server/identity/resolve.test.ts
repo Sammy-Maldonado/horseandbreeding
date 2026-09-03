@@ -59,6 +59,14 @@ const REGISTRY: StorehorseRow[] = [
   row({ horseId: 171, name: "Shadow Mare" }),
   row({ horseId: 270, name: "Shadow Wrong Dam" }),
   row({ horseId: 370, name: "Shadow Sire" }),
+  // ASCII-apostrophe rows reachable from typographic spellings (HOR-152).
+  row({ horseId: 180, name: "Keeper's Mare", birthYear: 2004, damId: 280 }),
+  row({ horseId: 280, name: "Keeper Dam" }),
+  row({ horseId: 185, name: "Equiv Filly", damId: 285 }),
+  row({ horseId: 285, name: "Mother's Pride" }),
+  // Namesakes that only meet once apostrophes are folded.
+  row({ horseId: 190, name: "Pair's Mare" }),
+  row({ horseId: 191, name: "Pair’s Mare" }),
 ];
 const index = buildStorehorseIndex(REGISTRY);
 
@@ -346,6 +354,67 @@ describe("resolveSourceEntity — irreducible ambiguity", () => {
       expect(reversed.find((r) => r.sourceId === result.sourceId)).toEqual(result);
     }
     expect(resolveSourceEntity(entities[0], index)).toEqual(resolveSourceEntity(entities[0], index));
+  });
+});
+
+describe("resolveSourceEntity — safe apostrophe equivalence (HOR-152)", () => {
+  it("a typographic spelling generates the ASCII-spelled registry row as a candidate", () => {
+    const result = resolveSourceEntity(entity({ name: "Keeper’s Mare" }), index);
+    expect(result.nameKey).toBe("keeper's mare");
+    expect(result.candidates.map((c) => c.horseId)).toEqual([180]);
+  });
+
+  it("equivalence alone never assigns: an established entity stays AMBIGUOUS, never a false NEW_HORSE", () => {
+    const result = resolveSourceEntity(entity({ name: "Keeper’s Mare", occurrenceCount: 2 }), index);
+    expect(result.establishment.wellEstablished).toBe(true);
+    expect(result).toMatchObject({
+      outcome: "AMBIGUOUS",
+      horseId: null,
+      reasonCodes: ["INSUFFICIENT_CORROBORATION"],
+      creationProposal: null,
+    });
+  });
+
+  it("an equivalent candidate with a matching reliable dam resolves EXISTING_HORSE under the standard rules", () => {
+    const result = resolveSourceEntity(entity({ name: "Keeper’s Mare", dam: confident("Keeper Dam") }), index);
+    expect(result).toMatchObject({ outcome: "EXISTING_HORSE", horseId: 180 });
+    expect(result.candidates[0]).toMatchObject({ classification: "SUPPORTED", corroborations: ["DAM"] });
+  });
+
+  it("apostrophe equivalence also applies to parent-name signals", () => {
+    const result = resolveSourceEntity(entity({ name: "Equiv Filly", dam: confident("Mother’s Pride") }), index);
+    expect(result).toMatchObject({ outcome: "EXISTING_HORSE", horseId: 185 });
+    expect(result.candidates[0].signals[0]).toMatchObject({ signal: "DAM", state: "MATCH" });
+  });
+
+  it("several equivalent-name candidates stay AMBIGUOUS with no tie-break, in horse_id order", () => {
+    const result = resolveSourceEntity(entity({ name: "Pair’s Mare", dam: confident("Whoever") }), index);
+    expect(result).toMatchObject({
+      outcome: "AMBIGUOUS",
+      horseId: null,
+      reasonCodes: ["MULTIPLE_VIABLE_CANDIDATES"],
+    });
+    expect(result.candidates.map((c) => c.horseId)).toEqual([190, 191]);
+  });
+
+  it("an equivalent candidate with a trusted contradiction follows the standard classification", () => {
+    const result = resolveSourceEntity(entity({ name: "Keeper’s Mare", dam: confident("Another Dam") }), index);
+    expect(result).toMatchObject({
+      outcome: "AMBIGUOUS",
+      horseId: null,
+      reasonCodes: ["TRUSTED_PARENT_MISMATCH"],
+      creationProposal: null,
+    });
+    expect(result.candidates[0].classification).toBe("CONTRADICTED");
+  });
+
+  it("a genuinely new typographically spelled horse still proposes creation, name preserved as printed", () => {
+    const result = resolveSourceEntity(
+      entity({ name: "Nobody’s Filly", dam: confident("Some Dam"), birthYear: 2015 }),
+      index,
+    );
+    expect(result.outcome).toBe("NEW_HORSE");
+    expect(result.creationProposal).toMatchObject({ name: "Nobody’s Filly" });
   });
 });
 
