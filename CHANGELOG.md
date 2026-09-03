@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.7.1...v1.8.0) (2026-09-03)
+
+
+### Features
+
+* **canonical:** define shared write-normalisation boundary for canonical horse data (HOR-154) ([1fafc94](https://github.com/Sammy-Maldonado/horseandbreeding/commit/1fafc943a3999a81054562c2f39ee278ebacb896))
+* **canonical:** shared write-normalisation boundary for canonical horse data (HOR-154) ([2563911](https://github.com/Sammy-Maldonado/horseandbreeding/commit/256391144a35625a52677a4b47e82a86f8118066))
+
 ## [1.7.1](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.7.0...v1.7.1) (2026-09-03)
 
 
