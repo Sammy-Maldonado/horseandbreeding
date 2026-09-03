@@ -462,3 +462,37 @@ New tables — `identity_review_case`, `identity_review_candidate` — are InnoD
 `utf8mb4_unicode_ci`, created empty, with two enforced foreign keys among InnoDB tables
 (case → `source_assertion`, candidate → case). The residual diff gained exactly the two
 deferred `storehorse` relations listed in §7.1 and nothing else.
+
+---
+
+## 8. HOR-152 — horse-name apostrophe collision probe (read-only)
+
+Measured 2026-09-03 on the local `hbold` (MariaDB 12.3, `hb-mysql`), in a session set to
+`READ ONLY`, with `SELECT` statements only. No schema change, no data change. The probe
+replicated the exact `horseNameKey` semantics of `server/identity/nameKey.ts` (trim,
+collapse whitespace runs, lowercase) over the active population
+(`status = 1`, [ADR-014](../adr/ADR-014-storehorse-status-backfill-and-probe-retirement.md)).
+Aggregates only — no horse names were extracted or reported.
+
+| Item | Value |
+|---|---|
+| `storehorse` rows / active rows | 59,903 / 59,903 |
+| Named active rows | 56,395 |
+| Rows containing ASCII apostrophe U+0027 | 1,260 |
+| Rows containing typographic apostrophe U+2019 | 18 |
+| Rows containing U+2018 / U+0060 / U+00B4 | 1 each |
+| Rows containing U+02BC / U+2032 / U+FF07 / U+201B | 0 |
+| Rows whose name or key changes under Unicode NFC | 0 — NFC is a no-op |
+| Distinct name keys before / after U+2019→U+0027 fold | 54,188 / 54,179 |
+| Collision groups before / after the fold | 1,064 / 1,073 |
+| New collision groups introduced by the fold | 9 — all of size 2 (18 rows) |
+| Merged groups separable by family evidence (dam / sire / usable birth year) | 3 |
+| Merged groups with no separating evidence | 6 — plausibly the same horse stored twice; pre-existing `hbold` duplicates, not created by the fold |
+
+Consequence: folding U+2019 to U+0027 in the comparison key was approved for candidate
+generation only — 9 of the 18 typographic keys land on an existing ASCII key, and every
+merged pair resolves through the ordinary HOR-14 candidate rules (family evidence decides
+or the outcome is `AMBIGUOUS`; a name key never assigns identity). The other lookalikes
+measured at most one row each and remain distinct. The policy record lives in
+[writeup-grammar.md](../domain/writeup-grammar.md) §7.1; the implementation in
+`server/identity/nameKey.ts`.
