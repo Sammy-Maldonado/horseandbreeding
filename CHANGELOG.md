@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.8.0...v1.9.0) (2026-09-07)
+
+
+### Features
+
+* **HOR-156:** convert storehorse to InnoDB for the HOR-13 canonical write boundary ([99c7aa7](https://github.com/Sammy-Maldonado/horseandbreeding/commit/99c7aa76182288563e9eafb4e3ddf31c2a042e8d))
+* **HOR-156:** convert storehorse to InnoDB for the HOR-13 canonical write boundary ([850410c](https://github.com/Sammy-Maldonado/horseandbreeding/commit/850410c3bb910bcfd0433baec386691453b4b6a8))
+
 ## [1.8.0](https://github.com/Sammy-Maldonado/horseandbreeding/compare/v1.7.1...v1.8.0) (2026-09-03)
 
 
