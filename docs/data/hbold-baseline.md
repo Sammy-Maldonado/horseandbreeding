@@ -384,7 +384,7 @@ Measured state of the reconciled `hbold`:
 | Base tables | **42** — 30 legacy + 11 code-only models + `_prisma_migrations` |
 | `users` | InnoDB, 661 rows (ids 1–728), content fingerprint identical before/after |
 | `users.password` | `varchar(100)` — via versioned migration; the HOR-74 patch `db/patches/001` is **no longer required after a migrated rebuild** (it remains required for a bare legacy restore that is not migrated) |
-| `storehorse` | 59,903 rows; MyISAM, `latin1`; `height` reconciled to `varchar(12)` under HOR-82 (§3.3), content fingerprint identical before/after |
+| `storehorse` | 59,903 rows; MyISAM, `latin1` (**InnoDB since 2026-09-07, HOR-156 — §9**; charset unchanged); `height` reconciled to `varchar(12)` under HOR-82 (§3.3), content fingerprint identical before/after |
 | `storehorse.status` | `INTEGER NOT NULL DEFAULT 1` — HOR-79 added it as `INTEGER NULL` with no backfill (all 59,903 legacy rows `NULL`, emptying every `status = 1` query); HOR-94's migration `20260819120000_storehorse_status_active_backfill` backfilled `NULL → 1` and removed nullability. Semantics: `1` active, `-1` marketplace listing ([ADR-014](../adr/ADR-014-storehorse-status-backfill-and-probe-retirement.md)) |
 | The eleven code-only models (§3.5) | **All created** — InnoDB, `utf8mb4`, with 10 enforced foreign keys |
 
@@ -415,6 +415,14 @@ removed the one remaining capacity statement; **19** from HOR-82 until HOR-9; **
 since HOR-9 declared four relations towards `storehorse` (§7.2); and **25** since HOR-142
 declared two more (§7.3). The categories above are structural and are not resolved by
 widening a column.
+
+**Still 25 after HOR-156** (§9, 2026-09-07). Converting `storehorse` to InnoDB removed
+the errno 150 hard-fail from the six InnoDB → `storehorse` relations in the second and
+third rows, and `competition_history.storehorse_id` now points at an InnoDB parent as
+well — but none of those foreign keys was created. Activation stays a separate,
+authorised decision because `sire_id`/`dam_id` still carry `0` / `-1` sentinels and
+dangling references (§9), and the junction tables in the fourth row are still MyISAM.
+The wave changed the *blocker* column of this table, not the *count*.
 
 Anything outside this list appearing in the residual diff is a defect, not an accepted
 drift.
@@ -496,3 +504,102 @@ or the outcome is `AMBIGUOUS`; a name key never assigns identity). The other loo
 measured at most one row each and remain distinct. The policy record lives in
 [writeup-grammar.md](../domain/writeup-grammar.md) §7.1; the implementation in
 `server/identity/nameKey.ts`.
+
+---
+
+## 9. HOR-156 — `storehorse` engine wave (MyISAM → InnoDB)
+
+Applied 2026-09-07 to the local `hbold` (MariaDB 12.3.2, `hb-mysql`) by
+`20260907125000_storehorse_engine_innodb`, the second engine wave under
+[ADR-012](../adr/ADR-012-prisma-migrate-baseline-and-staged-innodb-modernisation.md)
+(the first was the HOR-79 `users` wave). One executable statement:
+`ALTER TABLE storehorse ENGINE = InnoDB;`. Motivation: HOR-13 Step F writes
+`storehorse` inside the same `$transaction` as `source_assertion`,
+`canonical_change_audit` and the identity-review tables, which MyISAM cannot roll back
+([ADR-018](../adr/ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md)).
+
+Procedure: full logical dump of `hbold` (MyISAM-consistent, kept outside the repository,
+SHA-256 recorded in Linear HOR-156) → restore into the disposable database
+`hb_engine_probe` and prove parity with the same invariant matrix → apply the tracked
+migration to the disposable copy with `prisma migrate deploy` → transaction probes on the
+disposable copy only → write freeze on `hbold` → `prisma migrate deploy` on `hbold` →
+post-migration matrix. The disposable database was dropped afterwards. The 10.11
+rollback container, its volume and the dump were not touched.
+
+### 9.1 `storehorse` invariant matrix — `hbold` before and after
+
+| Item | Before | After |
+|---|---|---|
+| Engine / row format | MyISAM / Dynamic | **InnoDB / Dynamic** |
+| Charset / collation | `latin1` / `latin1_swedish_ci` | unchanged |
+| Rows (`COUNT(*)`) / distinct `horse_id` | 59,903 / 59,903 | 59,903 / 59,903 |
+| `horse_id` min / max | 1,001 / 62,700 | 1,001 / 62,700 |
+| `AUTO_INCREMENT` | 62,701 | 62,701 |
+| Columns / column-definition hash | 37 / equal | 37 / equal |
+| Indexes (PK, `storehorse_horse_id_key`, `fk_sire`, `fk_dam`, `fk_storehorse_sexe1`) | 5 / equal | 5 / equal |
+| `CHECKSUM TABLE storehorse EXTENDED` | 2138439756 | 2138439756 |
+| Content fingerprint, 34 columns (Linear preflight formula) | 1937998522 | 1937998522 |
+| Content fingerprint, all 37 columns | 2790020772 | 2790020772 |
+| Ordered identity MD5, full length (see 9.4) | `6be76ca90b29290eac49f28053398942` | identical |
+| `sire_id = 0` / `dam_id = 0` | 14,062 / 14,432 | unchanged |
+| `sire_id = -1` / `dam_id = -1` | 12 / 2,274 | unchanged |
+| Dangling `sire_id` > 0 rows (distinct ids) | 217 (208) | unchanged |
+| Dangling `dam_id` > 0 rows (distinct ids) | 5 (4) | unchanged |
+| `status = 1` / `birthyear = 0` / empty name | 59,903 / 20,607 / 3,508 | unchanged |
+| Synthetic probe rows in `storehorse` / `canonical_change_audit` | 0 / 0 | 0 / 0 |
+
+`information_schema.TABLES.TABLE_ROWS` is an **estimate** on InnoDB (it reported
+59,067–59,094 for 59,903 real rows); row-count invariants use `COUNT(*)`.
+
+### 9.2 Database-level matrix
+
+| Item | Before | After |
+|---|---|---|
+| Base tables | 48 | 48 |
+| Columns | 419 | 419 |
+| Engine inventory | 25 InnoDB / 23 MyISAM | **26 InnoDB / 22 MyISAM** |
+| Engine-inventory hash excluding `storehorse` | equal | equal — no other table changed engine |
+| Physical foreign keys (`REFERENTIAL_CONSTRAINTS`) | 20 | 20 |
+| Foreign keys touching `storehorse` (either side) | 0 | 0 |
+| `_prisma_migrations` rows | 9 | 10 |
+| Junction tables (rows / `CHECKSUM … EXTENDED`) | `storehorse_has_approvedby` 1,146 · `studbook_has_storehorse` 62,322 · `storehorse_has_diciplinevalues` 13,300 | unchanged, checksums equal |
+| Rows deleted / tables dropped / columns dropped | — | 0 / none / none |
+
+Remaining MyISAM tables (22): `breeder`, `comments`, `counties`, `countries`, `events`,
+`forum_answer`, `forum_question`, `gallery`, `horse_class`, `horse_details`,
+`marcustest`, `photos`, `storehorse_has_approvedby`, `storehorse_has_diciplinevalues`,
+`storehorse_has_media`, `storehorse_new`, `studbook_has_storehorse`, `tbl_color`,
+`tbl_price`, `userlog`, `users_has_storehorse`, `videos`. The three junction tables
+around `storehorse` are the candidates for the next engine wave, once HOR-13 writes
+junction links and the HOR-147 duplicate-pair decision exists.
+
+### 9.3 Transaction probes (disposable database only, synthetic rows only)
+
+Run on `hb_engine_probe` after its `storehorse` was InnoDB; no synthetic row was ever
+written to `hbold`.
+
+| Probe | Result |
+|---|---|
+| SQL `START TRANSACTION` → `INSERT storehorse` + `INSERT canonical_change_audit` → `ROLLBACK` | 0 rows in each table |
+| Same statements with `COMMIT` (control), then removed in a controlled transaction | 1 row in each table, then 0 |
+| Prisma `$transaction` creating both rows, then throwing | transaction rejected with the thrown error; 0 rows in each table; total row counts unchanged |
+
+`AUTO_INCREMENT` on the disposable copy advanced from 62,701 to 62,704 across the three
+probes: InnoDB reserves the id even when the insert is rolled back. This is expected
+InnoDB behaviour and a documented, acceptable consequence for Step F (gaps in
+`horse_id` after a failed unit are normal). On `hbold` it stayed 62,701.
+
+### 9.4 Corrections to earlier measurements
+
+- The Linear HOR-156 preflight "ordered identity MD5" `a43faeeb71205f9a670c2d63dc6bc9f1`
+  was computed with the default `group_concat_max_len` (1,048,576) and silently covered
+  only the first ~27,400 rows (MariaDB warning 1260). With the limit raised the full hash
+  over all 59,903 rows is `6be76ca90b29290eac49f28053398942` (2,247,584 characters),
+  identical on `hbold` and on the restored copy before and after the conversion. The
+  full-length value is the reference from now on.
+- The preflight "37-column" content fingerprint `1937998522` is a 34-column formula
+  (it omits `ad_title`, `age`, `currency`). Both formulas are kept in the matrix; the
+  true 37-column value is `2790020772`.
+- The preflight dangling counts (229 sire rows / 2,279 dam rows) counted the `-1`
+  sentinel as dangling. Counting only `sire_id`/`dam_id` `> 0` gives 217 / 5 rows; the
+  sentinel rows are listed separately above. No data changed.

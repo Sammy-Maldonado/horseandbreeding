@@ -1,0 +1,30 @@
+-- HOR-156: Convert `storehorse` from MyISAM to InnoDB (ADR-012, ADR-018).
+-- This is the ONLY engine conversion in this wave. `storehorse` is the single
+-- canonical horse registry, and HOR-13 Step F writes it inside the same
+-- transaction as `source_assertion`, `canonical_change_audit` and the
+-- identity-review tables, which are already InnoDB. MyISAM ignores ROLLBACK,
+-- so a failed canonical write could leave a committed `storehorse` row next
+-- to rolled-back InnoDB rows: the partial canonical state ADR-018 forbids.
+-- The engine change is the precondition for that atomic write set.
+--
+-- Deliberately NOT part of this migration (each remains a separate decision):
+--   * Every other MyISAM table, including the junction tables
+--     `storehorse_has_approvedby`, `studbook_has_storehorse` and
+--     `storehorse_has_diciplinevalues` — later waves with their own gates
+--     (the first two also carry duplicate-pair debt, HOR-147).
+--   * Physical FOREIGN KEY constraints towards `storehorse`
+--     (`competition_history`, `canonical_writeup`, `source_assertion` x2,
+--     `canonical_change_audit`, `identity_review_case`,
+--     `identity_review_candidate`). The ADR-012 deferral list is unchanged:
+--     nothing is activated here — `sire_id`/`dam_id` still carry 0 / -1
+--     sentinels and dangling references (pedigree debt, HOR-144/HOR-150).
+--   * The redundant UNIQUE index `storehorse_horse_id_key`, the `dam_id`
+--     nullability drift (HOR-146), column definitions, defaults and comments.
+-- Charset/collation are deliberately untouched (engine wave and charset wave
+-- are never combined): the table stays latin1 / latin1_swedish_ci.
+-- Data fidelity is proven procedurally, not declared: row count, id range,
+-- AUTO_INCREMENT, column and index definitions, CHECKSUM TABLE EXTENDED, a
+-- content fingerprint and an ordered identity hash are captured before and
+-- after — first on a restored disposable copy, then on the real database —
+-- in the migration evidence (Linear HOR-156, docs/data/hbold-baseline.md).
+ALTER TABLE `storehorse` ENGINE = InnoDB;
