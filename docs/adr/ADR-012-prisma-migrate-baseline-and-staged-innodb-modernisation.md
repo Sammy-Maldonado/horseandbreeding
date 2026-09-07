@@ -139,13 +139,31 @@ its own backup and review gates. Deferral loses nothing.
   `competition_history.storehorse_id`. The residual diff is therefore 23 statements. The
   decision is unchanged; the measured list lives in
   [hbold-baseline.md](../data/hbold-baseline.md) §7.1–§7.2.
+- **2026-09-07, HOR-156.** Second engine wave: `storehorse` moved from MyISAM to InnoDB
+  through the single-statement migration
+  `20260907125000_storehorse_engine_innodb` (`ALTER TABLE storehorse ENGINE = InnoDB;`),
+  so that the HOR-13 Step F write set (`storehorse` + `source_assertion` +
+  `canonical_change_audit` + identity-review state) commits or rolls back as one unit
+  ([ADR-018](ADR-018-storehorse-canonical-registry-and-word-authoritative-ingestion.md)).
+  Same shape as the HOR-79 `users` wave: engine only — no charset or collation change,
+  no index change, no column change, no data cleanup, no foreign key created. The
+  deferral list is **unchanged in content**: the six InnoDB → `storehorse` relations
+  (HOR-9 and HOR-142) no longer hard-fail on errno 150, but activating them remains a
+  separate decision gated by the `sire_id`/`dam_id` sentinel and dangling-reference
+  debt, so the residual diff stays at 25 statements. The junction tables
+  `storehorse_has_approvedby`, `studbook_has_storehorse` and
+  `storehorse_has_diciplinevalues` stay MyISAM until a later wave (the first two also
+  carry the duplicate-pair debt). Rollback for the wave is the verified pre-migration
+  dump, never an SQL `ROLLBACK` (DDL commits implicitly). Evidence and the updated
+  engine inventory live in [hbold-baseline.md](../data/hbold-baseline.md) §9.
 
 ---
 
 ## Review Triggers
 
 - A later wave converts more tables to InnoDB or migrates charsets — extend or
-  supersede this ADR's deferral list.
+  supersede this ADR's deferral list. *Exercised 2026-09-07 by HOR-156 (`storehorse`
+  engine wave): the deferral list was reviewed and kept as is — see the amendment note.*
 - HOR-82 lands the `height` widening.
 - Duplicate pairs in `storehorse_has_approvedby` / `studbook_has_storehorse` are
   resolved by an authorised cleanup, unblocking their composite primary keys.
