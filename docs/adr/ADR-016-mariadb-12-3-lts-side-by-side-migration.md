@@ -177,7 +177,12 @@ modernisation mandate.
 - `@prisma/adapter-mariadb` or the `mariadb` driver declares a MariaDB server version
   constraint.
 - A MyISAM→InnoDB modernisation wave (ADR-012) lands and revisits engine-dependent
-  behaviour on 12.3.
+  behaviour on 12.3. *First exercised 2026-09-07 by HOR-156 (`storehorse` → InnoDB on
+  12.3.2): the `ALTER TABLE … ENGINE = InnoDB` completed in seconds with every
+  invariant equal, and the pre-migration logical dump followed the backup contract of
+  this ADR. The preserved 10.11 container and its volume were not touched. No
+  12.3-specific behaviour change was observed; the trigger stays open for the next
+  wave.*
 - The retention decision for the preserved 10.11 environment is taken.
 - A production hosting decision selects a managed database whose line differs from
   the local one.
